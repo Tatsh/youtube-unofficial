@@ -40,7 +40,7 @@ class YouTube(object):
 
     _sess = None
     _cj = None
-    _log = logging.getLogger('youtube')
+    _log = logging.getLogger('youtube-unofficial')
     _logged_in = False
 
     def __init__(self,
@@ -66,6 +66,8 @@ class YouTube(object):
 
     def _auth(self):
         if not self.username:
+            self._log.debug('Reading netrc at {}'.format(self.netrc_file))
+
             try:
                 (username, _, password) = netrc(netrc_file).authenticators(
                     self._NETRC_MACHINE)
@@ -74,10 +76,15 @@ class YouTube(object):
 
             self.username = username
             self.password = password
+        else:
+            self._log.debug('Username and password not from netrc')
 
         return (self.username, self.password,)
 
     def _init_cookiejar(self, path, cls=MozillaCookieJar):
+        self._log.debug('Initialise cookie jar ({}) at {}'.format(
+            cls.__name__, path))
+
         try:
             with open(path):
                 pass
@@ -90,9 +97,10 @@ class YouTube(object):
             try:
                 self._cj.load()
             except CookieJarLoadError:
-                pass
+                self._log.debug('File {} for cookies does not yet '
+                                'exist'.format(path))
 
-    def _stdin_tfa_code_callback():
+    def _stdin_tfa_code_callback(self):
         x = input('2FA code: ')
         return x.strip()
 
@@ -104,14 +112,21 @@ class YouTube(object):
 
         return r.content.decode('utf-8').strip()
 
+    def _download_page_soup(self, *args, **kwargs):
+        content = self._download_page(*args, **kwargs)
+        parser = kwargs.pop('parser', 'html5lib')
+        return Soup(content, parser)
+
     def login(self, tfa_code_callback=None):
         """This is heavily based on youtube-dl's code."""
         if not tfa_code_callback:
+            self._log.debug('Using default two-factor callback')
             tfa_code_callback = self._stdin_tfa_code_callback
 
         # Check if already logged in with cookies
         content = self._download_page('https://www.youtube.com/')
         if 'signin-container' not in content:
+            self._log.debug('Already logged in via cookies')
             self._logged_in = True
 
         if self._logged_in:
@@ -119,7 +134,7 @@ class YouTube(object):
 
         username, password = self._auth()
 
-        login_page = _download_page(self._LOGIN_URL)
+        login_page = self._download_page(self._LOGIN_URL)
         if not login_page:
             raise AuthenticationError('Failed to load login page')
 
@@ -187,7 +202,8 @@ class YouTube(object):
                                               data=tfa_form_strs,
                                               method='post')
             if not tfa_results:
-                return False
+                raise TwoFactorError('Unable to load results after POST of '
+                                     'two-factor data')
 
             if re.search(r'(?i)<form[^>]* id="challenge"', tfa_results):
                 raise TwoFactorError('Two-factor code expired or invalid '
@@ -208,58 +224,63 @@ class YouTube(object):
             raise AuthenticationError('unable to log in: bad username or '
                                       'password')
 
-    def _find_post_headers(self, content):
-        # These values are retrieved from yt.setConfig() calls
-        headers = {
-            # INNERTUBE_CONTEXT_CLIENT_VERSION
-            'X-YouTube-Client-Version': '1.20160622',
-            # PAGE_BUILD_LABEL
-            'X-YouTube-Page-Label': 'youtube_20160622_RC1',
-            # XSRF_TOKEN
-            'X-Youtube-Identity-Token': '??',
-            # PAGE_CL
-            'X-YouTube-Page-CL': '125557905',
-            # VARIANTS_CHECKSUM
-            'X-YouTube-Variants-Checksum': '3a2c42bceff5b0797002a8c3bf9eb7dd',
-        }
+        self._logged_in = True
+
+    def _find_post_headers(self, soup):
+        # Retrieved by regex'ing the JS
+        headers = {}
         mapping = {
             'INNERTUBE_CONTEXT_CLIENT_VERSION': 'X-YouTube-Client-Version',
             'PAGE_BUILD_LABEL': 'X-YouTube-Page-Label',
             # also set data['session_token']
+            # NOTE It seems only X-Youtube-Identity-Token is required
             'XSRF_TOKEN': 'X-Youtube-Identity-Token',
             'PAGE_CL': 'X-YouTube-Page-CL',
             'VARIANTS_CHECKSUM': 'X-YouTube-Variants-Checksum',
         }
 
-        for script in content.select('script'):
+        for script in soup.select('script'):
             if 'src' in script:
                 continue
 
             statements = [x.strip() for x in
                           ''.join(script.contents).split(';')]
             for stmt in statements:
-                if not stmt.startswith('yt.setConfig'):
-                    continue
-
-                args = stmt[13:-2]
                 for const_name, header_name in mapping.items():
-                    if const_name in args:
+                    if header_name in headers:
+                        continue
+
+                    if const_name in stmt:
                         quoted = re.escape(const_name)
-                        m = re.search('[\{,]?["\']?' + quoted +
-                                      '["\']?(?:[\:,])(?:\s+)([^\),\}]+)',
-                                      args)
+                        regex = (r'[\{,]?["\']?' + quoted +
+                                 r'["\']?(?:[\:,])(?:\s+)([^\),\}]+)')
+                        m = re.search(regex, stmt)
                         if not m:
-                            _log.error('Did not find value for {} when in '
-                                       'statement: {}'.format(const_name,
-                                                              stmt))
-                            sys.exit(1)
+                            self._log.error('Did not find value for {} when '
+                                            'in statement: {}'.format(
+                                                const_name, stmt))
+                            continue
                         value = m.group(1).strip()
                         if value[0] in ("'", '"',):
                             value = value[1:]
                         if value[-1] in ("'", '"',):
                             value = value[:-1]
 
+                        log_value = (value if len(value) < 24
+                                     else value[0:24] + '...')
+                        self._log.debug('Add header: {}: {}'.format(
+                            header_name, log_value))
                         headers[header_name] = value
+
+        if len(headers) != len(mapping):
+            missing = []
+            for k, v in mapping.items():
+                if k not in headers:
+                    missing.append(k)
+            missing = ', '.join(missing)
+
+            raise UnexpectedError('Expected to find all parameters. '
+                                  'Missing: {}'.format(missing))
 
         return headers
 
@@ -269,23 +290,21 @@ class YouTube(object):
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
-        self._download_page(self._HISTORY_URL)
-        content = Soup(self._download_page(self._HISTORY_URL),
-                       'html5lib')
-
+        content = self._download_page_soup(self._HISTORY_URL)
         headers = self._find_post_headers(content)
         post_data = dict(
             session_token=headers['X-Youtube-Identity-Token'],
         )
 
         self._sess.headers.update(headers)
-        content = self._download_page(self._CLEAR_HISTORY_URL,
-                                      data=post_data,
-                                      method='post')
+        content = self._download_page_soup(self._CLEAR_HISTORY_URL,
+                                           data=post_data,
+                                           method='post')
         self._cj.save()
 
-        content = Soup(content, 'html5lib')
         selector = 'ol.section-list > li > ol.item-section > li > .yt-lockup'
 
         if len(content.select(selector)):
             raise UnexpectedError('Failed to clear history')
+        else:
+            self._log.info('Successfully cleared history')
