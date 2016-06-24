@@ -1,0 +1,32 @@
+# Compiled
+# *.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+
+# Backups
+*~
+*.swp*
+*.kate-swp
+
+# KDevelop
+.kdev4/
+
+# Miscellaneous
+*.sqlite
+
+# OS generated files
+.directory
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100/
+.Trashes/
+ehthumbs.db
+Thumbs.db
