@@ -32,6 +32,8 @@ class YouTube(object):
     _CLEAR_HISTORY_URL = ('https://www.youtube.com/feed_ajax?'
                           'action_clear_watch_history=1&clear_dialog_shown=0')
     _HISTORY_URL = 'https://www.youtube.com/feed/history'
+    _FEED_CHANGE_AJAX_URL = ('https://www.youtube.com/feed_change_ajax'
+                             '?action_give_feedback=1')
 
     netrc_file = None
     username = None
@@ -104,10 +106,13 @@ class YouTube(object):
         x = input('2FA code: ')
         return x.strip()
 
-    def _download_page(self, url, data=None, method='get'):
+    def _download_page(self, url, data=None, method='get', headers=None):
         method = getattr(self._sess, method)
 
-        r = method(url, cookies=self._cj, data=data)
+        if headers:
+            self._sess.headers.update(headers)
+
+        r = method(url, cookies=self._cj, data=data, headers=headers)
         r.raise_for_status()
 
         return r.content.decode('utf-8').strip()
@@ -284,6 +289,56 @@ class YouTube(object):
 
         return headers
 
+    def remove_video_id_from_history(self, video_id):
+        """Delete history entries by video ID. Only handles first page of
+        history"""
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        content = self._download_page_soup(self._HISTORY_URL)
+        headers = self._find_post_headers(content)
+        lockups = content.select('[data-context-item-id="{}"]')
+
+        for lockup in lockups:
+            try:
+                button = lockup.select('button.dismiss-menu-choice')[0]
+            except IndexError:
+                continue
+
+            feedback_token = button['data-feedback-token']
+            itct = button['data-feedback-token']
+
+            self._delete_history_entry_by_feedback_token(feedback_token,
+                                                         itct,
+                                                         headers)
+
+    def _delete_history_entry_by_feedback_token(self,
+                                                feedback_token,
+                                                itct,
+                                                headers):
+        """Delete a single history entry by the feedback-token value found
+        on the X button
+        The feedback-token value is re-generated on every page load of
+        _HISTORY_URL"""
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        headers = self._find_post_headers(content)
+        post_data = dict(
+            itct=itct,
+            feedback_tokens=feedback_token,
+            wait_for_response=1,
+            session_token=headers['X-Youtube-Identity-Token'],
+        )
+
+        content = self._download_page_soup(self._FEED_CHANGE_AJAX_URL,
+                                           data=post_data,
+                                           method='post',
+                                           headers=headers)
+        self._cj.save()
+
     def clear_watch_history(self):
         """Clears watch history"""
         if not self._logged_in:
@@ -296,10 +351,10 @@ class YouTube(object):
             session_token=headers['X-Youtube-Identity-Token'],
         )
 
-        self._sess.headers.update(headers)
         content = self._download_page_soup(self._CLEAR_HISTORY_URL,
                                            data=post_data,
-                                           method='post')
+                                           method='post',
+                                           headers=headers)
         self._cj.save()
 
         selector = 'ol.section-list > li > ol.item-section > li > .yt-lockup'
