@@ -308,7 +308,7 @@ class YouTube(object):
                 continue
 
             feedback_token = button['data-feedback-token']
-            itct = button['data-feedback-token']
+            itct = button['data-innertube-clicktracking']
 
             self._delete_history_entry_by_feedback_token(feedback_token,
                                                          itct,
