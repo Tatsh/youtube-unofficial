@@ -298,7 +298,8 @@ class YouTube(object):
 
         content = self._download_page_soup(self._HISTORY_URL)
         headers = self._find_post_headers(content)
-        lockups = content.select('[data-context-item-id="{}"]')
+        lockups = content.select('[data-context-item-id="{}"]'.format(
+            video_id))
 
         for lockup in lockups:
             try:
