@@ -2,11 +2,13 @@
 from __future__ import print_function
 from netrc import netrc
 from os.path import expanduser
+import json
 import logging
 import re
 import sys
 
 from bs4 import BeautifulSoup as Soup
+from requests.exceptions import HTTPError
 from six.moves.http_cookiejar import (
     LoadError as CookieJarLoadError,
     MozillaCookieJar,
@@ -34,6 +36,9 @@ class YouTube(object):
     _HISTORY_URL = 'https://www.youtube.com/feed/history'
     _FEED_CHANGE_AJAX_URL = ('https://www.youtube.com/feed_change_ajax'
                              '?action_give_feedback=1')
+    _WATCH_LATER_URL = 'https://www.youtube.com/playlist?list=WL'
+    _PLAYLIST_REMOVE_AJAX_URL = ('https://www.youtube.com/playlist_edit_servi'
+                                 'ce_ajax/?action_remove_video=1')
 
     netrc_file = None
     username = None
@@ -364,3 +369,51 @@ class YouTube(object):
             raise UnexpectedError('Failed to clear history')
         else:
             self._log.info('Successfully cleared history')
+
+    def remove_video_id_from_watch_later(self,
+                                         set_video_id,
+                                         headers=None,
+                                         session_token=None):
+        """Removes a video from the 'Watch later' playlist
+        set_video_id is taken from the data-set-video-id attribute on the table
+        row (tr element)
+        """
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        if not headers:
+            content = self._download_page_soup(self._WATCH_LATER_URL)
+            headers = self._find_post_headers(content)
+        if not session_token:
+            session_token = headers['X-Youtube-Identity-Token']
+
+        post_data = dict(
+            playlist_id='WL',
+            set_video_id=set_video_id,
+            session_token=session_token,
+        )
+        try:
+            s = self._download_page(self._PLAYLIST_REMOVE_AJAX_URL,
+                                data=post_data,
+                                method='post',
+                                headers=headers)
+        except HTTPError:
+            return False
+
+        return 'header_html' in json.loads(s)
+
+    def clear_watch_later(self):
+        """Removes all videos from the 'Watch Later' playlist"""
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        content = self._download_page_soup(self._WATCH_LATER_URL)
+        headers = self._find_post_headers(content)
+        session_token = headers['X-Youtube-Identity-Token']
+
+        for row in content.select('[data-set-video-id]'):
+            self.remove_video_id_from_watch_later(row['data-set-video-id'],
+                                                  headers=headers,
+                                                  session_token=session_token)
