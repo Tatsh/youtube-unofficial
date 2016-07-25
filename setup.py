@@ -22,6 +22,8 @@ setup(
         'console_scripts': [
             ('youtube-clear-history = youtube_unofficial.scripts:'
              'clear_watch_history'),
+            ('youtube-clear-watch-later = youtube_unofficial.scripts:'
+             'clear_watch_later'),
         ]
     }
 )

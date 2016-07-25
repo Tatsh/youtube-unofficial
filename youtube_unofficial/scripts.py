@@ -8,9 +8,10 @@ import sys
 from . import YouTube
 
 
-def clear_watch_history():
+def _common_arguments():
     parser = argparse.ArgumentParser(
         description='Clear your YouTube watch history')
+
     parser.add_argument('-u', '--username',
                         help='If not specified, a netrc file will be used')
     parser.add_argument('-p', '--password',
@@ -25,7 +26,10 @@ def clear_watch_history():
                         action='store_true',
                         help='Log and raise exceptions')
 
-    args = parser.parse_args()
+    return parser
+
+
+def _parse_common_arguments(args):
     kwargs = {}
 
     if args.username:
@@ -47,13 +51,26 @@ def clear_watch_history():
             log.setLevel(logging.DEBUG)
             log.addHandler(channel)
 
-    yt = YouTube(**kwargs)
+    return kwargs
 
-    try:
-        yt.login()
-        yt.clear_watch_history()
-    except Exception as e:
-        if args.debug:
-            raise e
-        print(e.args[0], file=sys.stderr)
-        return 1
+
+def _simple_method_call(method_name):
+    def f():
+        parser = _common_arguments()
+        args = parser.parse_args()
+        kwargs = _parse_common_arguments(args)
+
+        yt = YouTube(**kwargs)
+        try:
+            yt.login()
+            getattr(yt, method_name)()
+        except Exception as e:
+            if args.debug:
+                raise e
+            print(e.args[0], file=sys.stderr)
+            return 1
+    return f
+
+
+clear_watch_history = _simple_method_call('clear_watch_history')
+clear_watch_later = _simple_method_call('clear_watch_later')
