@@ -395,9 +395,9 @@ class YouTube(object):
         )
         try:
             s = self._download_page(self._PLAYLIST_REMOVE_AJAX_URL,
-                                data=post_data,
-                                method='post',
-                                headers=headers)
+                                    data=post_data,
+                                    method='post',
+                                    headers=headers)
         except HTTPError:
             return False
 
