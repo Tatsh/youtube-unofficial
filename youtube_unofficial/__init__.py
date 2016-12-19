@@ -1,5 +1,6 @@
 # encoding: utf-8
 from __future__ import print_function
+from __future__ import unicode_literals
 from netrc import netrc
 from os.path import expanduser
 import json
@@ -108,6 +109,12 @@ class YouTube(object):
                                 'exist'.format(path))
 
     def _stdin_tfa_code_callback(self):
+        try:
+            import __builtin__  # flake8: noqa
+            input = getattr(__builtin__, 'raw_input')  # flake8: noqa
+        except (ImportError, AttributeError):
+            pass
+
         x = input('2FA code: ')
         return x.strip()
 
