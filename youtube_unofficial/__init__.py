@@ -1,5 +1,4 @@
 # encoding: utf-8
-from __future__ import print_function
 from __future__ import unicode_literals
 from netrc import netrc
 from os.path import expanduser
