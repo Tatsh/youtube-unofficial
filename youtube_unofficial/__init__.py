@@ -13,6 +13,7 @@ from six.moves.http_cookiejar import (
     LoadError as CookieJarLoadError,
     MozillaCookieJar,
 )
+from six.moves.urllib.parse import parse_qsl, urlparse
 import requests
 
 from .exceptions import (
@@ -49,6 +50,7 @@ class YouTube(object):
     _cj = None
     _log = logging.getLogger('youtube-unofficial')
     _logged_in = False
+    _favorites_playlist_id = None
 
     def __init__(self,
                  username=None,
@@ -376,10 +378,11 @@ class YouTube(object):
         else:
             self._log.info('Successfully cleared history')
 
-    def remove_video_id_from_watch_later(self,
-                                         set_video_id,
-                                         headers=None,
-                                         session_token=None):
+    def remove_video_id_from_playlist(self,
+                                      playlist_id,
+                                      set_video_id,
+                                      headers=None,
+                                      session_token=None):
         """Removes a video from the 'Watch later' playlist
         set_video_id is taken from the data-set-video-id attribute on the table
         row (tr element)
@@ -395,7 +398,7 @@ class YouTube(object):
             session_token = headers['X-Youtube-Identity-Token']
 
         post_data = dict(
-            playlist_id='WL',
+            playlist_id=playlist_id,
             set_video_id=set_video_id,
             session_token=session_token,
         )
@@ -409,6 +412,52 @@ class YouTube(object):
 
         return 'header_html' in json.loads(s)
 
+    def _get_favorites_playlist_id(self):
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+        if self._favorites_playlist_id:
+            return self._favorites_playlist_id
+
+        content = self._download_page_soup(self._HISTORY_URL)
+        link = content.select('li.guide-notification-item > a[title="Favorites"]')
+
+        href = link[0]['href']
+        li = dict(parse_qsl(urlparse(href).query,
+                           keep_blank_values=False,
+                           strict_parsing=True))['list']
+        self._favorites_playlist_id = li
+
+        return self._favorites_playlist_id
+
+    def remove_video_id_from_favorites(self,
+                                       video_id,
+                                       headers=None,
+                                       session_token=None):
+        favorites_playlist_id = self._get_favorites_playlist_id()
+
+        return self.remove_video_id_from_playlist(favorites_playlist_id,
+                                                  video_id,
+                                                  headers=headers,
+                                                  session_token=session_token)
+
+    def clear_favorites(self):
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        playlist_id = self._get_favorites_playlist_id()
+        url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
+        content = self._download_page_soup(url)
+        headers = self._find_post_headers(content)
+        session_token = headers['X-Youtube-Identity-Token']
+        rows = content.select('#pl-video-list > table > tbody > tr')
+
+        for row in rows:
+            self.remove_video_id_from_favorites(row['data-set-video-id'],
+                                                headers=headers,
+                                                session_token=session_token)
+
     def clear_watch_later(self):
         """Removes all videos from the 'Watch Later' playlist"""
         if not self._logged_in:
@@ -420,6 +469,7 @@ class YouTube(object):
         session_token = headers['X-Youtube-Identity-Token']
 
         for row in content.select('[data-set-video-id]'):
-            self.remove_video_id_from_watch_later(row['data-set-video-id'],
-                                                  headers=headers,
-                                                  session_token=session_token)
+            self.remove_video_id_from_playlist('WL',
+                                               row['data-set-video-id'],
+                                               headers=headers,
+                                               session_token=session_token)

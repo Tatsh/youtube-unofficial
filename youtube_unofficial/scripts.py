@@ -75,3 +75,4 @@ def _simple_method_call(method_name):
 
 clear_watch_history = _simple_method_call('clear_watch_history')
 clear_watch_later = _simple_method_call('clear_watch_later')
+clear_favorites = _simple_method_call('clear_favorites')
