@@ -78,7 +78,7 @@ class YouTube(object):
             self._log.debug('Reading netrc at {}'.format(self.netrc_file))
 
             try:
-                (username, _, password) = netrc(netrc_file).authenticators(
+                (username, _, password) = netrc(self.netrc_file).authenticators(
                     self._NETRC_MACHINE)
             except TypeError:
                 raise AuthenticationError('No login info available')
