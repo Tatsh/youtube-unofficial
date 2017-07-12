@@ -17,6 +17,7 @@ setup(
         'html5lib>=0.999',
         'requests>=2.6.0',
         'six>=1.10.0',
+        'youtube-dl>=2017.7.9',
     ],
     entry_points={
         'console_scripts': [

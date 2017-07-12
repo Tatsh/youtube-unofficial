@@ -14,6 +14,9 @@ from six.moves.http_cookiejar import (
     MozillaCookieJar,
 )
 from six.moves.urllib.parse import parse_qsl, urlparse
+from youtube_dl.compat import compat_str
+from youtube_dl.extractor.common import InfoExtractor
+from youtube_dl.utils import remove_start, try_get
 import requests
 
 from .exceptions import (
@@ -26,7 +29,10 @@ from .exceptions import (
 
 class YouTube(object):
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
-    _TWOFACTOR_URL = 'https://accounts.google.com/signin/challenge'
+    _LOOKUP_URL = 'https://accounts.google.com/_/signin/sl/lookup'
+    _CHALLENGE_URL = 'https://accounts.google.com/_/signin/sl/challenge'
+    _TFA_URL = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
+
     _NETRC_MACHINE = 'youtube'
     _USER_AGENT = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) '
                    'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -78,13 +84,13 @@ class YouTube(object):
             self._log.debug('Reading netrc at {}'.format(self.netrc_file))
 
             try:
-                (username, _, password) = netrc(self.netrc_file).authenticators(
+                (un, _, pw) = netrc(self.netrc_file).authenticators(
                     self._NETRC_MACHINE)
             except TypeError:
                 raise AuthenticationError('No login info available')
 
-            self.username = username
-            self.password = password
+            self.username = un
+            self.password = pw
         else:
             self._log.debug('Username and password not from netrc')
 
@@ -136,7 +142,10 @@ class YouTube(object):
         return Soup(content, parser)
 
     def login(self, tfa_code_callback=None):
-        """This is heavily based on youtube-dl's code."""
+        """
+        This is heavily based on youtube-dl's code.
+        See https://goo.gl/J3YFSe
+        """
         if not tfa_code_callback:
             self._log.debug('Using default two-factor callback')
             tfa_code_callback = self._stdin_tfa_code_callback
@@ -156,92 +165,145 @@ class YouTube(object):
         if not login_page:
             raise AuthenticationError('Failed to load login page')
 
-        galx = re.search(r'(?s)<input.+?name="GALX".+?value="(.+?)"',
-                         login_page).group(1)
-        login_data = {
-            'continue': 'https://www.youtube.com/signin?action_handle_signin='
-                        'true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
-            'Email': username,
-            'GALX': galx,
-            'Passwd': password,
+        login_form = InfoExtractor._hidden_inputs(login_page)
 
-            'PersistentCookie': 'yes',
-            '_utf8': '霱',
-            'bgresponse': 'js_disabled',
-            'checkConnection': '',
-            'checkedDomains': 'youtube',
-            'dnConn': '',
-            'pstMsg': '0',
-            'rmShown': '1',
-            'secTok': '',
-            'signIn': 'Sign in',
-            'timeStmp': '',
-            'service': 'youtube',
-            'uilel': '3',
-            'hl': 'en_US',
-        }
-
-        login_results = self._download_page(self._LOGIN_URL,
-                                            data=login_data,
-                                            method='post')
-        if not login_results:
-            raise AuthenticationError('Failed to POST to login URL')
-
-        try:
-            if re.search(r'<[^>]+id="errormsg_0_Passwd"[^>]*>([^<]+)<',
-                         login_results).group(1):
-                raise AuthenticationError('Unable to login')
-        except AttributeError:
-            pass
-
-        if re.search(r'id="errormsg_0_Passwd"', login_results):
-            raise AuthenticationError('Please use your account password and '
-                                      'a two-factor code instead of an '
-                                      'application-specific password.')
-
-        if re.search(r'(?i)<form[^>]* id="challenge"', login_results):
-            if not tfa_code_callback:
-                raise ValidationError('Must pass callback for 2FA challenge')
-            tfa_code = re.sub(r'^G\-', '', tfa_code_callback())
-
-            s = Soup(login_results, 'html5lib')
-            challenge_form = s.select('#challenge')[0]
-
-            tfa_form_strs = {}
-            for el in challenge_form.select('[type="hidden"]'):
-                tfa_form_strs[el['name']] = el['value']
-
-            tfa_form_strs.update({
-                'Pin': tfa_code,
-                'TrustDevice': 'on',
+        def req(url, f_req):
+            data = login_form.copy()
+            data.update({
+                'pstMsg': 1,
+                'checkConnection': 'youtube',
+                'checkedDomains': 'youtube',
+                'hl': 'en',
+                'deviceinfo': ('[null,null,null,[],null,"US",null,null,[],'
+                               '"GlifWebSignIn",null,[null,null,[]]]'),
+                'f.req': json.dumps(f_req),
+                'flowName': 'GlifWebSignIn',
+                'flowEntry': 'ServiceLogin',
+            })
+            ret = self._download_page(url, data=data, method='post', headers={
+                'Content-Type': ('application/x-www-form-urlencoded;'
+                                 'charset=utf-8'),
+                'Google-Accounts-XSRF': '1',
             })
 
-            tfa_results = self._download_page(self._TWOFACTOR_URL,
-                                              data=tfa_form_strs,
-                                              method='post')
-            if not tfa_results:
-                raise TwoFactorError('Unable to load results after POST of '
-                                     'two-factor data')
+            return json.loads(re.sub(r'^[^[]*', '', ret))
 
-            if re.search(r'(?i)<form[^>]* id="challenge"', tfa_results):
-                raise TwoFactorError('Two-factor code expired or invalid '
-                                     '(after some time). Please try again, '
-                                     'or use a one-use backup code instead.')
+        lookup_req = [
+            username,
+            None, [], None, 'US', None, None, 2, False, True,
+            [
+                None, None,
+                [2, 1, None, 1,
+                 ('https://accounts.google.com/ServiceLogin?passive=true'
+                  '&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D'
+                  '%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesk'
+                  'top%26feature%3Dsign_in_button&hl=en&service=youtube&uilel'
+                  '=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSign'
+                  'In'),
+                 None, [], 4],
+                1, [None, None, []], None, None, None, True
+            ],
+            username,
+        ]
 
-            if re.search(r'(?i)<form[^>]* id="gaia_loginform"', tfa_results):
-                raise TwoFactorError('unable to log in - did the page '
-                                     'structure change?')
+        lookup_results = req(self._LOOKUP_URL, lookup_req)
+        if not lookup_results:
+            raise AuthenticationError('Failed to look up account information')
 
-            if re.search(r'smsauth-interstitial-reviewsettings', tfa_results):
-                raise TwoFactorError('Your Google account has a security '
-                                     'notice. Please log in on your web '
-                                     'browser, resolve the notice, and try '
-                                     'again.')
+        user_hash = try_get(lookup_results, lambda x: x[0][2], compat_str)
+        if not user_hash:
+            raise AuthenticationError('Unable to extract user hash')
 
-        if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results):
-            raise AuthenticationError('unable to log in: bad username or '
-                                      'password')
+        challenge_req = [
+            user_hash,
+            None, 1, None, [1, None, None, None, [password, None, True]],
+            [
+                None, None, [2, 1, None, 1,
+                             ('https://accounts.google.com/ServiceLogin?passi'
+                              've=true&continue=https%3A%2F%2Fwww.youtube.com'
+                              '%2Fsignin%3Fnext%3D%252F%26action_handle_signi'
+                              'n%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3'
+                              'Dsign_in_button&hl=en&service=youtube&uilel=3&'
+                              'requestPath=%2FServiceLogin&Page=PasswordSepar'
+                              'ationSignIn'),
+                             None, [], 4],
+                1, [None, None, []], None, None, None, True
+            ]
+        ]
+        challenge_results = req(self._CHALLENGE_URL, challenge_req)
+        if not challenge_results:
+            raise AuthenticationError('Challenge failed')
 
+        login_res = try_get(challenge_results, lambda x: x[0][5], list)
+        if login_res:
+            login_msg = try_get(login_res, lambda x: x[5], compat_str)
+            if login_msg == 'INCORRECT_ANSWER_ENTERED':
+                raise AuthenticationError('Incorrect password')
+            raise AuthenticationError('Other login error')
+
+        res = try_get(challenge_results, lambda x: x[0][-1], list)
+        if not res:
+            raise AuthenticationError('Unable to extract result entry')
+
+        tfa = try_get(res, lambda x: x[0][0], list)
+        if tfa:
+            tfa_str = try_get(tfa, lambda x: x[2], compat_str)
+            if tfa_str == 'TWO_STEP_VERIFICATION':
+                # SEND_SUCCESS - TFA code has been successfully sent to phone
+                # QUOTA_EXCEEDED - reached the limit of TFA codes
+                status = try_get(tfa, lambda x: x[5], compat_str)
+                if status == 'QUOTA_EXCEEDED':
+                    raise TwoFactorError('Exceeded the limit of TFA codes; '
+                                         'try later')
+
+                tl = try_get(challenge_results, lambda x: x[1][2], compat_str)
+                if not tl:
+                    raise TwoFactorError('Unable to extract TL')
+
+                tfa_code = tfa_code_callback()
+                tfa_code = remove_start(tfa_code, 'G-')
+
+                if not tfa_code:
+                    raise TwoFactorError('Two-factor authentication required')
+
+                tfa_req = [
+                    user_hash, None, 2, None,
+                    [
+                        9, None, None, None, None, None, None, None,
+                        [None, tfa_code, True, 2]
+                    ]
+                ]
+
+                tfa_results = req(self._TFA_URL.format(tl), tfa_req)
+
+                if not tfa_results:
+                    raise TwoFactorError('TFA code was not accepted')
+
+                tfa_res = try_get(tfa_results, lambda x: x[0][5], list)
+                if tfa_res:
+                    tfa_msg = try_get(tfa_res, lambda x: x[5], compat_str)
+                    if tfa_msg == 'INCORRECT_ANSWER_ENTERED':
+                        raise TwoFactorError('Unable to finish TFA: '
+                                             'Invalid TFA code')
+                    raise TwoFactorError(tfa_msg)
+
+                check_cookie_url = try_get(
+                    tfa_results, lambda x: x[0][-1][2], compat_str)
+        else:
+            check_cookie_url = try_get(res, lambda x: x[2], compat_str)
+
+        if not check_cookie_url:
+            raise AuthenticationError('Unable to extract CheckCookie URL')
+
+        check_cookie_results = self._download_page(check_cookie_url)
+
+        if not check_cookie_results:
+            raise AuthenticationError('Unable to log in')
+
+        if 'https://myaccount.google.com/' not in check_cookie_results:
+            raise AuthenticationError('Unable to log in')
+
+        self._cj.save()
         self._logged_in = True
 
     def _find_post_headers(self, soup):
@@ -420,12 +482,13 @@ class YouTube(object):
             return self._favorites_playlist_id
 
         content = self._download_page_soup(self._HISTORY_URL)
-        link = content.select('li.guide-notification-item > a[title="Favorites"]')
+        link = content.select('li.guide-notification-item > '
+                              'a[title="Favorites"]')
 
         href = link[0]['href']
         li = dict(parse_qsl(urlparse(href).query,
-                           keep_blank_values=False,
-                           strict_parsing=True))['list']
+                            keep_blank_values=False,
+                            strict_parsing=True))['list']
         self._favorites_playlist_id = li
 
         return self._favorites_playlist_id
