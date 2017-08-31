@@ -40,10 +40,11 @@ class YouTube(object):
 
     _CLEAR_HISTORY_URL = ('https://www.youtube.com/feed_ajax?'
                           'action_clear_watch_history=1&clear_dialog_shown=0')
-    _HISTORY_URL = 'https://www.youtube.com/feed/history'
+    _HISTORY_URL = 'https://www.youtube.com/feed/history?disable_polymer=true'
     _FEED_CHANGE_AJAX_URL = ('https://www.youtube.com/feed_change_ajax'
                              '?action_give_feedback=1')
-    _WATCH_LATER_URL = 'https://www.youtube.com/playlist?list=WL'
+    _WATCH_LATER_URL = ('https://www.youtube.com/playlist?list=WL&'
+                        'disable_polymer=true')
     _PLAYLIST_REMOVE_AJAX_URL = ('https://www.youtube.com/playlist_edit_servi'
                                  'ce_ajax/?action_remove_video=1')
 
