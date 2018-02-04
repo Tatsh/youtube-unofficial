@@ -511,7 +511,8 @@ class YouTube(object):
                                       'login() first')
 
         playlist_id = self._get_favorites_playlist_id()
-        url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
+        url = ('https://www.youtube.com/playlist?list={}&'
+               'disable_polymer=true').format(playlist_id)
         content = self._download_page_soup(url)
         headers = self._find_post_headers(content)
         session_token = headers['X-Youtube-Identity-Token']
