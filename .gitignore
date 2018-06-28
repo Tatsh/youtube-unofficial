@@ -30,3 +30,7 @@ __pycache__/
 .Trashes/
 ehthumbs.db
 Thumbs.db
+
+# This project
+/dist/
+/build/
