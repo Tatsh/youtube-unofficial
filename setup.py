@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='youtube-unofficial',
-    version='0.0.1',
+    version='0.1.0',
     author='Andrew Udvare',
     author_email='audvare@gmail.com',
     packages=['youtube_unofficial'],
