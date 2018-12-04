@@ -14,9 +14,6 @@ from six.moves.http_cookiejar import (
     MozillaCookieJar,
 )
 from six.moves.urllib.parse import parse_qsl, urlparse
-from youtube_dl.compat import compat_str
-from youtube_dl.extractor.common import InfoExtractor
-from youtube_dl.utils import remove_start, try_get
 import requests
 
 from .exceptions import (
@@ -25,6 +22,7 @@ from .exceptions import (
     ValidationError,
     UnexpectedError,
 )
+from .util import compat_str, html_hidden_inputs, remove_start, try_get
 
 
 class YouTube(object):
@@ -166,7 +164,7 @@ class YouTube(object):
         if not login_page:
             raise AuthenticationError('Failed to load login page')
 
-        login_form = InfoExtractor._hidden_inputs(login_page)
+        login_form = html_hidden_inputs(login_page)
 
         def req(url, f_req):
             data = login_form.copy()
