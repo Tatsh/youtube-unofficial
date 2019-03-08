@@ -7,6 +7,19 @@ except NameError:
     compat_str = str
     from html.parser import HTMLParser as compat_HTMLParser
 
+try:  # Python 2
+    from HTMLParser import HTMLParseError as compat_HTMLParseError
+except ImportError:  # Python <3.4
+    try:
+        from html.parser import HTMLParseError as compat_HTMLParseError
+    except ImportError:  # Python >3.4
+
+        # HTMLParseError has been deprecated in Python 3.3 and removed in
+        # Python 3.5. Introducing dummy exception for Python >3.5 for
+        # compatible and uniform cross-version exceptiong handling
+        class compat_HTMLParseError(Exception):
+            pass
+
 
 __all__ = ['compat_str', 'try_get', 'remove_start', 'html_hidden_inputs']
 

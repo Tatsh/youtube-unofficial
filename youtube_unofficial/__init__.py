@@ -5,7 +5,6 @@ from os.path import expanduser
 import json
 import logging
 import re
-import sys
 
 from bs4 import BeautifulSoup as Soup
 from requests.exceptions import HTTPError
@@ -19,7 +18,6 @@ import requests
 from .exceptions import (
     AuthenticationError,
     TwoFactorError,
-    ValidationError,
     UnexpectedError,
 )
 from .util import compat_str, html_hidden_inputs, remove_start, try_get
@@ -118,7 +116,7 @@ class YouTube(object):
         try:
             import __builtin__  # flake8: noqa
             inp = getattr(__builtin__, 'raw_input')  # flake8: noqa
-        except (ImportError, AttributeError) as e:
+        except (ImportError, AttributeError):
             inp = input
 
         x = inp('2FA code: ')
@@ -400,6 +398,7 @@ class YouTube(object):
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
+        content = self._download_page_soup(self._HISTORY_URL)
         headers = self._find_post_headers(content)
         post_data = dict(
             itct=itct,
@@ -408,10 +407,10 @@ class YouTube(object):
             session_token=headers['X-Youtube-Identity-Token'],
         )
 
-        content = self._download_page_soup(self._FEED_CHANGE_AJAX_URL,
-                                           data=post_data,
-                                           method='post',
-                                           headers=headers)
+        self._download_page_soup(self._FEED_CHANGE_AJAX_URL,
+                                 data=post_data,
+                                 method='post',
+                                 headers=headers)
         self._cj.save()
 
     def clear_watch_history(self):
