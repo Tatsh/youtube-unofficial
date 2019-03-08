@@ -151,7 +151,7 @@ class YouTube(object):
 
         # Check if already logged in with cookies
         content = self._download_page('https://www.youtube.com/')
-        if '{"key":"logged_in","value":"0"}' not in content:
+        if "'LOGGED_IN': true" in content:
             self._log.debug('Already logged in via cookies')
             self._logged_in = True
 
