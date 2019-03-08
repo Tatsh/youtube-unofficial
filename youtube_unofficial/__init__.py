@@ -117,11 +117,11 @@ class YouTube(object):
     def _stdin_tfa_code_callback(self):
         try:
             import __builtin__  # flake8: noqa
-            input = getattr(__builtin__, 'raw_input')  # flake8: noqa
-        except (ImportError, AttributeError):
-            pass
+            inp = getattr(__builtin__, 'raw_input')  # flake8: noqa
+        except (ImportError, AttributeError) as e:
+            inp = input
 
-        x = input('2FA code: ')
+        x = inp('2FA code: ')
         return x.strip()
 
     def _download_page(self, url, data=None, method='get', headers=None):
