@@ -7,6 +7,7 @@ import logging
 import re
 
 from bs4 import BeautifulSoup as Soup
+from requests import Request
 from requests.exceptions import HTTPError
 from six.moves.http_cookiejar import (
     LoadError as CookieJarLoadError,
@@ -30,9 +31,8 @@ class YouTube(object):
     _TFA_URL = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
 
     _NETRC_MACHINE = 'youtube'
-    _USER_AGENT = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) '
-                   'AppleWebKit/537.36 (KHTML, like Gecko) '
-                   'Chrome/52.0.2743.41 Safari/537.36')
+    _USER_AGENT = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
+                   '(KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36')
 
     _CLEAR_HISTORY_URL = ('https://www.youtube.com/feed_ajax?'
                           'action_clear_watch_history=1&clear_dialog_shown=0')
@@ -123,12 +123,12 @@ class YouTube(object):
         return x.strip()
 
     def _download_page(self, url, data=None, method='get', headers=None):
-        method = getattr(self._sess, method)
-
         if headers:
             self._sess.headers.update(headers)
-
-        r = method(url, cookies=self._cj, data=data, headers=headers)
+        req = Request(method.upper(), url, cookies=self._cj, data=data)
+        prepped = self._sess.prepare_request(req)
+        del prepped.headers['accept-encoding']
+        r = self._sess.send(prepped)
         r.raise_for_status()
 
         return r.content.decode('utf-8').strip()
@@ -173,7 +173,9 @@ class YouTube(object):
                 'hl': 'en',
                 'deviceinfo': ('[null,null,null,[],null,"US",null,null,[],'
                                '"GlifWebSignIn",null,[null,null,[]]]'),
-                'f.req': json.dumps(f_req),
+                'f.req': json.dumps(f_req,
+                                    allow_nan=False,
+                                    separators=(',' ':')),
                 'flowName': 'GlifWebSignIn',
                 'flowEntry': 'ServiceLogin',
             })
@@ -227,6 +229,7 @@ class YouTube(object):
                 1, [None, None, []], None, None, None, True
             ]
         ]
+
         challenge_results = req(self._CHALLENGE_URL, challenge_req)
         if not challenge_results:
             raise AuthenticationError('Challenge failed')
