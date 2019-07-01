@@ -494,16 +494,6 @@ class YouTube(object):
             self._favorites_playlist_id = found
             return self._favorites_playlist_id
 
-        for item in section_items:
-            has_match = re.match(
-                r'^Favou?rites',
-                item['guideEntryRenderer']['formattedTitle']['simpleText'])
-            if has_match:
-                self._favorites_playlist_id = (
-                    item['guideEntryRenderer']['entryData']['guideEntryData']
-                    ['guideEntryId'])
-                return self._favorites_playlist_id
-
         section_items = (section_items[-1]['guideCollapsibleEntryRenderer']
                          ['expandableItems'])
         found = check_section_items(section_items)
