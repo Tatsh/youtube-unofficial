@@ -135,6 +135,106 @@ class YouTube(object):
         return Soup(self._download_page(*args, **kwargs),
                     kwargs.pop('parser', 'html5lib'))
 
+    def _remove_set_video_id_from_playlist(self,
+                                           playlist_id,
+                                           set_video_id,
+                                           csn,
+                                           xsrf_token,
+                                           headers=None):
+        """Removes a video from a playlist. The set_video_id is NOT the same as
+        the video ID."""
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        if not headers:
+            content = self._download_page_soup(self._WATCH_LATER_URL)
+            headers = self._ytcfg_headers(content)
+
+        params = {'name': 'playlistEditEndpoint'}
+        form_data = {
+            'sej':
+            json.dumps({
+                'clickTrackingParams': '',
+                'commandMetadata': {
+                    'webCommandMetadata': {
+                        'url': '/service_ajax',
+                        'sendPost': True
+                    }
+                },
+                'playlistEditEndpoint': {
+                    'playlistId':
+                    playlist_id,
+                    'actions': [{
+                        'setVideoId': set_video_id,
+                        'action': 'ACTION_REMOVE_VIDEO'
+                    }],
+                    'params':
+                    'CAE%3D',
+                    'clientActions': [{
+                        'playlistRemoveVideosAction': {
+                            'setVideoIds': [set_video_id]
+                        }
+                    }]
+                }
+            }),
+            'csn':
+            csn or '',
+            'session_token':
+            xsrf_token or ''
+        }
+        self._log.debug('Form data: %s', form_data)
+        data = self._download_page(self._SERVICE_AJAX_URL,
+                                   method='post',
+                                   data=form_data,
+                                   params=params,
+                                   json=True,
+                                   headers=headers)
+        if data['code'] != 'SUCCESS':
+            raise UnexpectedError(
+                'Failed to delete video from Watch Later playlist')
+
+    def _find_ytcfg(self, soup):
+        return json.JSONDecoder().raw_decode(
+            re.sub(
+                r'.+ytcfg.set\(\{', '{',
+                list(
+                    filter(
+                        lambda x: '"INNERTUBE_CONTEXT_CLIENT_VERSION":' in x.
+                        text, soup.select('script')))[0].text.strip()))[0]
+
+    def _ytcfg_headers(self, ytcfg):
+        return {
+            'x-youtube-page-cl': str(ytcfg['PAGE_CL']),
+            'x-youtube-identity-token': ytcfg['ID_TOKEN'],
+            'x-spf-referer': self._WATCH_LATER_URL,
+            'x-youtube-utc-offset': '-240',
+            'x-spf-previous': self._WATCH_LATER_URL,
+            'x-youtube-client-version':
+            ytcfg['INNERTUBE_CONTEXT_CLIENT_VERSION'],
+            'x-youtube-variants-checksum': ytcfg['VARIANTS_CHECKSUM'],
+            'x-youtube-client-name':
+            str(ytcfg['INNERTUBE_CONTEXT_CLIENT_NAME'])
+        }
+
+    def _initial_data(self, content):
+        return json.loads(
+            re.sub(
+                '^window[^=]+= ', '',
+                list(
+                    filter(lambda x: '"ytInitialData"' in x.text,
+                           content.select('script')))[0].text.strip()).split(
+                               '\n')[0][:-1])
+
+    def _initial_guide_data(self, content):
+        return json.loads(
+            re.sub(
+                '^var ytInitialGuideData = ', '',
+                list(
+                    filter(lambda x: 'var ytInitialGuideData =' in x.text,
+                           content.select('script')))[0].text.strip()).split(
+                               '\n')[0][:-1])
+
     def login(self, tfa_code_callback=None):
         """
         This is heavily based on youtube-dl's code.
@@ -326,96 +426,6 @@ class YouTube(object):
         self._cj.save()
         self._logged_in = True
 
-    def _find_ytcfg(self, soup):
-        return json.JSONDecoder().raw_decode(
-            re.sub(
-                r'.+ytcfg.set\(\{', '{',
-                list(
-                    filter(
-                        lambda x: '"INNERTUBE_CONTEXT_CLIENT_VERSION":' in x.
-                        text, soup.select('script')))[0].text.strip()))[0]
-
-    def _ytcfg_headers(self, ytcfg):
-        return {
-            'x-youtube-page-cl': str(ytcfg['PAGE_CL']),
-            'x-youtube-identity-token': ytcfg['ID_TOKEN'],
-            'x-spf-referer': self._WATCH_LATER_URL,
-            'x-youtube-utc-offset': '-240',
-            'x-spf-previous': self._WATCH_LATER_URL,
-            'x-youtube-client-version':
-            ytcfg['INNERTUBE_CONTEXT_CLIENT_VERSION'],
-            'x-youtube-variants-checksum': ytcfg['VARIANTS_CHECKSUM'],
-            'x-youtube-client-name':
-            str(ytcfg['INNERTUBE_CONTEXT_CLIENT_NAME'])
-        }
-
-    def _initial_data(self, content):
-        return json.loads(
-            re.sub(
-                '^window[^=]+= ', '',
-                list(
-                    filter(lambda x: '"ytInitialData"' in x.text,
-                           content.select('script')))[0].text.strip()).split(
-                               '\n')[0][:-1])
-
-    def _initial_guide_data(self, content):
-        return json.loads(
-            re.sub(
-                '^var ytInitialGuideData = ', '',
-                list(
-                    filter(lambda x: 'var ytInitialGuideData =' in x.text,
-                           content.select('script')))[0].text.strip()).split(
-                               '\n')[0][:-1])
-
-    def remove_video_id_from_history(self, video_id):
-        """Delete history entries by video ID. Only handles first page of
-        history"""
-        if not self._logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-
-        content = self._download_page_soup(self._HISTORY_URL)
-        headers = self._ytcfg_headers(content)
-        lockups = content.select(
-            '[data-context-item-id="{}"]'.format(video_id))
-
-        for lockup in lockups:
-            try:
-                button = lockup.select('button.dismiss-menu-choice')[0]
-            except IndexError:
-                continue
-
-            feedback_token = button['data-feedback-token']
-            itct = button['data-innertube-clicktracking']
-
-            self._delete_history_entry_by_feedback_token(
-                feedback_token, itct, headers)
-
-    def _delete_history_entry_by_feedback_token(self, feedback_token, itct,
-                                                headers):
-        """Delete a single history entry by the feedback-token value found
-        on the X button
-        The feedback-token value is re-generated on every page load of
-        _HISTORY_URL"""
-        if not self._logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-
-        content = self._download_page_soup(self._HISTORY_URL)
-        headers = self._ytcfg_headers(content)
-        post_data = dict(
-            itct=itct,
-            feedback_tokens=feedback_token,
-            wait_for_response=1,
-            session_token=headers['X-Youtube-Identity-Token'],
-        )
-
-        self._download_page_soup(self._FEED_CHANGE_AJAX_URL,
-                                 data=post_data,
-                                 method='post',
-                                 headers=headers)
-        self._cj.save()
-
     def clear_watch_history(self):
         """Clears watch history"""
         if not self._logged_in:
@@ -457,65 +467,6 @@ class YouTube(object):
                             method='post')
         self._log.info('Successfully cleared history')
 
-    def _remove_set_video_id_from_playlist(self,
-                                           playlist_id,
-                                           set_video_id,
-                                           csn,
-                                           xsrf_token,
-                                           headers=None):
-        """Removes a video from a playlist. The set_video_id is NOT the same as
-        the video ID."""
-        if not self._logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-
-        if not headers:
-            content = self._download_page_soup(self._WATCH_LATER_URL)
-            headers = self._ytcfg_headers(content)
-
-        params = {'name': 'playlistEditEndpoint'}
-        form_data = {
-            'sej':
-            json.dumps({
-                'clickTrackingParams': '',
-                'commandMetadata': {
-                    'webCommandMetadata': {
-                        'url': '/service_ajax',
-                        'sendPost': True
-                    }
-                },
-                'playlistEditEndpoint': {
-                    'playlistId':
-                    playlist_id,
-                    'actions': [{
-                        'setVideoId': set_video_id,
-                        'action': 'ACTION_REMOVE_VIDEO'
-                    }],
-                    'params':
-                    'CAE%3D',
-                    'clientActions': [{
-                        'playlistRemoveVideosAction': {
-                            'setVideoIds': [set_video_id]
-                        }
-                    }]
-                }
-            }),
-            'csn':
-            csn or '',
-            'session_token':
-            xsrf_token or ''
-        }
-        self._log.debug('Form data: %s', form_data)
-        data = self._download_page(self._SERVICE_AJAX_URL,
-                                   method='post',
-                                   data=form_data,
-                                   params=params,
-                                   json=True,
-                                   headers=headers)
-        if data['code'] != 'SUCCESS':
-            raise UnexpectedError(
-                'Failed to delete video from Watch Later playlist')
-
     def get_favorites_playlist_id(self):
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
@@ -526,7 +477,7 @@ class YouTube(object):
         def check_section_items(items):
             for item in items:
                 has_match = re.match(
-                    r'^Favou?rites',
+                    r'^Favou?rites',  # FIXME This only works with English
                     item['guideEntryRenderer']['formattedTitle']['simpleText'])
                 if has_match:
                     return (item['guideEntryRenderer']['entryData']
@@ -565,17 +516,6 @@ class YouTube(object):
 
         return self._favorites_playlist_id
 
-    def remove_video_id_from_favorites(self,
-                                       video_id,
-                                       headers=None,
-                                       session_token=None):
-        favorites_playlist_id = self.get_favorites_playlist_id()
-
-        return self.remove_video_id_from_playlist(favorites_playlist_id,
-                                                  video_id,
-                                                  headers=headers,
-                                                  session_token=session_token)
-
     def clear_favorites(self):
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
@@ -604,11 +544,16 @@ class YouTube(object):
                  ['tabs'][0]['tabRenderer']['content']['sectionListRenderer']
                  ['contents'][0]['itemSectionRenderer']['contents'][0]
                  ['playlistVideoListRenderer'])
-        set_video_ids = list(
-            map(lambda x: x['playlistVideoRenderer']['setVideoId'],
-                plvlr['contents']))
-        next_cont = continuation = itct = None
+        try:
+            set_video_ids = list(
+                map(lambda x: x['playlistVideoRenderer']['setVideoId'],
+                    plvlr['contents']))
+        except KeyError:
+            self._log.info('Caught KeyError. This probably means the playlist '
+                           'is empty.')
+            return
 
+        next_cont = continuation = itct = None
         try:
             next_cont = plvlr['continuations'][0]['nextContinuationData']
             continuation = next_cont['continuation']
@@ -661,3 +606,65 @@ class YouTube(object):
 
     def clear_watch_later(self):
         self.clear_playlist('WL')
+
+    """FIXME Make the following methods work again"""
+
+    def remove_video_id_from_favorites(self,
+                                       video_id,
+                                       headers=None,
+                                       session_token=None):
+        favorites_playlist_id = self.get_favorites_playlist_id()
+
+        return self.remove_video_id_from_playlist(favorites_playlist_id,
+                                                  video_id,
+                                                  headers=headers,
+                                                  session_token=session_token)
+
+    def remove_video_id_from_history(self, video_id):
+        """Delete history entries by video ID. Only handles first page of
+        history"""
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        content = self._download_page_soup(self._HISTORY_URL)
+        headers = self._ytcfg_headers(content)
+        lockups = content.select(
+            '[data-context-item-id="{}"]'.format(video_id))
+
+        for lockup in lockups:
+            try:
+                button = lockup.select('button.dismiss-menu-choice')[0]
+            except IndexError:
+                continue
+
+            feedback_token = button['data-feedback-token']
+            itct = button['data-innertube-clicktracking']
+
+            self._delete_history_entry_by_feedback_token(
+                feedback_token, itct, headers)
+
+    def _delete_history_entry_by_feedback_token(self, feedback_token, itct,
+                                                headers):
+        """Delete a single history entry by the feedback-token value found
+        on the X button
+        The feedback-token value is re-generated on every page load of
+        _HISTORY_URL"""
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        content = self._download_page_soup(self._HISTORY_URL)
+        headers = self._ytcfg_headers(content)
+        post_data = dict(
+            itct=itct,
+            feedback_tokens=feedback_token,
+            wait_for_response=1,
+            session_token=headers['X-Youtube-Identity-Token'],
+        )
+
+        self._download_page_soup(self._FEED_CHANGE_AJAX_URL,
+                                 data=post_data,
+                                 method='post',
+                                 headers=headers)
+        self._cj.save()
