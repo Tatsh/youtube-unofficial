@@ -147,6 +147,9 @@ class YouTube(object):
         This is heavily based on youtube-dl's code.
         See https://goo.gl/J3YFSe
         """
+        if self._logged_in:
+            return
+
         if not tfa_code_callback:
             self._log.debug('Using default two-factor callback')
             tfa_code_callback = self._stdin_tfa_code_callback
