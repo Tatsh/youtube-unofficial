@@ -39,21 +39,8 @@ class YouTube(object):
     _FEED_CHANGE_AJAX_URL = ('https://www.youtube.com/feed_change_ajax'
                              '?action_give_feedback=1')
     _WATCH_LATER_URL = 'https://www.youtube.com/playlist?list=WL'
-    _PLAYLIST_REMOVE_AJAX_URL = ('https://www.youtube.com/playlist_edit_servi'
-                                 'ce_ajax/?action_remove_video=1')
     _BROWSE_AJAX_URL = 'https://www.youtube.com/browse_ajax'
     _SERVICE_AJAX_URL = 'https://www.youtube.com/service_ajax'
-
-    netrc_file = None
-    username = None
-    password = None
-    cookies_path = None
-
-    _sess = None
-    _cj = None
-    _log = logging.getLogger('youtube-unofficial')
-    _logged_in = False
-    _favorites_playlist_id = None
 
     def __init__(self,
                  username=None,
@@ -63,11 +50,17 @@ class YouTube(object):
                  cookiejar_cls=MozillaCookieJar):
         if not netrc_file:
             self.netrc_file = expanduser('~/.netrc')
+        else:
+            self.netrc_file = netrc_file
         if not cookies_path:
             cookies_path = expanduser('~/.ytch-cookies.txt')
 
         self.username = username
         self.password = password
+
+        self._log = logging.getLogger('youtube-unofficial')
+        self._logged_in = False
+        self._favorites_playlist_id = None
 
         self._sess = requests.Session()
         self._init_cookiejar(cookies_path, cls=cookiejar_cls)
@@ -430,7 +423,7 @@ class YouTube(object):
 
         selector = 'ol.section-list > li > ol.item-section > li > .yt-lockup'
 
-        if len(content.select(selector)):
+        if content.select(selector):
             raise UnexpectedError('Failed to clear history')
         else:
             self._log.info('Successfully cleared history')
