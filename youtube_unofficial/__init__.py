@@ -8,7 +8,6 @@ import re
 
 from bs4 import BeautifulSoup as Soup
 from requests import Request
-from requests.exceptions import HTTPError
 from six.moves.http_cookiejar import (
     LoadError as CookieJarLoadError,
     MozillaCookieJar,
@@ -36,13 +35,14 @@ class YouTube(object):
 
     _CLEAR_HISTORY_URL = ('https://www.youtube.com/feed_ajax?'
                           'action_clear_watch_history=1&clear_dialog_shown=0')
-    _HISTORY_URL = 'https://www.youtube.com/feed/history?disable_polymer=true'
+    _HISTORY_URL = 'https://www.youtube.com/feed/history'
     _FEED_CHANGE_AJAX_URL = ('https://www.youtube.com/feed_change_ajax'
                              '?action_give_feedback=1')
-    _WATCH_LATER_URL = ('https://www.youtube.com/playlist?list=WL&'
-                        'disable_polymer=true')
+    _WATCH_LATER_URL = 'https://www.youtube.com/playlist?list=WL'
     _PLAYLIST_REMOVE_AJAX_URL = ('https://www.youtube.com/playlist_edit_servi'
                                  'ce_ajax/?action_remove_video=1')
+    _BROWSE_AJAX_URL = 'https://www.youtube.com/browse_ajax'
+    _SERVICE_AJAX_URL = 'https://www.youtube.com/service_ajax'
 
     netrc_file = None
     username = None
@@ -91,7 +91,10 @@ class YouTube(object):
         else:
             self._log.debug('Username and password not from netrc')
 
-        return (self.username, self.password,)
+        return (
+            self.username,
+            self.password,
+        )
 
     def _init_cookiejar(self, path, cls=MozillaCookieJar):
         self._log.debug('Initialise cookie jar ({}) at {}'.format(
@@ -122,16 +125,29 @@ class YouTube(object):
         x = inp('2FA code: ')
         return x.strip()
 
-    def _download_page(self, url, data=None, method='get', headers=None):
+    def _download_page(self,
+                       url,
+                       data=None,
+                       method='get',
+                       headers=None,
+                       params=None,
+                       json=False):
         if headers:
             self._sess.headers.update(headers)
-        req = Request(method.upper(), url, cookies=self._cj, data=data)
+        req = Request(method.upper(),
+                      url,
+                      cookies=self._cj,
+                      data=data,
+                      params=params)
         prepped = self._sess.prepare_request(req)
         del prepped.headers['accept-encoding']
         r = self._sess.send(prepped)
         r.raise_for_status()
 
-        return r.content.decode('utf-8').strip()
+        if not json:
+            return r.content.decode('utf-8').strip()
+
+        return r.json()
 
     def _download_page_soup(self, *args, **kwargs):
         content = self._download_page(*args, **kwargs)
@@ -167,40 +183,59 @@ class YouTube(object):
         def req(url, f_req):
             data = login_form.copy()
             data.update({
-                'pstMsg': 1,
-                'checkConnection': 'youtube',
-                'checkedDomains': 'youtube',
-                'hl': 'en',
+                'pstMsg':
+                1,
+                'checkConnection':
+                'youtube',
+                'checkedDomains':
+                'youtube',
+                'hl':
+                'en',
                 'deviceinfo': ('[null,null,null,[],null,"US",null,null,[],'
                                '"GlifWebSignIn",null,[null,null,[]]]'),
-                'f.req': json.dumps(f_req,
-                                    allow_nan=False,
-                                    separators=(',' ':')),
-                'flowName': 'GlifWebSignIn',
-                'flowEntry': 'ServiceLogin',
+                'f.req':
+                json.dumps(f_req, allow_nan=False, separators=(','
+                                                               ':')),
+                'flowName':
+                'GlifWebSignIn',
+                'flowEntry':
+                'ServiceLogin',
             })
-            ret = self._download_page(url, data=data, method='post', headers={
-                'Content-Type': ('application/x-www-form-urlencoded;'
-                                 'charset=utf-8'),
-                'Google-Accounts-XSRF': '1',
-            })
+            ret = self._download_page(url,
+                                      data=data,
+                                      method='post',
+                                      headers={
+                                          'Content-Type':
+                                          ('application/x-www-form-urlencoded;'
+                                           'charset=utf-8'),
+                                          'Google-Accounts-XSRF':
+                                          '1',
+                                      })
 
             return json.loads(re.sub(r'^[^[]*', '', ret))
 
         lookup_req = [
             username,
-            None, [], None, 'US', None, None, 2, False, True,
+            None,
+            [],
+            None,
+            'US',
+            None,
+            None,
+            2,
+            False,
+            True,
             [
                 None, None,
-                [2, 1, None, 1,
-                 ('https://accounts.google.com/ServiceLogin?passive=true'
-                  '&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D'
-                  '%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesk'
-                  'top%26feature%3Dsign_in_button&hl=en&service=youtube&uilel'
-                  '=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSign'
-                  'In'),
-                 None, [], 4],
-                1, [None, None, []], None, None, None, True
+                [
+                    2, 1, None, 1,
+                    ('https://accounts.google.com/ServiceLogin?passive=true'
+                     '&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%'
+                     '3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3D'
+                     'desktop%26feature%3Dsign_in_button&hl=en&service=youtube'
+                     '&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSepara'
+                     'tionSignIn'), None, [], 4
+                ], 1, [None, None, []], None, None, None, True
             ],
             username,
         ]
@@ -214,19 +249,20 @@ class YouTube(object):
             raise AuthenticationError('Unable to extract user hash')
 
         challenge_req = [
-            user_hash,
-            None, 1, None, [1, None, None, None, [password, None, True]],
+            user_hash, None, 1, None,
+            [1, None, None, None, [password, None, True]],
             [
-                None, None, [2, 1, None, 1,
-                             ('https://accounts.google.com/ServiceLogin?passi'
-                              've=true&continue=https%3A%2F%2Fwww.youtube.com'
-                              '%2Fsignin%3Fnext%3D%252F%26action_handle_signi'
-                              'n%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3'
-                              'Dsign_in_button&hl=en&service=youtube&uilel=3&'
-                              'requestPath=%2FServiceLogin&Page=PasswordSepar'
-                              'ationSignIn'),
-                             None, [], 4],
-                1, [None, None, []], None, None, None, True
+                None, None,
+                [
+                    2, 1, None, 1,
+                    ('https://accounts.google.com/ServiceLogin?passi'
+                     've=true&continue=https%3A%2F%2Fwww.youtube.com'
+                     '%2Fsignin%3Fnext%3D%252F%26action_handle_signi'
+                     'n%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3'
+                     'Dsign_in_button&hl=en&service=youtube&uilel=3&'
+                     'requestPath=%2FServiceLogin&Page=PasswordSepar'
+                     'ationSignIn'), None, [], 4
+                ], 1, [None, None, []], None, None, None, True
             ]
         ]
 
@@ -287,8 +323,8 @@ class YouTube(object):
                                              'Invalid TFA code')
                     raise TwoFactorError(tfa_msg)
 
-                check_cookie_url = try_get(
-                    tfa_results, lambda x: x[0][-1][2], compat_str)
+                check_cookie_url = try_get(tfa_results, lambda x: x[0][-1][2],
+                                           compat_str)
         else:
             check_cookie_url = try_get(res, lambda x: x[2], compat_str)
 
@@ -307,62 +343,25 @@ class YouTube(object):
         self._logged_in = True
 
     def _find_post_headers(self, soup):
-        # Retrieved by regex'ing the JS
-        headers = {}
-        mapping = {
-            'INNERTUBE_CONTEXT_CLIENT_VERSION': 'X-YouTube-Client-Version',
-            'PAGE_BUILD_LABEL': 'X-YouTube-Page-Label',
-            # also set data['session_token']
-            # NOTE It seems only X-Youtube-Identity-Token is required
-            'XSRF_TOKEN': 'X-Youtube-Identity-Token',
-            'PAGE_CL': 'X-YouTube-Page-CL',
-            'VARIANTS_CHECKSUM': 'X-YouTube-Variants-Checksum',
+        ytcfg = json.JSONDecoder().raw_decode(
+            re.sub(
+                r'.+ytcfg.set\(\{', '{',
+                list(
+                    filter(
+                        lambda x: '"INNERTUBE_CONTEXT_CLIENT_VERSION":' in x.
+                        text, soup.select('script')))[0].text.strip()))[0]
+        return {
+            'x-youtube-page-cl': str(ytcfg['PAGE_CL']),
+            'x-youtube-identity-token': ytcfg['ID_TOKEN'],
+            'x-spf-referer': self._WATCH_LATER_URL,
+            'x-youtube-utc-offset': '-240',
+            'x-spf-previous': self._WATCH_LATER_URL,
+            'x-youtube-client-version':
+            ytcfg['INNERTUBE_CONTEXT_CLIENT_VERSION'],
+            'x-youtube-variants-checksum': ytcfg['VARIANTS_CHECKSUM'],
+            'x-youtube-client-name':
+            str(ytcfg['INNERTUBE_CONTEXT_CLIENT_NAME'])
         }
-
-        for script in soup.select('script'):
-            if 'src' in script:
-                continue
-
-            statements = [x.strip() for x in
-                          ''.join(script.contents).split(';')]
-            for stmt in statements:
-                for const_name, header_name in mapping.items():
-                    if header_name in headers:
-                        continue
-
-                    if const_name in stmt:
-                        quoted = re.escape(const_name)
-                        regex = (r'[\{,]?["\']?' + quoted +
-                                 r'["\']?(?:[\:,])(?:\s+)([^\),\}]+)')
-                        m = re.search(regex, stmt)
-                        if not m:
-                            self._log.error('Did not find value for {} when '
-                                            'in statement: {}'.format(
-                                                const_name, stmt))
-                            continue
-                        value = m.group(1).strip()
-                        if value[0] in ("'", '"',):
-                            value = value[1:]
-                        if value[-1] in ("'", '"',):
-                            value = value[:-1]
-
-                        log_value = (value if len(value) < 24
-                                     else value[0:24] + '...')
-                        self._log.debug('Add header: {}: {}'.format(
-                            header_name, log_value))
-                        headers[header_name] = value
-
-        if len(headers) != len(mapping):
-            missing = []
-            for k, v in mapping.items():
-                if k not in headers:
-                    missing.append(k)
-            missing = ', '.join(missing)
-
-            raise UnexpectedError('Expected to find all parameters. '
-                                  'Missing: {}'.format(missing))
-
-        return headers
 
     def remove_video_id_from_history(self, video_id):
         """Delete history entries by video ID. Only handles first page of
@@ -373,8 +372,8 @@ class YouTube(object):
 
         content = self._download_page_soup(self._HISTORY_URL)
         headers = self._find_post_headers(content)
-        lockups = content.select('[data-context-item-id="{}"]'.format(
-            video_id))
+        lockups = content.select(
+            '[data-context-item-id="{}"]'.format(video_id))
 
         for lockup in lockups:
             try:
@@ -385,13 +384,10 @@ class YouTube(object):
             feedback_token = button['data-feedback-token']
             itct = button['data-innertube-clicktracking']
 
-            self._delete_history_entry_by_feedback_token(feedback_token,
-                                                         itct,
-                                                         headers)
+            self._delete_history_entry_by_feedback_token(
+                feedback_token, itct, headers)
 
-    def _delete_history_entry_by_feedback_token(self,
-                                                feedback_token,
-                                                itct,
+    def _delete_history_entry_by_feedback_token(self, feedback_token, itct,
                                                 headers):
         """Delete a single history entry by the feedback-token value found
         on the X button
@@ -424,9 +420,7 @@ class YouTube(object):
 
         content = self._download_page_soup(self._HISTORY_URL)
         headers = self._find_post_headers(content)
-        post_data = dict(
-            session_token=headers['X-Youtube-Identity-Token'],
-        )
+        post_data = dict(session_token=headers['X-Youtube-Identity-Token'], )
 
         content = self._download_page_soup(self._CLEAR_HISTORY_URL,
                                            data=post_data,
@@ -441,15 +435,14 @@ class YouTube(object):
         else:
             self._log.info('Successfully cleared history')
 
-    def remove_video_id_from_playlist(self,
-                                      playlist_id,
-                                      set_video_id,
-                                      headers=None,
-                                      session_token=None):
-        """Removes a video from the 'Watch later' playlist
-        set_video_id is taken from the data-set-video-id attribute on the table
-        row (tr element)
-        """
+    def _remove_set_video_id_from_playlist(self,
+                                           playlist_id,
+                                           set_video_id,
+                                           csn,
+                                           xsrf_token,
+                                           headers=None):
+        """Removes a video from a playlist. The set_video_id is NOT the same as
+        the video ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
@@ -457,23 +450,48 @@ class YouTube(object):
         if not headers:
             content = self._download_page_soup(self._WATCH_LATER_URL)
             headers = self._find_post_headers(content)
-        if not session_token:
-            session_token = headers['X-Youtube-Identity-Token']
 
-        post_data = dict(
-            playlist_id=playlist_id,
-            set_video_id=set_video_id,
-            session_token=session_token,
-        )
-        try:
-            s = self._download_page(self._PLAYLIST_REMOVE_AJAX_URL,
-                                    data=post_data,
-                                    method='post',
-                                    headers=headers)
-        except HTTPError:
-            return False
-
-        return 'header_html' in json.loads(s)
+        params = {'name': 'playlistEditEndpoint'}
+        form_data = {
+            'sej':
+            json.dumps({
+                'clickTrackingParams': '',
+                'commandMetadata': {
+                    'webCommandMetadata': {
+                        'url': '/service_ajax',
+                        'sendPost': True
+                    }
+                },
+                'playlistEditEndpoint': {
+                    'playlistId':
+                    playlist_id,
+                    'actions': [{
+                        'setVideoId': set_video_id,
+                        'action': 'ACTION_REMOVE_VIDEO'
+                    }],
+                    'params':
+                    'CAE%3D',
+                    'clientActions': [{
+                        'playlistRemoveVideosAction': {
+                            'setVideoIds': [set_video_id]
+                        }
+                    }]
+                }
+            }),
+            'csn':
+            csn or '',
+            'session_token':
+            xsrf_token or ''
+        }
+        data = self._download_page(self._SERVICE_AJAX_URL,
+                                   method='post',
+                                   data=form_data,
+                                   params=params,
+                                   json=True,
+                                   headers=headers)
+        if data['code'] != 'SUCCESS':
+            raise UnexpectedError(
+                'Failed to delete video from Watch Later playlist')
 
     def _get_favorites_playlist_id(self):
         if not self._logged_in:
@@ -487,9 +505,10 @@ class YouTube(object):
                               'a[title="Favorites"]')
 
         href = link[0]['href']
-        li = dict(parse_qsl(urlparse(href).query,
-                            keep_blank_values=False,
-                            strict_parsing=True))['list']
+        li = dict(
+            parse_qsl(urlparse(href).query,
+                      keep_blank_values=False,
+                      strict_parsing=True))['list']
         self._favorites_playlist_id = li
 
         return self._favorites_playlist_id
@@ -511,11 +530,10 @@ class YouTube(object):
                                       'login() first')
 
         playlist_id = self._get_favorites_playlist_id()
-        url = ('https://www.youtube.com/playlist?list={}&'
-               'disable_polymer=true').format(playlist_id)
+        url = ('https://www.youtube.com/playlist?list={}').format(playlist_id)
         content = self._download_page_soup(url)
         headers = self._find_post_headers(content)
-        session_token = headers['X-Youtube-Identity-Token']
+        session_token = headers['x-youtube-identity-token']
         rows = content.select('#pl-video-list > table > tbody > tr')
 
         for row in rows:
@@ -531,10 +549,59 @@ class YouTube(object):
 
         content = self._download_page_soup(self._WATCH_LATER_URL)
         headers = self._find_post_headers(content)
-        session_token = headers['X-Youtube-Identity-Token']
 
-        for row in content.select('[data-set-video-id]'):
-            self.remove_video_id_from_playlist('WL',
-                                               row['data-set-video-id'],
-                                               headers=headers,
-                                               session_token=session_token)
+        yt_init_data = json.loads(
+            re.sub(
+                '^window[^=]+= ', '',
+                list(
+                    filter(lambda x: '"ytInitialData"' in x.text,
+                           content.select('script')))[0].text.strip()).split(
+                               '\n')[0][:-1])
+        plvlr = yt_init_data['contents']['twoColumnBrowseResultsRenderer'][
+            'tabs'][0]['tabRenderer']['content']['sectionListRenderer'][
+                'contents'][0]['itemSectionRenderer']['contents'][0][
+                    'playlistVideoListRenderer']
+        continuation = plvlr['continuations'][0]['nextContinuationData'][
+            'continuation']
+        itct = plvlr['continuations'][0]['nextContinuationData'][
+            'clickTrackingParams']
+        set_video_ids = list(
+            map(lambda x: x['playlistVideoRenderer']['setVideoId'],
+                plvlr['contents']))
+
+        csn = None
+        xsrf_token = None
+        while True:
+            params = {
+                'ctoken': continuation,
+                'continuation': continuation,
+                'itct': itct
+            }
+            contents = self._download_page(self._BROWSE_AJAX_URL,
+                                           params=params,
+                                           json=True,
+                                           headers=headers)
+            csn = contents[1]['csn']
+            xsrf_token = contents[1]['xsrf_token']
+            set_video_ids += list(
+                map(
+                    lambda x: x['playlistVideoRenderer']['setVideoId'],
+                    contents[1]['response']['continuationContents']
+                    ['playlistVideoListContinuation']['contents']))
+            try:
+                continuations = contents[1]['response'][
+                    'continuationContents']['playlistVideoListContinuation'][
+                        'continuations']
+            except KeyError:
+                break
+            itct = continuations[0]['nextContinuationData'][
+                'clickTrackingParams']
+            continuation = continuations[0]['nextContinuationData'][
+                'continuation']
+
+        for set_video_id in set_video_ids:
+            self._remove_set_video_id_from_playlist('WL',
+                                                    set_video_id,
+                                                    csn,
+                                                    xsrf_token,
+                                                    headers=headers)
