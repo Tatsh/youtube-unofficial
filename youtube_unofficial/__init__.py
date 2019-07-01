@@ -1,5 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
+
 from netrc import netrc
 from os.path import expanduser
 import json
@@ -8,18 +9,11 @@ import re
 
 from bs4 import BeautifulSoup as Soup
 from requests import Request
-from six.moves.http_cookiejar import (
-    LoadError as CookieJarLoadError,
-    MozillaCookieJar,
-)
-from six.moves.urllib.parse import parse_qsl, urlparse
+from six.moves.http_cookiejar import LoadError as CookieJarLoadError
+from six.moves.http_cookiejar import MozillaCookieJar
 import requests
 
-from .exceptions import (
-    AuthenticationError,
-    TwoFactorError,
-    UnexpectedError,
-)
+from .exceptions import AuthenticationError, TwoFactorError, UnexpectedError
 from .util import compat_str, html_hidden_inputs, remove_start, try_get
 
 
@@ -33,6 +27,7 @@ class YouTube(object):
     _USER_AGENT = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
                    '(KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36')
 
+    _HOMEPAGE_URL = 'https://www.youtube.com'
     _CLEAR_HISTORY_URL = ('https://www.youtube.com/feed_ajax?'
                           'action_clear_watch_history=1&clear_dialog_shown=0')
     _HISTORY_URL = 'https://www.youtube.com/feed/history'
@@ -333,14 +328,16 @@ class YouTube(object):
         self._cj.save()
         self._logged_in = True
 
-    def _find_post_headers(self, soup):
-        ytcfg = json.JSONDecoder().raw_decode(
+    def _find_ytcfg(self, soup):
+        return json.JSONDecoder().raw_decode(
             re.sub(
                 r'.+ytcfg.set\(\{', '{',
                 list(
                     filter(
                         lambda x: '"INNERTUBE_CONTEXT_CLIENT_VERSION":' in x.
                         text, soup.select('script')))[0].text.strip()))[0]
+
+    def _ytcfg_headers(self, ytcfg):
         return {
             'x-youtube-page-cl': str(ytcfg['PAGE_CL']),
             'x-youtube-identity-token': ytcfg['ID_TOKEN'],
@@ -354,6 +351,24 @@ class YouTube(object):
             str(ytcfg['INNERTUBE_CONTEXT_CLIENT_NAME'])
         }
 
+    def _initial_data(self, content):
+        return json.loads(
+            re.sub(
+                '^window[^=]+= ', '',
+                list(
+                    filter(lambda x: '"ytInitialData"' in x.text,
+                           content.select('script')))[0].text.strip()).split(
+                               '\n')[0][:-1])
+
+    def _initial_guide_data(self, content):
+        return json.loads(
+            re.sub(
+                '^var ytInitialGuideData = ', '',
+                list(
+                    filter(lambda x: 'var ytInitialGuideData =' in x.text,
+                           content.select('script')))[0].text.strip()).split(
+                               '\n')[0][:-1])
+
     def remove_video_id_from_history(self, video_id):
         """Delete history entries by video ID. Only handles first page of
         history"""
@@ -362,7 +377,7 @@ class YouTube(object):
                                       'login() first')
 
         content = self._download_page_soup(self._HISTORY_URL)
-        headers = self._find_post_headers(content)
+        headers = self._ytcfg_headers(content)
         lockups = content.select(
             '[data-context-item-id="{}"]'.format(video_id))
 
@@ -389,7 +404,7 @@ class YouTube(object):
                                       'login() first')
 
         content = self._download_page_soup(self._HISTORY_URL)
-        headers = self._find_post_headers(content)
+        headers = self._ytcfg_headers(content)
         post_data = dict(
             itct=itct,
             feedback_tokens=feedback_token,
@@ -410,7 +425,7 @@ class YouTube(object):
                                       'login() first')
 
         content = self._download_page_soup(self._HISTORY_URL)
-        headers = self._find_post_headers(content)
+        headers = self._ytcfg_headers(content)
         post_data = dict(session_token=headers['X-Youtube-Identity-Token'], )
 
         content = self._download_page_soup(self._CLEAR_HISTORY_URL,
@@ -440,7 +455,7 @@ class YouTube(object):
 
         if not headers:
             content = self._download_page_soup(self._WATCH_LATER_URL)
-            headers = self._find_post_headers(content)
+            headers = self._ytcfg_headers(content)
 
         params = {'name': 'playlistEditEndpoint'}
         form_data = {
@@ -474,6 +489,7 @@ class YouTube(object):
             'session_token':
             xsrf_token or ''
         }
+        self._log.debug('Form data: %s', form_data)
         data = self._download_page(self._SERVICE_AJAX_URL,
                                    method='post',
                                    data=form_data,
@@ -484,23 +500,52 @@ class YouTube(object):
             raise UnexpectedError(
                 'Failed to delete video from Watch Later playlist')
 
-    def _get_favorites_playlist_id(self):
+    def get_favorites_playlist_id(self):
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         if self._favorites_playlist_id:
             return self._favorites_playlist_id
 
-        content = self._download_page_soup(self._HISTORY_URL)
-        link = content.select('li.guide-notification-item > '
-                              'a[title="Favorites"]')
+        def check_section_items(items):
+            for item in items:
+                has_match = re.match(
+                    r'^Favou?rites',
+                    item['guideEntryRenderer']['formattedTitle']['simpleText'])
+                if has_match:
+                    return (item['guideEntryRenderer']['entryData']
+                            ['guideEntryData']['guideEntryId'])
 
-        href = link[0]['href']
-        li = dict(
-            parse_qsl(urlparse(href).query,
-                      keep_blank_values=False,
-                      strict_parsing=True))['list']
-        self._favorites_playlist_id = li
+        content = self._download_page_soup(self._HOMEPAGE_URL)
+        gd = self._initial_guide_data(content)
+        section_items = (
+            gd['items'][0]['guideSectionRenderer']['items'][4]
+            ['guideCollapsibleSectionEntryRenderer']['sectionItems'])
+
+        found = check_section_items(section_items)
+        if found:
+            self._favorites_playlist_id = found
+            return self._favorites_playlist_id
+
+        for item in section_items:
+            has_match = re.match(
+                r'^Favou?rites',
+                item['guideEntryRenderer']['formattedTitle']['simpleText'])
+            if has_match:
+                self._favorites_playlist_id = (
+                    item['guideEntryRenderer']['entryData']['guideEntryData']
+                    ['guideEntryId'])
+                return self._favorites_playlist_id
+
+        section_items = (section_items[-1]['guideCollapsibleEntryRenderer']
+                         ['expandableItems'])
+        found = check_section_items(section_items)
+        if not found:
+            raise ValueError('Could not determine favourites playlist ID')
+
+        self._favorites_playlist_id = found
+        self._log.debug('Got favourites playlist ID: %s',
+                        self._favorites_playlist_id)
 
         return self._favorites_playlist_id
 
@@ -508,7 +553,7 @@ class YouTube(object):
                                        video_id,
                                        headers=None,
                                        session_token=None):
-        favorites_playlist_id = self._get_favorites_playlist_id()
+        favorites_playlist_id = self.get_favorites_playlist_id()
 
         return self.remove_video_id_from_playlist(favorites_playlist_id,
                                                   video_id,
@@ -520,89 +565,83 @@ class YouTube(object):
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
-        playlist_id = self._get_favorites_playlist_id()
-        url = ('https://www.youtube.com/playlist?list={}').format(playlist_id)
-        content = self._download_page_soup(url)
-        headers = self._find_post_headers(content)
-        session_token = headers['x-youtube-identity-token']
-        rows = content.select('#pl-video-list > table > tbody > tr')
+        self.clear_playlist(self.get_favorites_playlist_id())
 
-        for row in rows:
-            self.remove_video_id_from_favorites(row['data-set-video-id'],
-                                                headers=headers,
-                                                session_token=session_token)
-
-    def _initial_data(self, content):
-        return json.loads(
-            re.sub(
-                '^window[^=]+= ', '',
-                list(
-                    filter(lambda x: '"ytInitialData"' in x.text,
-                           content.select('script')))[0].text.strip()).split(
-                               '\n')[0][:-1])
-
-    def clear_watch_later(self):
-        """Removes all videos from the 'Watch Later' playlist"""
+    def clear_playlist(self, playlist_id):
+        """
+        Removes all videos from the specified playlist.
+        Use `WL` for Watch Later.
+        """
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
-        content = self._download_page_soup(self._WATCH_LATER_URL)
-        headers = self._find_post_headers(content)
-
+        url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
+        content = self._download_page_soup(url)
+        ytcfg = self._find_ytcfg(content)
+        headers = self._ytcfg_headers(ytcfg)
         yt_init_data = self._initial_data(content)
-        plvlr = yt_init_data['contents']['twoColumnBrowseResultsRenderer'][
-            'tabs'][0]['tabRenderer']['content']['sectionListRenderer'][
-                'contents'][0]['itemSectionRenderer']['contents'][0][
-                    'playlistVideoListRenderer']
-        continuation = plvlr['continuations'][0]['nextContinuationData'][
-            'continuation']
-        itct = plvlr['continuations'][0]['nextContinuationData'][
-            'clickTrackingParams']
+        csn = ytcfg['EVENT_ID']
+        xsrf_token = ytcfg['XSRF_TOKEN']
+
+        plvlr = (yt_init_data['contents']['twoColumnBrowseResultsRenderer']
+                 ['tabs'][0]['tabRenderer']['content']['sectionListRenderer']
+                 ['contents'][0]['itemSectionRenderer']['contents'][0]
+                 ['playlistVideoListRenderer'])
         set_video_ids = list(
             map(lambda x: x['playlistVideoRenderer']['setVideoId'],
                 plvlr['contents']))
+        next_cont = continuation = itct = None
 
-        csn = None
-        xsrf_token = None
-        while True:
-            params = {
-                'ctoken': continuation,
-                'continuation': continuation,
-                'itct': itct
-            }
-            contents = self._download_page(self._BROWSE_AJAX_URL,
-                                           params=params,
-                                           json=True,
-                                           headers=headers)
-            csn = contents[1]['csn']
-            xsrf_token = contents[1]['xsrf_token']
+        try:
+            next_cont = plvlr['continuations'][0]['nextContinuationData']
+            continuation = next_cont['continuation']
+            itct = next_cont['clickTrackingParams']
+        except KeyError:
+            pass
 
-            adding = list(
-                map(
-                    lambda x: x['playlistVideoRenderer']['setVideoId'],
-                    contents[1]['response']['continuationContents']
-                    ['playlistVideoListContinuation']['contents']))
-            if not adding:
-                break
-            set_video_ids += adding
+        if continuation and itct:
+            while True:
+                params = {
+                    'ctoken': continuation,
+                    'continuation': continuation,
+                    'itct': itct
+                }
+                contents = self._download_page(self._BROWSE_AJAX_URL,
+                                               params=params,
+                                               json=True,
+                                               headers=headers)
+                csn = contents[1]['csn']
+                xsrf_token = contents[1]['xsrf_token']
+                response = contents[1]['response']
 
-            try:
-                continuations = contents[1]['response'][
-                    'continuationContents']['playlistVideoListContinuation'][
-                        'continuations']
-            except KeyError:
-                break
-            itct = continuations[0]['nextContinuationData'][
-                'clickTrackingParams']
-            continuation = continuations[0]['nextContinuationData'][
-                'continuation']
+                adding = list(
+                    map(
+                        lambda x: x['playlistVideoRenderer']['setVideoId'],
+                        response['continuationContents']
+                        ['playlistVideoListContinuation']['contents']))
+                if not adding:
+                    break
+                set_video_ids += adding
+
+                try:
+                    continuations = (
+                        response['continuationContents']
+                        ['playlistVideoListContinuation']['continuations'])
+                except KeyError:
+                    break
+                next_cont = continuations[0]['nextContinuationData']
+                itct = next_cont['clickTrackingParams']
+                continuation = next_cont['continuation']
 
         for set_video_id in set_video_ids:
-            self._log.debug('Deleting from WL: set_video_id = %s',
+            self._log.debug('Deleting from playlist: set_video_id = %s',
                             set_video_id)
-            self._remove_set_video_id_from_playlist('WL',
+            self._remove_set_video_id_from_playlist(playlist_id,
                                                     set_video_id,
                                                     csn,
                                                     xsrf_token,
                                                     headers=headers)
+
+    def clear_watch_later(self):
+        self.clear_playlist('WL')
