@@ -13,9 +13,11 @@ def _common_arguments():
     parser = argparse.ArgumentParser(
         description='Clear your YouTube watch history')
 
-    parser.add_argument('-u', '--username',
+    parser.add_argument('-u',
+                        '--username',
                         help='If not specified, a netrc file will be used')
-    parser.add_argument('-p', '--password',
+    parser.add_argument('-p',
+                        '--password',
                         help='If not specified, a netrc file will be used')
     parser.add_argument('--netrc',
                         default=expanduser('~/.netrc'),
@@ -23,7 +25,8 @@ def _common_arguments():
     parser.add_argument('--cookies',
                         default=expanduser('~/.ytch-cookies.txt'),
                         help='Netscape cookies file to use')
-    parser.add_argument('-d', '--debug',
+    parser.add_argument('-d',
+                        '--debug',
                         action='store_true',
                         help='Log and raise exceptions')
 
@@ -44,10 +47,11 @@ def _parse_common_arguments(args):
     if args.debug:
         channel = logging.StreamHandler()
         channel.setLevel(logging.DEBUG)
-        channel.setFormatter(logging.Formatter('%(asctime)s - %(name)s - '
-                                               '%(levelname)s - %(message)s'))
+        channel.setFormatter(
+            logging.Formatter('%(asctime)s - %(name)s - '
+                              '%(levelname)s - %(message)s'))
 
-        for logname in ('youtube-unofficial', 'requests',):
+        for logname in ('youtube-unofficial', 'requests'):
             log = logging.getLogger(logname)
             log.setLevel(logging.DEBUG)
             log.addHandler(channel)
@@ -70,6 +74,7 @@ def _simple_method_call(method_name):
                 raise e
             print(e.args[0], file=sys.stderr)
             return 1
+
     return f
 
 

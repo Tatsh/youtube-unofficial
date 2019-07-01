@@ -26,6 +26,7 @@ __all__ = ['compat_str', 'try_get', 'remove_start', 'html_hidden_inputs']
 
 class HTMLAttributeParser(compat_HTMLParser):
     """Trivial HTML parser to gather the attributes for a single element"""
+
     def __init__(self):
         self.attrs = {}
         compat_HTMLParser.__init__(self)
