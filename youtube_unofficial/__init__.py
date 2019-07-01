@@ -28,8 +28,6 @@ class YouTube(object):
                    '(KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36')
 
     _HOMEPAGE_URL = 'https://www.youtube.com'
-    _CLEAR_HISTORY_URL = ('https://www.youtube.com/feed_ajax?'
-                          'action_clear_watch_history=1&clear_dialog_shown=0')
     _HISTORY_URL = 'https://www.youtube.com/feed/history'
     _FEED_CHANGE_AJAX_URL = ('https://www.youtube.com/feed_change_ajax'
                              '?action_give_feedback=1')
