@@ -425,21 +425,39 @@ class YouTube(object):
                                       'login() first')
 
         content = self._download_page_soup(self._HISTORY_URL)
-        headers = self._ytcfg_headers(content)
-        post_data = dict(session_token=headers['X-Youtube-Identity-Token'], )
+        ytcfg = self._find_ytcfg(content)
+        headers = self._ytcfg_headers(ytcfg)
+        headers['x-spf-previous'] = self._HISTORY_URL
+        headers['x-spf-referer'] = self._HISTORY_URL
+        init_data = self._initial_data(content)
+        params = {'name': 'feedbackEndpoint'}
+        try:
+            data = {
+                'sej':
+                json.dumps(
+                    init_data['contents']['twoColumnBrowseResultsRenderer']
+                    ['secondaryContents']['browseFeedActionsRenderer']
+                    ['contents'][2]['buttonRenderer']['navigationEndpoint']
+                    ['confirmDialogEndpoint']['content']
+                    ['confirmDialogRenderer']['confirmButton']
+                    ['buttonRenderer']['serviceEndpoint']),
+                'csn':
+                ytcfg['EVENT_ID'],
+                'session_token':
+                ytcfg['XSRF_TOKEN']
+            }
+        except KeyError:
+            self._log.debug('Clear button is likely disabled. History is '
+                            'likely empty')
+            return
 
-        content = self._download_page_soup(self._CLEAR_HISTORY_URL,
-                                           data=post_data,
-                                           method='post',
-                                           headers=headers)
-        self._cj.save()
-
-        selector = 'ol.section-list > li > ol.item-section > li > .yt-lockup'
-
-        if content.select(selector):
-            raise UnexpectedError('Failed to clear history')
-        else:
-            self._log.info('Successfully cleared history')
+        self._download_page(self._SERVICE_AJAX_URL,
+                            params=params,
+                            data=data,
+                            headers=headers,
+                            json=True,
+                            method='post')
+        self._log.info('Successfully cleared history')
 
     def _remove_set_video_id_from_playlist(self,
                                            playlist_id,
