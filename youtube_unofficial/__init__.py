@@ -71,7 +71,7 @@ class YouTube(object):
 
     def _auth(self):
         if not self.username:
-            self._log.debug('Reading netrc at {}'.format(self.netrc_file))
+            self._log.debug('Reading netrc at %s', self.netrc_file)
 
             try:
                 (un, _, pw) = netrc(self.netrc_file).authenticators(
@@ -84,14 +84,11 @@ class YouTube(object):
         else:
             self._log.debug('Username and password not from netrc')
 
-        return (
-            self.username,
-            self.password,
-        )
+        return self.username, self.password
 
     def _init_cookiejar(self, path, cls=MozillaCookieJar):
-        self._log.debug('Initialise cookie jar ({}) at {}'.format(
-            cls.__name__, path))
+        self._log.debug('Initialising cookie jar (%s) at %s', cls.__name__,
+                        path)
 
         try:
             with open(path):
@@ -105,8 +102,7 @@ class YouTube(object):
             try:
                 self._cj.load()
             except CookieJarLoadError:
-                self._log.debug('File {} for cookies does not yet '
-                                'exist'.format(path))
+                self._log.debug('File %s for cookies does not yet exist', path)
 
     def _stdin_tfa_code_callback(self):
         try:
@@ -143,9 +139,8 @@ class YouTube(object):
         return r.json()
 
     def _download_page_soup(self, *args, **kwargs):
-        content = self._download_page(*args, **kwargs)
-        parser = kwargs.pop('parser', 'html5lib')
-        return Soup(content, parser)
+        return Soup(self._download_page(*args, **kwargs),
+                    kwargs.pop('parser', 'html5lib'))
 
     def login(self, tfa_code_callback=None):
         """
@@ -534,6 +529,15 @@ class YouTube(object):
                                                 headers=headers,
                                                 session_token=session_token)
 
+    def _initial_data(self, content):
+        return json.loads(
+            re.sub(
+                '^window[^=]+= ', '',
+                list(
+                    filter(lambda x: '"ytInitialData"' in x.text,
+                           content.select('script')))[0].text.strip()).split(
+                               '\n')[0][:-1])
+
     def clear_watch_later(self):
         """Removes all videos from the 'Watch Later' playlist"""
         if not self._logged_in:
@@ -543,13 +547,7 @@ class YouTube(object):
         content = self._download_page_soup(self._WATCH_LATER_URL)
         headers = self._find_post_headers(content)
 
-        yt_init_data = json.loads(
-            re.sub(
-                '^window[^=]+= ', '',
-                list(
-                    filter(lambda x: '"ytInitialData"' in x.text,
-                           content.select('script')))[0].text.strip()).split(
-                               '\n')[0][:-1])
+        yt_init_data = self._initial_data(content)
         plvlr = yt_init_data['contents']['twoColumnBrowseResultsRenderer'][
             'tabs'][0]['tabRenderer']['content']['sectionListRenderer'][
                 'contents'][0]['itemSectionRenderer']['contents'][0][
@@ -576,11 +574,16 @@ class YouTube(object):
                                            headers=headers)
             csn = contents[1]['csn']
             xsrf_token = contents[1]['xsrf_token']
-            set_video_ids += list(
+
+            adding = list(
                 map(
                     lambda x: x['playlistVideoRenderer']['setVideoId'],
                     contents[1]['response']['continuationContents']
                     ['playlistVideoListContinuation']['contents']))
+            if not adding:
+                break
+            set_video_ids += adding
+
             try:
                 continuations = contents[1]['response'][
                     'continuationContents']['playlistVideoListContinuation'][
@@ -593,6 +596,8 @@ class YouTube(object):
                 'continuation']
 
         for set_video_id in set_video_ids:
+            self._log.debug('Deleting from WL: set_video_id = %s',
+                            set_video_id)
             self._remove_set_video_id_from_playlist('WL',
                                                     set_video_id,
                                                     csn,
