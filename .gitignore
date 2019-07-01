@@ -34,3 +34,4 @@ Thumbs.db
 # This project
 /dist/
 /build/
+/.vscode/.ropeproject/objectdb
