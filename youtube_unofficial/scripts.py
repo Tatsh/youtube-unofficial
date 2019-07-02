@@ -72,7 +72,7 @@ def _simple_method_call(method_name):
         except Exception as e:
             if args.debug:
                 raise e
-            print(e.args[0], file=sys.stderr)
+            print(str(e), file=sys.stderr)
             return 1
 
     return f
