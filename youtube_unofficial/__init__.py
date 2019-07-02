@@ -513,11 +513,7 @@ class YouTube(object):
 
         self.clear_playlist(self.get_favorites_playlist_id())
 
-    def clear_playlist(self, playlist_id):
-        """
-        Removes all videos from the specified playlist.
-        Use `WL` for Watch Later.
-        """
+    def get_playlist_info(self, playlist_id):
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
@@ -527,21 +523,12 @@ class YouTube(object):
         ytcfg = self._find_ytcfg(content)
         headers = self._ytcfg_headers(ytcfg)
         yt_init_data = self._initial_data(content)
-        csn = ytcfg['EVENT_ID']
-        xsrf_token = ytcfg['XSRF_TOKEN']
 
         plvlr = (yt_init_data['contents']['twoColumnBrowseResultsRenderer']
                  ['tabs'][0]['tabRenderer']['content']['sectionListRenderer']
                  ['contents'][0]['itemSectionRenderer']['contents'][0]
                  ['playlistVideoListRenderer'])
-        try:
-            set_video_ids = list(
-                map(lambda x: x['playlistVideoRenderer']['setVideoId'],
-                    plvlr['contents']))
-        except KeyError:
-            self._log.info('Caught KeyError. This probably means the playlist '
-                           'is empty.')
-            return
+        first_contents = plvlr['contents']
 
         next_cont = continuation = itct = None
         try:
@@ -562,18 +549,10 @@ class YouTube(object):
                                                params=params,
                                                json=True,
                                                headers=headers)
-                csn = contents[1]['csn']
-                xsrf_token = contents[1]['xsrf_token']
                 response = contents[1]['response']
-
-                adding = list(
-                    map(
-                        lambda x: x['playlistVideoRenderer']['setVideoId'],
-                        response['continuationContents']
-                        ['playlistVideoListContinuation']['contents']))
-                if not adding:
-                    break
-                set_video_ids += adding
+                first_contents += (
+                    response['continuationContents']
+                    ['playlistVideoListContinuation']['contents'])
 
                 try:
                     continuations = (
@@ -584,6 +563,34 @@ class YouTube(object):
                 next_cont = continuations[0]['nextContinuationData']
                 itct = next_cont['clickTrackingParams']
                 continuation = next_cont['continuation']
+
+        return first_contents
+
+    def clear_playlist(self, playlist_id):
+        """
+        Removes all videos from the specified playlist.
+        Use `WL` for Watch Later.
+        """
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        playlist_info = self.get_playlist_info(playlist_id)
+        url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
+        content = self._download_page_soup(url)
+        ytcfg = self._find_ytcfg(content)
+        headers = self._ytcfg_headers(ytcfg)
+        csn = ytcfg['EVENT_ID']
+        xsrf_token = ytcfg['XSRF_TOKEN']
+
+        try:
+            set_video_ids = list(
+                map(lambda x: x['playlistVideoRenderer']['setVideoId'],
+                    playlist_info))
+        except KeyError:
+            self._log.info('Caught KeyError. This probably means the playlist '
+                           'is empty.')
+            return
 
         for set_video_id in set_video_ids:
             self._log.debug('Deleting from playlist: set_video_id = %s',
@@ -597,18 +604,35 @@ class YouTube(object):
     def clear_watch_later(self):
         self.clear_playlist('WL')
 
-    """FIXME Make the following methods work again"""
-
     def remove_video_id_from_favorites(self,
                                        video_id,
                                        headers=None,
                                        session_token=None):
-        favorites_playlist_id = self.get_favorites_playlist_id()
+        playlist_id = self.get_favorites_playlist_id()
+        playlist_info = self.get_playlist_info(playlist_id)
+        url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
+        content = self._download_page_soup(url)
+        ytcfg = self._find_ytcfg(content)
+        headers = self._ytcfg_headers(ytcfg)
 
-        return self.remove_video_id_from_playlist(favorites_playlist_id,
-                                                  video_id,
-                                                  headers=headers,
-                                                  session_token=session_token)
+        try:
+            entry = list(
+                filter(
+                    lambda x: (x['playlistVideoRenderer']['navigationEndpoint']
+                               ['watchEndpoint']['videoId']) == video_id,
+                    playlist_info))[0]
+        except IndexError:
+            return
+
+        set_video_id = entry['playlistVideoRenderer']['setVideoId']
+
+        self._remove_set_video_id_from_playlist(playlist_id,
+                                                set_video_id,
+                                                ytcfg['EVENT_ID'],
+                                                ytcfg['XSRF_TOKEN'],
+                                                headers=headers)
+
+    """FIXME Make the following methods work again"""
 
     def remove_video_id_from_history(self, video_id):
         """Delete history entries by video ID. Only handles first page of
