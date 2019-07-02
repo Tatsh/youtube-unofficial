@@ -183,7 +183,6 @@ class YouTube(object):
             'session_token':
             xsrf_token or ''
         }
-        self._log.debug('Form data: %s', form_data)
         data = self._download_page(self._SERVICE_AJAX_URL,
                                    method='post',
                                    data=form_data,
@@ -632,53 +631,56 @@ class YouTube(object):
                                                 ytcfg['XSRF_TOKEN'],
                                                 headers=headers)
 
-    """FIXME Make the following methods work again"""
+    def get_history_info(self):
+        """FIXME Needs to support pagination."""
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        content = self._download_page_soup(self._HISTORY_URL)
+        init_data = self._initial_data(content)
+
+        contents = (
+            init_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]
+            ['tabRenderer']['content']['sectionListRenderer']['contents'][0]
+            ['itemSectionRenderer']['contents'])
+
+        return contents
 
     def remove_video_id_from_history(self, video_id):
         """Delete history entries by video ID. Only handles first page of
-        history"""
+        history """
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
+        history_info = self.get_history_info()
         content = self._download_page_soup(self._HISTORY_URL)
-        headers = self._ytcfg_headers(content)
-        lockups = content.select(
-            '[data-context-item-id="{}"]'.format(video_id))
+        ytcfg = self._find_ytcfg(content)
+        headers = self._ytcfg_headers(ytcfg)
 
-        for lockup in lockups:
-            try:
-                button = lockup.select('button.dismiss-menu-choice')[0]
-            except IndexError:
-                continue
+        try:
+            entry = list(
+                filter(lambda x: (x['videoRenderer']['videoId']) == video_id,
+                       history_info))[0]
+        except IndexError:
+            return
 
-            feedback_token = button['data-feedback-token']
-            itct = button['data-innertube-clicktracking']
+        form_data = {
+            'sej':
+            json.dumps(
+                entry['videoRenderer']['menu']['menuRenderer']
+                ['topLevelButtons'][0]['buttonRenderer']['serviceEndpoint']),
+            'csn':
+            ytcfg['EVENT_ID'],
+            'session_token':
+            ytcfg['XSRF_TOKEN'],
+        }
+        resp = self._download_page(self._SERVICE_AJAX_URL,
+                                   json=True,
+                                   data=form_data,
+                                   method='post',
+                                   headers=headers,
+                                   params={'name': 'feedbackEndpoint'})
 
-            self._delete_history_entry_by_feedback_token(
-                feedback_token, itct, headers)
-
-    def _delete_history_entry_by_feedback_token(self, feedback_token, itct,
-                                                headers):
-        """Delete a single history entry by the feedback-token value found
-        on the X button
-        The feedback-token value is re-generated on every page load of
-        _HISTORY_URL"""
-        if not self._logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-
-        content = self._download_page_soup(self._HISTORY_URL)
-        headers = self._ytcfg_headers(content)
-        post_data = dict(
-            itct=itct,
-            feedback_tokens=feedback_token,
-            wait_for_response=1,
-            session_token=headers['X-Youtube-Identity-Token'],
-        )
-
-        self._download_page_soup(self._FEED_CHANGE_AJAX_URL,
-                                 data=post_data,
-                                 method='post',
-                                 headers=headers)
-        self._cj.save()
+        return resp['code'] == 'SUCCESS'
