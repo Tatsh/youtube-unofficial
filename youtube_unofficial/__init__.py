@@ -528,7 +528,10 @@ class YouTube(object):
                  ['tabs'][0]['tabRenderer']['content']['sectionListRenderer']
                  ['contents'][0]['itemSectionRenderer']['contents'][0]
                  ['playlistVideoListRenderer'])
-        first_contents = plvlr['contents']
+        try:
+            first_contents = plvlr['contents']
+        except KeyError:
+            return []
 
         next_cont = continuation = itct = None
         try:
