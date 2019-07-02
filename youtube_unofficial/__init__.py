@@ -9,8 +9,8 @@ import re
 
 from bs4 import BeautifulSoup as Soup
 from requests import Request
-from six.moves.http_cookiejar import LoadError as CookieJarLoadError
-from six.moves.http_cookiejar import MozillaCookieJar
+from six.moves.http_cookiejar import (LoadError as CookieJarLoadError,
+                                      MozillaCookieJar)
 import requests
 
 from .exceptions import AuthenticationError, TwoFactorError, UnexpectedError
@@ -29,8 +29,6 @@ class YouTube(object):
 
     _HOMEPAGE_URL = 'https://www.youtube.com'
     _HISTORY_URL = 'https://www.youtube.com/feed/history'
-    _FEED_CHANGE_AJAX_URL = ('https://www.youtube.com/feed_change_ajax'
-                             '?action_give_feedback=1')
     _WATCH_LATER_URL = 'https://www.youtube.com/playlist?list=WL'
     _BROWSE_AJAX_URL = 'https://www.youtube.com/browse_ajax'
     _SERVICE_AJAX_URL = 'https://www.youtube.com/service_ajax'
@@ -426,7 +424,7 @@ class YouTube(object):
         self._logged_in = True
 
     def clear_watch_history(self):
-        """Clears watch history"""
+        """Clears watch history."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
@@ -467,6 +465,7 @@ class YouTube(object):
         self._log.info('Successfully cleared history')
 
     def get_favorites_playlist_id(self):
+        """Get the Favourites playlist ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
@@ -506,6 +505,7 @@ class YouTube(object):
         return self._favorites_playlist_id
 
     def clear_favorites(self):
+        """Removes all videos from the Favourites playlist."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
@@ -513,6 +513,7 @@ class YouTube(object):
         self.clear_playlist(self.get_favorites_playlist_id())
 
     def get_playlist_info(self, playlist_id):
+        """Get playlist information given a playlist ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
@@ -568,6 +569,7 @@ class YouTube(object):
     def clear_playlist(self, playlist_id):
         """
         Removes all videos from the specified playlist.
+
         Use `WL` for Watch Later.
         """
         if not self._logged_in:
@@ -601,12 +603,14 @@ class YouTube(object):
                                                     headers=headers)
 
     def clear_watch_later(self):
+        """Removes all videos from the 'Watch Later' playlist."""
         self.clear_playlist('WL')
 
     def remove_video_id_from_favorites(self,
                                        video_id,
                                        headers=None,
                                        session_token=None):
+        """Removes a video from Favourites by video ID."""
         playlist_id = self.get_favorites_playlist_id()
         playlist_info = self.get_playlist_info(playlist_id)
         url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
@@ -632,7 +636,11 @@ class YouTube(object):
                                                 headers=headers)
 
     def get_history_info(self):
-        """FIXME Needs to support pagination."""
+        """
+        Get information about the History playlist (first page only).
+
+        FIXME Needs to support pagination.
+        """
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
@@ -648,8 +656,7 @@ class YouTube(object):
         return contents
 
     def remove_video_id_from_history(self, video_id):
-        """Delete history entries by video ID. Only handles first page of
-        history """
+        """Delete a history entry by video ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
