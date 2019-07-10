@@ -639,24 +639,55 @@ class YouTube(object):
                                                 headers=headers)
 
     def get_history_info(self):
-        """
-        Get information about the History playlist (first page only).
-
-        FIXME Needs to support pagination.
-        """
+        """Get information about the History playlist."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
         content = self._download_page_soup(self._HISTORY_URL)
         init_data = self._initial_data(content)
+        ytcfg = self._find_ytcfg(content)
+        headers = self._ytcfg_headers(ytcfg)
 
-        contents = (
+        item_section_renderer = (
             init_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]
             ['tabRenderer']['content']['sectionListRenderer']['contents'][0]
-            ['itemSectionRenderer']['contents'])
+            ['itemSectionRenderer'])
+        first_contents = item_section_renderer['contents']
+        next_continuation = (
+            item_section_renderer['continuations'][0]['nextContinuationData'])
+        continuation = next_continuation['continuation']
+        itct = next_continuation['clickTrackingParams']
 
-        return contents
+        params = {
+            'ctoken': continuation,
+            'continuation': continuation,
+            'itct': itct
+        }
+        xsrf = ytcfg['XSRF_TOKEN']
+
+        while True:
+            resp = self._download_page(self._BROWSE_AJAX_URL,
+                                       json=True,
+                                       headers=headers,
+                                       data={'session_token': xsrf},
+                                       method='post',
+                                       params=params)
+            contents = resp[1]['response']
+            first_contents += (contents['continuationContents']
+                               ['itemSectionContinuation']['contents'])
+            try:
+                continuations = (contents['continuationContents']
+                                 ['itemSectionContinuation']['continuations'])
+            except KeyError:
+                break
+            xsrf = resp[1]['xsrf_token']
+            next_cont = continuations[0]['nextContinuationData']
+            params['itct'] = next_cont['clickTrackingParams']
+            params['ctoken'] = next_cont['continuation']
+            params['continuation'] = next_cont['continuation']
+
+        return first_contents
 
     def remove_video_id_from_history(self, video_id):
         """Delete a history entry by video ID."""
