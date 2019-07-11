@@ -215,13 +215,13 @@ class YouTube(object):
         }
 
     def _initial_data(self, content):
-        return json.loads(
+        return json.loads(json.JSONDecoder().raw_decode(
             re.sub(
-                '^window[^=]+= ', '',
+                r'^window[^=]+= JSON\.parse\(', '',
                 list(
                     filter(lambda x: '"ytInitialData"' in x.text,
                            content.select('script')))[0].text.strip()).split(
-                               '\n')[0][:-1])
+                               '\n')[0][:-1])[0])
 
     def _initial_guide_data(self, content):
         return json.loads(
