@@ -78,6 +78,74 @@ def _simple_method_call(method_name):
     return f
 
 
+def print_playlist_ids_callback(parser=None, playlist_id=None):
+    def f():
+        nonlocal parser
+        if not parser:
+            parser = _common_arguments()
+        args = parser.parse_args()
+        kwargs = _parse_common_arguments(args)
+        yt = YouTube(**kwargs)
+        try:
+            yt.login()
+        except Exception as e:
+            if args.debug:
+                raise e
+            print(str(e), file=sys.stderr)
+            return 1
+        for item in yt.get_playlist_info(playlist_id or args.playlist_id):
+            print('{} {}'.format(item['playlistVideoRenderer']['videoId'],
+                                 item['playlistVideoRenderer']['setVideoId']))
+
+    return f
+
+
+def print_watchlater_ids():
+    return print_playlist_ids_callback(playlist_id='WL')()
+
+
+def print_playlist_ids():
+    parser = _common_arguments()
+    parser.add_argument('playlist_id')
+    return print_playlist_ids_callback(parser=parser)()
+
+
+def remove_svi_callback(playlist_id=None, parser=None):
+    def f():
+        nonlocal parser
+        if not parser:
+            parser = _common_arguments()
+            parser.add_argument('set_video_ids', nargs='+')
+        args = parser.parse_args()
+        kwargs = _parse_common_arguments(args)
+        yt = YouTube(**kwargs)
+        try:
+            yt.login()
+        except Exception as e:
+            if args.debug:
+                raise e
+            print(str(e), file=sys.stderr)
+            return 1
+        for svi in args.set_video_ids:
+            yt.remove_set_video_id_from_playlist(
+                playlist_id or args.playlist_id, svi)
+
+    return f
+
+
+def remove_watchlater_setvideoid():
+    parser = _common_arguments()
+    parser.add_argument('set_video_ids', nargs='+')
+    return remove_svi_callback(playlist_id='WL')()
+
+
+def remove_setvideoid():
+    parser = _common_arguments()
+    parser.add_argument('playlist_id')
+    parser.add_argument('set_video_ids', nargs='+')
+    return remove_svi_callback(parser=parser)()
+
+
 clear_watch_history = _simple_method_call('clear_watch_history')
 clear_watch_later = _simple_method_call('clear_watch_later')
 clear_favorites = _simple_method_call('clear_favorites')

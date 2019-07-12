@@ -25,5 +25,13 @@ setup(name='youtube-unofficial',
                'clear_watch_later'),
               ('youtube-clear-favorites = youtube_unofficial.scripts:'
                'clear_favorites'),
+              ('youtube-print-watch-later-ids = youtube_unofficial.scripts:'
+               'print_watchlater_ids'),
+              ('youtube-print-playlist-ids = youtube_unofficial.scripts:'
+               'print_playlist_ids'),
+              ('youtube-remove-watch-later-setvideoid = youtube_unofficial.'
+               'scripts:remove_watchlater_setvideoid'),
+              ('youtube-remove-setvideoid = youtube_unofficial.'
+               'scripts:remove_setvideoid'),
           ]
       })
