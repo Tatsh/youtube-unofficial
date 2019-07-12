@@ -126,6 +126,23 @@ def print_history_ids():
         print(item['videoRenderer']['videoId'])
 
 
+def remove_history_entry():
+    parser = _common_arguments()
+    parser.add_argument('video_id', nargs='+')
+    args = parser.parse_args()
+    kwargs = _parse_common_arguments(args)
+    yt = YouTube(**kwargs)
+    try:
+        yt.login()
+    except Exception as e:
+        if args.debug:
+            raise e
+        print(str(e), file=sys.stderr)
+        return 1
+    for vid in args.video_id:
+        yt.remove_video_id_from_history(vid)
+
+
 def remove_svi_callback(playlist_id=None, parser=None):
     def f():
         nonlocal parser
