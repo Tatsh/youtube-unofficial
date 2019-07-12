@@ -33,5 +33,7 @@ setup(name='youtube-unofficial',
                'scripts:remove_watchlater_setvideoid'),
               ('youtube-remove-setvideoid = youtube_unofficial.'
                'scripts:remove_setvideoid'),
+              ('youtube-print-history-ids = youtube_unofficial.'
+               'scripts:print_history_ids'),
           ]
       })
