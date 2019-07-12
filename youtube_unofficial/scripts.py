@@ -123,7 +123,8 @@ def print_history_ids():
         print(str(e), file=sys.stderr)
         return 1
     for item in yt.get_history_info():
-        print(item['videoRenderer']['videoId'])
+        if 'videoRenderer' in item:
+            print(item['videoRenderer']['videoId'])
 
 
 def remove_history_entry():
