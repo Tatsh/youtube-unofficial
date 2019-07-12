@@ -556,9 +556,8 @@ class YouTube(object):
                                                json=True,
                                                headers=headers)
                 response = contents[1]['response']
-                yield from (
-                    response['continuationContents']
-                    ['playlistVideoListContinuation']['contents'])
+                yield from (response['continuationContents']
+                            ['playlistVideoListContinuation']['contents'])
 
                 try:
                     continuations = (
@@ -655,8 +654,12 @@ class YouTube(object):
             ['tabRenderer']['content']['sectionListRenderer']['contents'][0]
             ['itemSectionRenderer'])
         yield from item_section_renderer['contents']
-        next_continuation = (
-            item_section_renderer['continuations'][0]['nextContinuationData'])
+        try:
+            next_continuation = (item_section_renderer['continuations'][0]
+                                 ['nextContinuationData'])
+        except KeyError:
+            return
+
         continuation = next_continuation['continuation']
         itct = next_continuation['clickTrackingParams']
 
@@ -676,7 +679,7 @@ class YouTube(object):
                                        params=params)
             contents = resp[1]['response']
             yield from (contents['continuationContents']
-                               ['itemSectionContinuation']['contents'])
+                        ['itemSectionContinuation']['contents'])
             try:
                 continuations = (contents['continuationContents']
                                  ['itemSectionContinuation']['continuations'])
@@ -701,8 +704,9 @@ class YouTube(object):
 
         try:
             entry = list(
-                filter(lambda x: (x['videoRenderer']['videoId']) == video_id,
-                       history_info))[0]
+                filter(
+                    lambda x: 'videoRenderer' in x and x['videoRenderer'][
+                        'videoId'] == video_id, history_info))[0]
         except IndexError:
             return
 
