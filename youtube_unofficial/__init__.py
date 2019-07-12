@@ -133,65 +133,6 @@ class YouTube(object):
         return Soup(self._download_page(*args, **kwargs),
                     kwargs.pop('parser', 'html5lib'))
 
-    def remove_set_video_id_from_playlist(self,
-                                          playlist_id,
-                                          set_video_id,
-                                          csn=None,
-                                          xsrf_token=None,
-                                          headers=None):
-        """Removes a video from a playlist. The set_video_id is NOT the same as
-        the video ID."""
-        if not self._logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-
-        if not headers or not csn or not xsrf_token:
-            soup = self._download_page_soup(self._WATCH_LATER_URL)
-            ytcfg = self._find_ytcfg(soup)
-            headers = self._ytcfg_headers(ytcfg)
-
-        params = {'name': 'playlistEditEndpoint'}
-        form_data = {
-            'sej':
-            json.dumps({
-                'clickTrackingParams': '',
-                'commandMetadata': {
-                    'webCommandMetadata': {
-                        'url': '/service_ajax',
-                        'sendPost': True
-                    }
-                },
-                'playlistEditEndpoint': {
-                    'playlistId':
-                    playlist_id,
-                    'actions': [{
-                        'setVideoId': set_video_id,
-                        'action': 'ACTION_REMOVE_VIDEO'
-                    }],
-                    'params':
-                    'CAE%3D',
-                    'clientActions': [{
-                        'playlistRemoveVideosAction': {
-                            'setVideoIds': [set_video_id]
-                        }
-                    }]
-                }
-            }),
-            'csn':
-            csn or ytcfg['EVENT_ID'],
-            'session_token':
-            xsrf_token or ytcfg['XSRF_TOKEN']
-        }
-        data = self._download_page(self._SERVICE_AJAX_URL,
-                                   method='post',
-                                   data=form_data,
-                                   params=params,
-                                   json=True,
-                                   headers=headers)
-        if data['code'] != 'SUCCESS':
-            raise UnexpectedError(
-                'Failed to delete video from Watch Later playlist')
-
     def _find_ytcfg(self, soup):
         return json.JSONDecoder().raw_decode(
             re.sub(
@@ -426,6 +367,65 @@ class YouTube(object):
         self._cj.save()
         self._logged_in = True
 
+    def remove_set_video_id_from_playlist(self,
+                                          playlist_id,
+                                          set_video_id,
+                                          csn=None,
+                                          xsrf_token=None,
+                                          headers=None):
+        """Removes a video from a playlist. The set_video_id is NOT the same as
+        the video ID."""
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+
+        if not headers or not csn or not xsrf_token:
+            soup = self._download_page_soup(self._WATCH_LATER_URL)
+            ytcfg = self._find_ytcfg(soup)
+            headers = self._ytcfg_headers(ytcfg)
+
+        params = {'name': 'playlistEditEndpoint'}
+        form_data = {
+            'sej':
+            json.dumps({
+                'clickTrackingParams': '',
+                'commandMetadata': {
+                    'webCommandMetadata': {
+                        'url': '/service_ajax',
+                        'sendPost': True
+                    }
+                },
+                'playlistEditEndpoint': {
+                    'playlistId':
+                    playlist_id,
+                    'actions': [{
+                        'setVideoId': set_video_id,
+                        'action': 'ACTION_REMOVE_VIDEO'
+                    }],
+                    'params':
+                    'CAE%3D',
+                    'clientActions': [{
+                        'playlistRemoveVideosAction': {
+                            'setVideoIds': [set_video_id]
+                        }
+                    }]
+                }
+            }),
+            'csn':
+            csn or ytcfg['EVENT_ID'],
+            'session_token':
+            xsrf_token or ytcfg['XSRF_TOKEN']
+        }
+        data = self._download_page(self._SERVICE_AJAX_URL,
+                                   method='post',
+                                   data=form_data,
+                                   params=params,
+                                   json=True,
+                                   headers=headers)
+        if data['code'] != 'SUCCESS':
+            raise UnexpectedError(
+                'Failed to delete video from Watch Later playlist')
+
     def clear_watch_history(self):
         """Clears watch history."""
         if not self._logged_in:
@@ -532,9 +532,9 @@ class YouTube(object):
                  ['contents'][0]['itemSectionRenderer']['contents'][0]
                  ['playlistVideoListRenderer'])
         try:
-            first_contents = plvlr['contents']
+            yield from plvlr['contents']
         except KeyError:
-            return []
+            yield from []
 
         next_cont = continuation = itct = None
         try:
@@ -556,7 +556,7 @@ class YouTube(object):
                                                json=True,
                                                headers=headers)
                 response = contents[1]['response']
-                first_contents += (
+                yield from (
                     response['continuationContents']
                     ['playlistVideoListContinuation']['contents'])
 
@@ -569,8 +569,6 @@ class YouTube(object):
                 next_cont = continuations[0]['nextContinuationData']
                 itct = next_cont['clickTrackingParams']
                 continuation = next_cont['continuation']
-
-        return first_contents
 
     def clear_playlist(self, playlist_id):
         """
