@@ -656,7 +656,7 @@ class YouTube(object):
             init_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]
             ['tabRenderer']['content']['sectionListRenderer']['contents'][0]
             ['itemSectionRenderer'])
-        first_contents = item_section_renderer['contents']
+        yield from item_section_renderer['contents']
         next_continuation = (
             item_section_renderer['continuations'][0]['nextContinuationData'])
         continuation = next_continuation['continuation']
@@ -677,7 +677,7 @@ class YouTube(object):
                                        method='post',
                                        params=params)
             contents = resp[1]['response']
-            first_contents += (contents['continuationContents']
+            yield from (contents['continuationContents']
                                ['itemSectionContinuation']['contents'])
             try:
                 continuations = (contents['continuationContents']
@@ -689,8 +689,6 @@ class YouTube(object):
             params['itct'] = next_cont['clickTrackingParams']
             params['ctoken'] = next_cont['continuation']
             params['continuation'] = next_cont['continuation']
-
-        return first_contents
 
     def remove_video_id_from_history(self, video_id):
         """Delete a history entry by video ID."""
