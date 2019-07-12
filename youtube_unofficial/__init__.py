@@ -133,21 +133,22 @@ class YouTube(object):
         return Soup(self._download_page(*args, **kwargs),
                     kwargs.pop('parser', 'html5lib'))
 
-    def _remove_set_video_id_from_playlist(self,
-                                           playlist_id,
-                                           set_video_id,
-                                           csn,
-                                           xsrf_token,
-                                           headers=None):
+    def remove_set_video_id_from_playlist(self,
+                                          playlist_id,
+                                          set_video_id,
+                                          csn=None,
+                                          xsrf_token=None,
+                                          headers=None):
         """Removes a video from a playlist. The set_video_id is NOT the same as
         the video ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
-        if not headers:
-            content = self._download_page_soup(self._WATCH_LATER_URL)
-            headers = self._ytcfg_headers(content)
+        if not headers or not csn or not xsrf_token:
+            soup = self._download_page_soup(self._WATCH_LATER_URL)
+            ytcfg = self._find_ytcfg(soup)
+            headers = self._ytcfg_headers(ytcfg)
 
         params = {'name': 'playlistEditEndpoint'}
         form_data = {
@@ -177,9 +178,9 @@ class YouTube(object):
                 }
             }),
             'csn':
-            csn or '',
+            csn or ytcfg['EVENT_ID'],
             'session_token':
-            xsrf_token or ''
+            xsrf_token or ytcfg['XSRF_TOKEN']
         }
         data = self._download_page(self._SERVICE_AJAX_URL,
                                    method='post',
@@ -215,13 +216,15 @@ class YouTube(object):
         }
 
     def _initial_data(self, content):
-        return json.loads(json.JSONDecoder().raw_decode(
-            re.sub(
-                r'^window[^=]+= JSON\.parse\(', '',
-                list(
-                    filter(lambda x: '"ytInitialData"' in x.text,
-                           content.select('script')))[0].text.strip()).split(
-                               '\n')[0][:-1])[0])
+        text = list(
+            filter(lambda x: '"ytInitialData"' in x.text,
+                   content.select('script')))[0].text.strip()
+        if 'JSON.parse' in text:
+            return json.loads(json.JSONDecoder().raw_decode(
+                re.sub(r'^window[^=]+= JSON\.parse\(', '',
+                       text).split('\n')[0][:-1])[0])
+        return json.loads(
+            re.sub('^window[^=]+= ', '', text).split('\n')[0][:-1])
 
     def _initial_guide_data(self, content):
         return json.loads(
@@ -599,11 +602,11 @@ class YouTube(object):
         for set_video_id in set_video_ids:
             self._log.debug('Deleting from playlist: set_video_id = %s',
                             set_video_id)
-            self._remove_set_video_id_from_playlist(playlist_id,
-                                                    set_video_id,
-                                                    csn,
-                                                    xsrf_token,
-                                                    headers=headers)
+            self.remove_set_video_id_from_playlist(playlist_id,
+                                                   set_video_id,
+                                                   csn,
+                                                   xsrf_token,
+                                                   headers=headers)
 
     def clear_watch_later(self):
         """Removes all videos from the 'Watch Later' playlist."""
@@ -632,11 +635,11 @@ class YouTube(object):
 
         set_video_id = entry['playlistVideoRenderer']['setVideoId']
 
-        self._remove_set_video_id_from_playlist(playlist_id,
-                                                set_video_id,
-                                                ytcfg['EVENT_ID'],
-                                                ytcfg['XSRF_TOKEN'],
-                                                headers=headers)
+        self.remove_set_video_id_from_playlist(playlist_id,
+                                               set_video_id,
+                                               ytcfg['EVENT_ID'],
+                                               ytcfg['XSRF_TOKEN'],
+                                               headers=headers)
 
     def get_history_info(self):
         """Get information about the History playlist."""
