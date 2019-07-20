@@ -189,8 +189,9 @@ class YouTube(object):
             tfa_code_callback = self._stdin_tfa_code_callback
 
         # Check if already logged in with cookies
-        content = self._download_page('https://www.youtube.com/')
-        if "'LOGGED_IN': true" in content:
+        content = self._download_page_soup('https://www.youtube.com/')
+        ytcfg = self._find_ytcfg(content)
+        if ytcfg['LOGGED_IN']:
             self._log.debug('Already logged in via cookies')
             self._logged_in = True
 
