@@ -1,8 +1,10 @@
+# Unofficial YouTube API client
+
 Use this library to do things the real YouTube API does not let you do. DO NOT USE THIS FOR ANY ACCOUNT OTHER THAN YOUR OWN!
 
-This library supports both Python 2.7.x and 3.4+.
+This library supports Python 3.6+.
 
-# Use a netrc file
+## Use a netrc file
 
 Every command can take a `--username` and `--password` argument.
 
@@ -14,19 +16,19 @@ machine youtube login LOGIN password YOUR_PASSWORD
 
 You can specify a custom netrc file with the `--netrc` argument.
 
-# Usage
+## Usage
 
-## Command line
+### Command line
 
-* `youtube-clear-favorites` - Clear your *Favourites*
-* `youtube-clear-history` - Clear your *Watch History*
-* `youtube-clear-watch-later` - Clear your *Watch Later* queue
+- `youtube-clear-favorites` - Clear your _Favourites_
+- `youtube-clear-history` - Clear your _Watch History_
+- `youtube-clear-watch-later` - Clear your _Watch Later_ queue
 
 Every command takes a `--debug` argument.
 
 You can use exported cookies (in Netscape format) with the `--cookies COOKIES_FILE` argument.
 
-## In Python
+### In Python
 
 ```bash
 git clone git@github.com:Tatsh/youtube-unofficial.git
@@ -48,8 +50,8 @@ yt.remove_video_id_from_watch_later(video_id)
 yt.clear_watch_later()
 ```
 
-# Contributing
+## Contributing
 
-For a new feature to be accepted, it must be something that *cannot* be achieved with Google's official API.
+For a new feature to be accepted, it must be something that _cannot_ be achieved with Google's official API.
 
-Code must run through `flake8` with default settings with no errors.
+Code must run through `mypy` and `pylint` based on the project settings.
