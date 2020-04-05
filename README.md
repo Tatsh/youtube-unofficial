@@ -6,6 +6,8 @@ This library supports Python 3.6+.
 
 ## Use a netrc file
 
+_Please note for the time being, logging in is not working. For more details, see this [youtube-dl issue](https://github.com/ytdl-org/youtube-dl/issues/24508#issuecomment-609362963)._
+
 Every command can take a `--username` and `--password` argument.
 
 You should consider using a netrc file for your login. Example at `~/.netrc`:
