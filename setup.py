@@ -15,8 +15,8 @@ setup(name='youtube-unofficial',
           'beautifulsoup4>=4.3.2',
           'html5lib>=0.999',
           'requests>=2.6.0',
-          'six>=1.10.0',
       ],
+      python_requires='~=3.6',
       entry_points={
           'console_scripts': [
               ('youtube-clear-history = youtube_unofficial.scripts:'
