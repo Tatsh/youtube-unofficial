@@ -3,11 +3,12 @@ from operator import itemgetter
 from os.path import expanduser
 from typing import Any, Callable, Mapping, Optional
 import argparse
-import logging
 import json
+import logging
 import sys
 
 from . import YouTube
+from .util import try_get
 
 __all__ = (
     'clear_favorites',
@@ -94,6 +95,7 @@ def print_playlist_ids_callback(
         nonlocal parser
         if not parser:
             parser = _common_arguments()
+        parser.add_argument('-j', '--json', action='store_true')
         args = parser.parse_args()
         kwargs = _parse_common_arguments(args)
         yt = YouTube(**kwargs)
@@ -105,8 +107,37 @@ def print_playlist_ids_callback(
             print(str(e), file=sys.stderr)
             return 1
         for item in yt.get_playlist_info(playlist_id or args.playlist_id):
-            print('{} {}'.format(item['playlistVideoRenderer']['videoId'],
-                                 item['playlistVideoRenderer']['setVideoId']))
+            renderer = item['playlistVideoRenderer']
+            owner = title = None
+            if 'shortBylineText' in renderer:
+                if 'runs' in renderer['shortBylineText']:
+                    owner = ' - '.join(
+                        map(itemgetter('text'),
+                            renderer['shortBylineText']['runs']))
+                elif 'text' in renderer['shortBylineText']:
+                    owner = renderer['shortBylineText']['text']
+            if 'title' in renderer:
+                if 'simpleText' in renderer['title']:
+                    title = renderer['title']['simpleText']
+                elif 'runs' in 'title':
+                    title = ' - '.join(
+                        map(itemgetter('text'), renderer['title']['runs']))
+            if args.json:
+                print(
+                    json.dumps({
+                        'owner':
+                        owner,
+                        'title':
+                        title,
+                        'setVideoId':
+                        renderer['setVideoId']
+                        if 'setVideoId' in renderer else None,
+                        'videoId':
+                        renderer['videoId']
+                    }))
+            else:
+                print('{} {}'.format(renderer['videoId'],
+                                     renderer['setVideoId']))
         return 0
 
     return f
