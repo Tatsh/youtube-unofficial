@@ -1,4 +1,5 @@
 # pylint: disable=broad-except
+from operator import itemgetter
 from os.path import expanduser
 from typing import Any, Callable, Mapping, Optional
 import argparse
@@ -122,6 +123,7 @@ def print_playlist_ids() -> int:
 
 def print_history_ids() -> int:
     parser = _common_arguments()
+    parser.add_argument('-j', '--json', action='store_true')
     args = parser.parse_args()
     kwargs = _parse_common_arguments(args)
     yt = YouTube(**kwargs)
@@ -132,9 +134,26 @@ def print_history_ids() -> int:
             raise e
         print(str(e), file=sys.stderr)
         return 1
+    from pprint import pprint
+    import json
     for item in yt.get_history_info():
         if 'videoRenderer' in item:
-            print(item['videoRenderer']['videoId'])
+            if args.json:
+                print(
+                    json.dumps({
+                        'owner':
+                        ' - '.join(
+                            map(itemgetter('text'),
+                                item['videoRenderer']['ownerText']['runs'])),
+                        'title':
+                        ' - '.join(
+                            map(itemgetter('text'),
+                                item['videoRenderer']['title']['runs'])),
+                        'videoId':
+                        item['videoRenderer']['videoId']
+                    }))
+            else:
+                print(item['videoRenderer']['videoId'])
     return 0
 
 
