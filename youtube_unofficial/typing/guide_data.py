@@ -15,9 +15,14 @@ class EntryDataDict(TypedDict):
     guideEntryData: GuideEntryDataDict
 
 
+class IconDict(TypedDict):
+    iconType: str
+
+
 class GuideEntryRendererDict(TypedDict):
     entryData: EntryDataDict
     formattedTitle: FormattedTitle
+    icon: IconDict
 
 
 class GuideCollapsibleEntryRendererDict(TypedDict):
