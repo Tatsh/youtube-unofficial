@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Mapping, Sequence, Tuple
+from typing import Any, Iterable, Mapping, Sequence, Tuple, Union
 
 from typing_extensions import TypedDict
 
@@ -13,9 +13,25 @@ class NavigationEndpointDict(TypedDict):
     watchEndpoint: WatchEndpointDict
 
 
-class PlaylistVideoRendererDict(TypedDict):
+class HasKeyText(TypedDict):
+    text: str
+
+
+class RunsOrSimpleTextDict(TypedDict, total=False):
+    runs: Sequence[HasKeyText]
+    simpleText: str
+
+
+class RunsOrTextDict(TypedDict, total=False):
+    runs: Sequence[HasKeyText]
+    text: str
+
+
+class PlaylistVideoRendererDict(TypedDict, total=False):
     navigationEndpoint: NavigationEndpointDict
+    shortBylineText: RunsOrTextDict
     setVideoId: str
+    title: RunsOrSimpleTextDict
     videoId: str
 
 

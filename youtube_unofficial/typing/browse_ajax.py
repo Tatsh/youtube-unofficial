@@ -26,7 +26,7 @@ class ItemSectionContinuationDict(TypedDict, total=False):
 
 class ContinuationContentsDict(TypedDict):
     playlistVideoListContinuation: PlaylistVideoListContinuationDict
-    itemSectionContinuation: ItemSectionContinuationDict
+    sectionListContinuation: ItemSectionContinuationDict
 
 
 class ResponseDict(TypedDict):
