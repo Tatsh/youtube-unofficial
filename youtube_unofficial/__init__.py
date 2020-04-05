@@ -6,6 +6,8 @@ from typing import (Any, Callable, Dict, Iterable, Iterator, Mapping, Optional,
 import json
 import logging
 import re
+import warnings
+import sys
 
 from bs4 import BeautifulSoup as Soup
 from requests import Request
@@ -69,7 +71,8 @@ class YouTube:
     _LOGIN_URL: Final = 'https://accounts.google.com/ServiceLogin'
     _LOOKUP_URL: Final = 'https://accounts.google.com/_/signin/sl/lookup'
     _CHALLENGE_URL: Final = 'https://accounts.google.com/_/signin/sl/challenge'
-    _TFA_URL: Final = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
+    _TFA_URL: Final = ('https://accounts.google.com/_/signin/challenge?hl=en&'
+                       'TL={0}')
 
     _NETRC_MACHINE: Final = 'youtube'
     _USER_AGENT: Final = (
@@ -288,10 +291,10 @@ class YouTube:
                      'desktop%26feature%3Dsign_in_button&hl=en&service=youtube'
                      '&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSepara'
                      'tionSignIn'),
+                    # cSpell: enable
                     None,
                     [],
                     4
-                    # cSpell: enable
                 ],
                 1,
                 [None, None, []],
@@ -347,7 +350,16 @@ class YouTube:
             ]
         ]
 
-        challenge_results = req(self._CHALLENGE_URL, challenge_req)
+        try:
+            challenge_results: Optional[Mapping[str, Any]] = req(
+                self._CHALLENGE_URL, challenge_req)
+        except requests.HTTPError:
+            print(
+                'Log in is broken. See '
+                'https://github.com/ytdl-org/youtube-dl/issues/24508. For '
+                'now, extract cookies from your browser in Netscape format '
+                'and use the --cookies argument.', file=sys.stderr)
+            challenge_results = None
         if not challenge_results:
             raise AuthenticationError('Challenge failed')
 
