@@ -6,8 +6,8 @@ from typing import (Any, Callable, Dict, Iterable, Iterator, Mapping, Optional,
 import json
 import logging
 import re
-import warnings
 import sys
+import warnings
 
 from bs4 import BeautifulSoup as Soup
 from requests import Request
@@ -550,12 +550,18 @@ class YouTube:
         def check_section_items(
                 items: Iterable[SectionItemDict]) -> Optional[str]:
             for item in items:
-                has_match = re.match(
-                    r'^Favou?rites',  # FIXME This only works with English
-                    item['guideEntryRenderer']['formattedTitle']['simpleText'])
-                if has_match:
-                    return (item['guideEntryRenderer']['entryData']
-                            ['guideEntryData']['guideEntryId'])
+                if 'guideEntryRenderer' in item:
+                    if (item['guideEntryRenderer']['icon']['iconType']
+                        ) == 'LIKES_PLAYLIST':
+                        return (item['guideEntryRenderer']['entryData']
+                                ['guideEntryData']['guideEntryId'])
+                elif 'guideCollapsibleEntryRenderer' in item:
+                    renderer = item['guideCollapsibleEntryRenderer']
+                    for e_item in renderer['expandableItems']:
+                        if e_item['guideEntryRenderer']['icon'][
+                                'iconType'] == 'LIKES_PLAYLIST':
+                            return (e_item['guideEntryRenderer']['entryData']
+                                    ['guideEntryData']['guideEntryId'])
             return None
 
         content = self._download_page_soup(self._HOMEPAGE_URL)
