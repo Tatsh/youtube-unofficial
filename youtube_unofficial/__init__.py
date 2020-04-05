@@ -358,7 +358,8 @@ class YouTube:
                 'Log in is broken. See '
                 'https://github.com/ytdl-org/youtube-dl/issues/24508. For '
                 'now, extract cookies from your browser in Netscape format '
-                'and use the --cookies argument.', file=sys.stderr)
+                'and use the --cookies argument.',
+                file=sys.stderr)
             challenge_results = None
         if not challenge_results:
             raise AuthenticationError('Challenge failed')
@@ -727,13 +728,13 @@ class YouTube:
         ytcfg = _find_ytcfg(content)
         headers = self._ytcfg_headers(ytcfg)
 
-        item_section_renderer = (
+        section_list_renderer = (
             init_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]
-            ['tabRenderer']['content']['sectionListRenderer']['contents'][0]
-            ['itemSectionRenderer'])
-        yield from item_section_renderer['contents']
+            ['tabRenderer']['content']['sectionListRenderer'])
+        for section_list in section_list_renderer['contents']:
+            yield from section_list['itemSectionRenderer']['contents']
         try:
-            next_continuation = (item_section_renderer['continuations'][0]
+            next_continuation = (section_list_renderer['continuations'][0]
                                  ['nextContinuationData'])
         except KeyError:
             return
@@ -758,12 +759,16 @@ class YouTube:
                                     method='post',
                                     params=params))
             contents = resp[1]['response']
-            yield from (contents['continuationContents']
-                        ['itemSectionContinuation']['contents'])
+            section_list_renderer = (
+                contents['continuationContents']['sectionListContinuation'])
+            for section_list in section_list_renderer['contents']:
+                yield from section_list['itemSectionRenderer']['contents']
+
             try:
-                continuations = (contents['continuationContents']
-                                 ['itemSectionContinuation']['continuations'])
-            except KeyError:
+                continuations = section_list_renderer['continuations']
+            except KeyError as e:
+                self._log.debug('Caught KeyError: %s. Possible keys: %s', e,
+                                ', '.join(section_list.keys()))
                 break
             xsrf = resp[1]['xsrf_token']
             next_cont = continuations[0]['nextContinuationData']
