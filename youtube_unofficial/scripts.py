@@ -4,6 +4,7 @@ from os.path import expanduser
 from typing import Any, Callable, Mapping, Optional
 import argparse
 import logging
+import json
 import sys
 
 from . import YouTube
@@ -134,8 +135,6 @@ def print_history_ids() -> int:
             raise e
         print(str(e), file=sys.stderr)
         return 1
-    from pprint import pprint
-    import json
     for item in yt.get_history_info():
         if 'videoRenderer' in item:
             if args.json:
