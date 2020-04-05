@@ -196,10 +196,9 @@ class YouTube:
             str(ytcfg['INNERTUBE_CONTEXT_CLIENT_NAME'])
         }
 
-    def login(
-        self,  # pylint: disable=too-many-branches,too-many-statements
-        tfa_code_callback: Optional[Callable[..., str]] = None
-    ) -> None:
+    def login(  # pylint: disable=too-many-branches,too-many-statements
+            self,
+            tfa_code_callback: Optional[Callable[..., str]] = None) -> None:
         """
         This is heavily based on youtube-dl's code.
         See https://goo.gl/J3YFSe
