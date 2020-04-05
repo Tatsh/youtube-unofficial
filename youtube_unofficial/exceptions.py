@@ -1,4 +1,9 @@
-from __future__ import unicode_literals
+__all__ = (
+    'AuthenticationError',
+    'TwoFactorError',
+    'UnexpectedError',
+    'ValidationError',
+)
 
 
 class AuthenticationError(Exception):
@@ -13,5 +18,5 @@ class ValidationError(ValueError):
     pass
 
 
-class UnexpectedError(Exception):
+class UnexpectedError(RuntimeError):
     pass

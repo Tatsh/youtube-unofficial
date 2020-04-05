@@ -1,75 +1,123 @@
-# encoding: utf-8
-from __future__ import unicode_literals
-
+from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from netrc import netrc
 from os.path import expanduser
+from typing import (Any, Callable, Dict, Iterable, Iterator, Mapping, Optional,
+                    Sequence, Tuple, Type, Union, cast)
 import json
 import logging
 import re
 
 from bs4 import BeautifulSoup as Soup
 from requests import Request
-from six.moves.http_cookiejar import (LoadError as CookieJarLoadError,
-                                      MozillaCookieJar)
+from typing_extensions import Final, Literal, overload
 import requests
 
 from .exceptions import AuthenticationError, TwoFactorError, UnexpectedError
-from .util import compat_str, html_hidden_inputs, remove_start, try_get
+from .typing import HasStringCode
+from .typing.browse_ajax import BrowseAJAXSequence
+from .typing.guide_data import GuideData, SectionItemDict
+from .typing.playlist import PlaylistInfo
+from .util import html_hidden_inputs, remove_start, try_get
+
+__all__ = ('YouTube', )
 
 
-class YouTube(object):
-    _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
-    _LOOKUP_URL = 'https://accounts.google.com/_/signin/sl/lookup'
-    _CHALLENGE_URL = 'https://accounts.google.com/_/signin/sl/challenge'
-    _TFA_URL = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
+def _stdin_tfa_code_callback() -> str:
+    return input('2FA code: ').strip()
 
-    _NETRC_MACHINE = 'youtube'
-    _USER_AGENT = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
-                   '(KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36')
 
-    _HOMEPAGE_URL = 'https://www.youtube.com'
-    _HISTORY_URL = 'https://www.youtube.com/feed/history'
-    _WATCH_LATER_URL = 'https://www.youtube.com/playlist?list=WL'
-    _BROWSE_AJAX_URL = 'https://www.youtube.com/browse_ajax'
-    _SERVICE_AJAX_URL = 'https://www.youtube.com/service_ajax'
+def _find_ytcfg(soup: Soup) -> Mapping[str, Any]:
+    return cast(
+        Mapping[str, Any],
+        json.JSONDecoder().raw_decode(
+            re.sub(
+                r'.+ytcfg.set\(\{', '{',
+                list(
+                    filter(
+                        lambda x: '"INNERTUBE_CONTEXT_CLIENT_VERSION":' in x.
+                        text, soup.select('script')))[0].text.strip()))[0])
+
+
+def _initial_data(content: Soup) -> Mapping[str, Any]:
+    text = list(
+        filter(lambda x: '"ytInitialData"' in x.text,
+               content.select('script')))[0].text.strip()
+    if 'JSON.parse' in text:
+        return cast(
+            Mapping[str, Any],
+            json.loads(json.JSONDecoder().raw_decode(
+                re.sub(r'^window[^=]+= JSON\.parse\(', '',
+                       text).split('\n')[0][:-1])[0]))
+    return cast(
+        Mapping[str, Any],
+        json.loads(re.sub('^window[^=]+= ', '', text).split('\n')[0][:-1]))
+
+
+def _initial_guide_data(content: Soup) -> GuideData:
+    return cast(
+        GuideData,
+        json.loads(
+            re.sub(
+                '^var ytInitialGuideData = ', '',
+                list(
+                    filter(lambda x: 'var ytInitialGuideData =' in x.text,
+                           content.select('script')))[0].text.strip()).split(
+                               '\n')[0][:-1]))
+
+
+class YouTube:
+    _LOGIN_URL: Final = 'https://accounts.google.com/ServiceLogin'
+    _LOOKUP_URL: Final = 'https://accounts.google.com/_/signin/sl/lookup'
+    _CHALLENGE_URL: Final = 'https://accounts.google.com/_/signin/sl/challenge'
+    _TFA_URL: Final = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
+
+    _NETRC_MACHINE: Final = 'youtube'
+    _USER_AGENT: Final = (
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
+        '(KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36')
+
+    _HOMEPAGE_URL: Final = 'https://www.youtube.com'
+    _HISTORY_URL: Final = 'https://www.youtube.com/feed/history'
+    _WATCH_LATER_URL: Final = 'https://www.youtube.com/playlist?list=WL'
+    _BROWSE_AJAX_URL: Final = 'https://www.youtube.com/browse_ajax'
+    _SERVICE_AJAX_URL: Final = 'https://www.youtube.com/service_ajax'
 
     def __init__(self,
-                 username=None,
-                 password=None,
-                 netrc_file=None,
-                 cookies_path=None,
-                 cookiejar_cls=MozillaCookieJar):
+                 username: Optional[str] = None,
+                 password: Optional[str] = None,
+                 netrc_file: Optional[str] = None,
+                 cookies_path: Optional[str] = None,
+                 cookiejar_cls: Type[CookieJar] = MozillaCookieJar):
         if not netrc_file:
             self.netrc_file = expanduser('~/.netrc')
         else:
             self.netrc_file = netrc_file
         if not cookies_path:
-            cookies_path = expanduser('~/.ytch-cookies.txt')
+            cookies_path = expanduser('~/.config/ytch-cookies.txt')
 
         self.username = username
         self.password = password
 
-        self._log = logging.getLogger('youtube-unofficial')
+        self._log: Final = logging.getLogger('youtube-unofficial')
         self._logged_in = False
-        self._favorites_playlist_id = None
+        self._favorites_playlist_id: Optional[str] = None
 
-        self._sess = requests.Session()
+        self._sess: Final = requests.Session()
         self._init_cookiejar(cookies_path, cls=cookiejar_cls)
-        self._sess.cookies = self._cj
+        self._sess.cookies = self._cj  # type: ignore[assignment]
         self._sess.headers.update({
             'User-Agent': self._USER_AGENT,
         })
 
-    def _auth(self):
+    def _auth(self) -> Tuple[str, Optional[str]]:
         if not self.username:
             self._log.debug('Reading netrc at %s', self.netrc_file)
-
-            try:
-                (un, _, pw) = netrc(self.netrc_file).authenticators(
-                    self._NETRC_MACHINE)
-            except TypeError:
+            data = netrc(self.netrc_file).authenticators(self._NETRC_MACHINE)
+            un, _, pw = data if data else (None, None, None)
+            if data:
+                un, _, pw = data
+            else:
                 raise AuthenticationError('No login info available')
-
             self.username = un
             self.password = pw
         else:
@@ -77,7 +125,9 @@ class YouTube(object):
 
         return self.username, self.password
 
-    def _init_cookiejar(self, path, cls=MozillaCookieJar):
+    def _init_cookiejar(self,
+                        path: str,
+                        cls: Type[CookieJar] = MozillaCookieJar) -> None:
         self._log.debug('Initialising cookie jar (%s) at %s', cls.__name__,
                         path)
 
@@ -87,31 +137,26 @@ class YouTube(object):
         except IOError:
             with open(path, 'wb+'):
                 pass
-        self._cj = cls(path)
+        try:
+            self._cj = cls(path)  # type: ignore[arg-type]
+        except TypeError:
+            self._cj = cls()
 
         if hasattr(self._cj, 'load'):
             try:
-                self._cj.load()
-            except CookieJarLoadError:
+                self._cj.load()  # type: ignore[attr-defined]
+            except LoadError:
                 self._log.debug('File %s for cookies does not yet exist', path)
 
-    def _stdin_tfa_code_callback(self):
-        try:
-            import __builtin__  # flake8: noqa
-            inp = getattr(__builtin__, 'raw_input')  # flake8: noqa
-        except (ImportError, AttributeError):
-            inp = input
-
-        x = inp('2FA code: ')
-        return x.strip()
-
-    def _download_page(self,
-                       url,
-                       data=None,
-                       method='get',
-                       headers=None,
-                       params=None,
-                       json=False):
+    def _download_page(
+        self,
+        url: str,
+        data: Any = None,
+        method: Literal['get', 'post'] = 'get',
+        headers: Optional[Mapping[str, str]] = None,
+        params: Optional[Mapping[str, str]] = None,
+        return_json: bool = False
+    ) -> Union[str, Sequence[Any], Mapping[str, Any]]:
         if headers:
             self._sess.headers.update(headers)
         req = Request(method.upper(),
@@ -119,30 +164,22 @@ class YouTube(object):
                       cookies=self._cj,
                       data=data,
                       params=params)
-        prepped = self._sess.prepare_request(req)
+        prepped = self._sess.prepare_request(
+            req)  # type: ignore[no-untyped-call]
         del prepped.headers['accept-encoding']
-        r = self._sess.send(prepped)
+        r = self._sess.send(prepped)  # type: ignore[no-untyped-call]
         r.raise_for_status()
 
-        if not json:
-            return r.content.decode('utf-8').strip()
+        if not return_json:
+            return cast(str, r.text.strip())
 
-        return r.json()
+        return cast(Mapping[str, Any], r.json())
 
-    def _download_page_soup(self, *args, **kwargs):
+    def _download_page_soup(self, *args: Any, **kwargs: Any) -> Soup:
         return Soup(self._download_page(*args, **kwargs),
                     kwargs.pop('parser', 'html5lib'))
 
-    def _find_ytcfg(self, soup):
-        return json.JSONDecoder().raw_decode(
-            re.sub(
-                r'.+ytcfg.set\(\{', '{',
-                list(
-                    filter(
-                        lambda x: '"INNERTUBE_CONTEXT_CLIENT_VERSION":' in x.
-                        text, soup.select('script')))[0].text.strip()))[0]
-
-    def _ytcfg_headers(self, ytcfg):
+    def _ytcfg_headers(self, ytcfg: Mapping[str, str]) -> Dict[str, str]:
         return {
             'x-youtube-page-cl': str(ytcfg['PAGE_CL']),
             'x-youtube-identity-token': ytcfg['ID_TOKEN'],
@@ -156,27 +193,10 @@ class YouTube(object):
             str(ytcfg['INNERTUBE_CONTEXT_CLIENT_NAME'])
         }
 
-    def _initial_data(self, content):
-        text = list(
-            filter(lambda x: '"ytInitialData"' in x.text,
-                   content.select('script')))[0].text.strip()
-        if 'JSON.parse' in text:
-            return json.loads(json.JSONDecoder().raw_decode(
-                re.sub(r'^window[^=]+= JSON\.parse\(', '',
-                       text).split('\n')[0][:-1])[0])
-        return json.loads(
-            re.sub('^window[^=]+= ', '', text).split('\n')[0][:-1])
-
-    def _initial_guide_data(self, content):
-        return json.loads(
-            re.sub(
-                '^var ytInitialGuideData = ', '',
-                list(
-                    filter(lambda x: 'var ytInitialGuideData =' in x.text,
-                           content.select('script')))[0].text.strip()).split(
-                               '\n')[0][:-1])
-
-    def login(self, tfa_code_callback=None):
+    def login(
+        self,  # pylint: disable=too-many-branches,too-many-statements
+        tfa_code_callback: Optional[Callable[..., str]] = None
+    ) -> None:
         """
         This is heavily based on youtube-dl's code.
         See https://goo.gl/J3YFSe
@@ -186,11 +206,11 @@ class YouTube(object):
 
         if not tfa_code_callback:
             self._log.debug('Using default two-factor callback')
-            tfa_code_callback = self._stdin_tfa_code_callback
+            tfa_code_callback = _stdin_tfa_code_callback
 
         # Check if already logged in with cookies
         content = self._download_page_soup('https://www.youtube.com/')
-        ytcfg = self._find_ytcfg(content)
+        ytcfg = _find_ytcfg(content)
         if ytcfg['LOGGED_IN']:
             self._log.debug('Already logged in via cookies')
             self._logged_in = True
@@ -200,17 +220,17 @@ class YouTube(object):
 
         username, password = self._auth()
 
-        login_page = self._download_page(self._LOGIN_URL)
+        login_page = cast(str, self._download_page(self._LOGIN_URL))
         if not login_page:
             raise AuthenticationError('Failed to load login page')
 
         login_form = html_hidden_inputs(login_page)
 
-        def req(url, f_req):
+        def req(url: str, f_req: Any) -> Mapping[str, Any]:
             data = login_form.copy()
             data.update({
                 'pstMsg':
-                1,
+                '1',
                 'checkConnection':
                 'youtube',
                 'checkedDomains':
@@ -220,27 +240,29 @@ class YouTube(object):
                 'deviceinfo': ('[null,null,null,[],null,"US",null,null,[],'
                                '"GlifWebSignIn",null,[null,null,[]]]'),
                 'f.req':
-                json.dumps(f_req, allow_nan=False, separators=(','
-                                                               ':')),
+                json.dumps(f_req, allow_nan=False, separators=(',', ':')),
                 'flowName':
                 'GlifWebSignIn',
                 'flowEntry':
                 'ServiceLogin',
             })
-            ret = self._download_page(url,
-                                      data=data,
-                                      method='post',
-                                      headers={
-                                          'Content-Type':
-                                          ('application/x-www-form-urlencoded;'
-                                           'charset=utf-8'),
-                                          'Google-Accounts-XSRF':
-                                          '1',
-                                      })
+            ret = cast(
+                str,
+                self._download_page(url,
+                                    data=data,
+                                    method='post',
+                                    headers={
+                                        'Content-Type':
+                                        ('application/x-www-form-urlencoded;'
+                                         'charset=utf-8'),
+                                        'Google-Accounts-XSRF':
+                                        '1',
+                                    }))
 
-            return json.loads(re.sub(r'^[^[]*', '', ret))
+            return cast(Mapping[str, Any],
+                        json.loads(re.sub(r'^[^[]*', '', ret)))
 
-        lookup_req = [
+        lookup_req: Sequence[Any] = [
             username,
             None,
             [],
@@ -252,16 +274,31 @@ class YouTube(object):
             False,
             True,
             [
-                None, None,
+                None,
+                None,
                 [
-                    2, 1, None, 1,
+                    2,
+                    1,
+                    None,
+                    1,
+                    # cSpell: disable
                     ('https://accounts.google.com/ServiceLogin?passive=true'
                      '&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%'
                      '3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3D'
                      'desktop%26feature%3Dsign_in_button&hl=en&service=youtube'
                      '&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSepara'
-                     'tionSignIn'), None, [], 4
-                ], 1, [None, None, []], None, None, None, True
+                     'tionSignIn'),
+                    None,
+                    [],
+                    4
+                    # cSpell: enable
+                ],
+                1,
+                [None, None, []],
+                None,
+                None,
+                None,
+                True
             ],
             username,
         ]
@@ -270,25 +307,43 @@ class YouTube(object):
         if not lookup_results:
             raise AuthenticationError('Failed to look up account information')
 
-        user_hash = try_get(lookup_results, lambda x: x[0][2], compat_str)
+        user_hash = try_get(lookup_results, lambda x: x[0][2], str)
         if not user_hash:
             raise AuthenticationError('Unable to extract user hash')
 
         challenge_req = [
-            user_hash, None, 1, None,
+            user_hash,
+            None,
+            1,
+            None,
             [1, None, None, None, [password, None, True]],
             [
-                None, None,
+                None,
+                None,
                 [
-                    2, 1, None, 1,
+                    2,
+                    1,
+                    None,
+                    1,
+                    # cSpell: disable
                     ('https://accounts.google.com/ServiceLogin?passi'
                      've=true&continue=https%3A%2F%2Fwww.youtube.com'
                      '%2Fsignin%3Fnext%3D%252F%26action_handle_signi'
                      'n%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3'
                      'Dsign_in_button&hl=en&service=youtube&uilel=3&'
                      'requestPath=%2FServiceLogin&Page=PasswordSepar'
-                     'ationSignIn'), None, [], 4
-                ], 1, [None, None, []], None, None, None, True
+                     'ationSignIn'),
+                    # cSpell: enable
+                    None,
+                    [],
+                    4
+                ],
+                1,
+                [None, None, []],
+                None,
+                None,
+                None,
+                True
             ]
         ]
 
@@ -298,7 +353,7 @@ class YouTube(object):
 
         login_res = try_get(challenge_results, lambda x: x[0][5], list)
         if login_res:
-            login_msg = try_get(login_res, lambda x: x[5], compat_str)
+            login_msg = try_get(login_res, lambda x: x[5], str)
             if login_msg == 'INCORRECT_ANSWER_ENTERED':
                 raise AuthenticationError('Incorrect password')
             raise AuthenticationError('Other login error')
@@ -309,16 +364,16 @@ class YouTube(object):
 
         tfa = try_get(res, lambda x: x[0][0], list)
         if tfa:
-            tfa_str = try_get(tfa, lambda x: x[2], compat_str)
+            tfa_str = try_get(tfa, lambda x: x[2], str)
             if tfa_str == 'TWO_STEP_VERIFICATION':
                 # SEND_SUCCESS - TFA code has been successfully sent to phone
                 # QUOTA_EXCEEDED - reached the limit of TFA codes
-                status = try_get(tfa, lambda x: x[5], compat_str)
+                status = try_get(tfa, lambda x: x[5], str)
                 if status == 'QUOTA_EXCEEDED':
                     raise TwoFactorError('Exceeded the limit of TFA codes; '
                                          'try later')
 
-                tl = try_get(challenge_results, lambda x: x[1][2], compat_str)
+                tl = try_get(challenge_results, lambda x: x[1][2], str)
                 if not tl:
                     raise TwoFactorError('Unable to extract TL')
 
@@ -343,16 +398,16 @@ class YouTube(object):
 
                 tfa_res = try_get(tfa_results, lambda x: x[0][5], list)
                 if tfa_res:
-                    tfa_msg = try_get(tfa_res, lambda x: x[5], compat_str)
+                    tfa_msg = try_get(tfa_res, lambda x: x[5], str)
                     if tfa_msg == 'INCORRECT_ANSWER_ENTERED':
                         raise TwoFactorError('Unable to finish TFA: '
                                              'Invalid TFA code')
                     raise TwoFactorError(tfa_msg)
 
                 check_cookie_url = try_get(tfa_results, lambda x: x[0][-1][2],
-                                           compat_str)
+                                           str)
         else:
-            check_cookie_url = try_get(res, lambda x: x[2], compat_str)
+            check_cookie_url = try_get(res, lambda x: x[2], str)
 
         if not check_cookie_url:
             raise AuthenticationError('Unable to extract CheckCookie URL')
@@ -365,15 +420,17 @@ class YouTube(object):
         if 'https://myaccount.google.com/' not in check_cookie_results:
             raise AuthenticationError('Unable to log in')
 
-        self._cj.save()
+        if hasattr(self._cj, 'save'):
+            self._cj.save()  # type: ignore[attr-defined]
         self._logged_in = True
 
-    def remove_set_video_id_from_playlist(self,
-                                          playlist_id,
-                                          set_video_id,
-                                          csn=None,
-                                          xsrf_token=None,
-                                          headers=None):
+    def remove_set_video_id_from_playlist(
+            self,
+            playlist_id: str,
+            set_video_id: str,
+            csn: Optional[str] = None,
+            xsrf_token: Optional[str] = None,
+            headers: Optional[Mapping[str, str]] = None) -> None:
         """Removes a video from a playlist. The set_video_id is NOT the same as
         the video ID."""
         if not self._logged_in:
@@ -382,7 +439,7 @@ class YouTube(object):
 
         if not headers or not csn or not xsrf_token:
             soup = self._download_page_soup(self._WATCH_LATER_URL)
-            ytcfg = self._find_ytcfg(soup)
+            ytcfg = _find_ytcfg(soup)
             headers = self._ytcfg_headers(ytcfg)
 
         params = {'name': 'playlistEditEndpoint'}
@@ -417,28 +474,30 @@ class YouTube(object):
             'session_token':
             xsrf_token or ytcfg['XSRF_TOKEN']
         }
-        data = self._download_page(self._SERVICE_AJAX_URL,
-                                   method='post',
-                                   data=form_data,
-                                   params=params,
-                                   json=True,
-                                   headers=headers)
+        data = cast(
+            HasStringCode,
+            self._download_page(self._SERVICE_AJAX_URL,
+                                method='post',
+                                data=form_data,
+                                params=params,
+                                return_json=True,
+                                headers=headers))
         if data['code'] != 'SUCCESS':
             raise UnexpectedError(
                 'Failed to delete video from Watch Later playlist')
 
-    def clear_watch_history(self):
+    def clear_watch_history(self) -> None:
         """Clears watch history."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
         content = self._download_page_soup(self._HISTORY_URL)
-        ytcfg = self._find_ytcfg(content)
+        ytcfg = _find_ytcfg(content)
         headers = self._ytcfg_headers(ytcfg)
         headers['x-spf-previous'] = self._HISTORY_URL
         headers['x-spf-referer'] = self._HISTORY_URL
-        init_data = self._initial_data(content)
+        init_data = _initial_data(content)
         params = {'name': 'feedbackEndpoint'}
         try:
             data = {
@@ -464,11 +523,11 @@ class YouTube(object):
                             params=params,
                             data=data,
                             headers=headers,
-                            json=True,
+                            return_json=True,
                             method='post')
         self._log.info('Successfully cleared history')
 
-    def get_favorites_playlist_id(self):
+    def get_favorites_playlist_id(self) -> str:
         """Get the Favourites playlist ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
@@ -476,7 +535,8 @@ class YouTube(object):
         if self._favorites_playlist_id:
             return self._favorites_playlist_id
 
-        def check_section_items(items):
+        def check_section_items(
+                items: Iterable[SectionItemDict]) -> Optional[str]:
             for item in items:
                 has_match = re.match(
                     r'^Favou?rites',  # FIXME This only works with English
@@ -484,9 +544,10 @@ class YouTube(object):
                 if has_match:
                     return (item['guideEntryRenderer']['entryData']
                             ['guideEntryData']['guideEntryId'])
+            return None
 
         content = self._download_page_soup(self._HOMEPAGE_URL)
-        gd = self._initial_guide_data(content)
+        gd = _initial_guide_data(content)
         section_items = (
             gd['items'][0]['guideSectionRenderer']['items'][4]
             ['guideCollapsibleSectionEntryRenderer']['sectionItems'])
@@ -496,9 +557,9 @@ class YouTube(object):
             self._favorites_playlist_id = found
             return self._favorites_playlist_id
 
-        section_items = (section_items[-1]['guideCollapsibleEntryRenderer']
-                         ['expandableItems'])
-        found = check_section_items(section_items)
+        expandable_items = (section_items[-1]['guideCollapsibleEntryRenderer']
+                            ['expandableItems'])
+        found = check_section_items(expandable_items)
         if not found:
             raise ValueError('Could not determine favourites playlist ID')
 
@@ -508,7 +569,7 @@ class YouTube(object):
 
         return self._favorites_playlist_id
 
-    def clear_favorites(self):
+    def clear_favorites(self) -> None:
         """Removes all videos from the Favourites playlist."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
@@ -516,7 +577,7 @@ class YouTube(object):
 
         self.clear_playlist(self.get_favorites_playlist_id())
 
-    def get_playlist_info(self, playlist_id):
+    def get_playlist_info(self, playlist_id: str) -> Iterator[PlaylistInfo]:
         """Get playlist information given a playlist ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
@@ -524,22 +585,24 @@ class YouTube(object):
 
         url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
         content = self._download_page_soup(url)
-        ytcfg = self._find_ytcfg(content)
+        ytcfg = _find_ytcfg(content)
         headers = self._ytcfg_headers(ytcfg)
-        yt_init_data = self._initial_data(content)
+        yt_init_data = _initial_data(content)
 
-        plvlr = (yt_init_data['contents']['twoColumnBrowseResultsRenderer']
-                 ['tabs'][0]['tabRenderer']['content']['sectionListRenderer']
-                 ['contents'][0]['itemSectionRenderer']['contents'][0]
-                 ['playlistVideoListRenderer'])
+        video_list_renderer = (
+            yt_init_data['contents']['twoColumnBrowseResultsRenderer']['tabs']
+            [0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]
+            ['itemSectionRenderer']['contents'][0]['playlistVideoListRenderer']
+        )
         try:
-            yield from plvlr['contents']
+            yield from video_list_renderer['contents']
         except KeyError:
             yield from []
 
         next_cont = continuation = itct = None
         try:
-            next_cont = plvlr['continuations'][0]['nextContinuationData']
+            next_cont = video_list_renderer['continuations'][0][
+                'nextContinuationData']
             continuation = next_cont['continuation']
             itct = next_cont['clickTrackingParams']
         except KeyError:
@@ -552,10 +615,12 @@ class YouTube(object):
                     'continuation': continuation,
                     'itct': itct
                 }
-                contents = self._download_page(self._BROWSE_AJAX_URL,
-                                               params=params,
-                                               json=True,
-                                               headers=headers)
+                contents = cast(
+                    BrowseAJAXSequence,
+                    self._download_page(self._BROWSE_AJAX_URL,
+                                        params=params,
+                                        return_json=True,
+                                        headers=headers))
                 response = contents[1]['response']
                 yield from (response['continuationContents']
                             ['playlistVideoListContinuation']['contents'])
@@ -570,7 +635,7 @@ class YouTube(object):
                 itct = next_cont['clickTrackingParams']
                 continuation = next_cont['continuation']
 
-    def clear_playlist(self, playlist_id):
+    def clear_playlist(self, playlist_id: str) -> None:
         """
         Removes all videos from the specified playlist.
 
@@ -583,7 +648,7 @@ class YouTube(object):
         playlist_info = self.get_playlist_info(playlist_id)
         url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
         content = self._download_page_soup(url)
-        ytcfg = self._find_ytcfg(content)
+        ytcfg = _find_ytcfg(content)
         headers = self._ytcfg_headers(ytcfg)
         csn = ytcfg['EVENT_ID']
         xsrf_token = ytcfg['XSRF_TOKEN']
@@ -606,20 +671,20 @@ class YouTube(object):
                                                    xsrf_token,
                                                    headers=headers)
 
-    def clear_watch_later(self):
+    def clear_watch_later(self) -> None:
         """Removes all videos from the 'Watch Later' playlist."""
         self.clear_playlist('WL')
 
-    def remove_video_id_from_favorites(self,
-                                       video_id,
-                                       headers=None,
-                                       session_token=None):
+    def remove_video_id_from_favorites(
+            self,
+            video_id: str,
+            headers: Optional[Mapping[str, str]] = None) -> None:
         """Removes a video from Favourites by video ID."""
         playlist_id = self.get_favorites_playlist_id()
         playlist_info = self.get_playlist_info(playlist_id)
         url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
         content = self._download_page_soup(url)
-        ytcfg = self._find_ytcfg(content)
+        ytcfg = _find_ytcfg(content)
         headers = self._ytcfg_headers(ytcfg)
 
         try:
@@ -639,15 +704,15 @@ class YouTube(object):
                                                ytcfg['XSRF_TOKEN'],
                                                headers=headers)
 
-    def get_history_info(self):
+    def get_history_info(self) -> Iterator[Mapping[str, Any]]:
         """Get information about the History playlist."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
         content = self._download_page_soup(self._HISTORY_URL)
-        init_data = self._initial_data(content)
-        ytcfg = self._find_ytcfg(content)
+        init_data = _initial_data(content)
+        ytcfg = _find_ytcfg(content)
         headers = self._ytcfg_headers(ytcfg)
 
         item_section_renderer = (
@@ -672,12 +737,14 @@ class YouTube(object):
         xsrf = ytcfg['XSRF_TOKEN']
 
         while True:
-            resp = self._download_page(self._BROWSE_AJAX_URL,
-                                       json=True,
-                                       headers=headers,
-                                       data={'session_token': xsrf},
-                                       method='post',
-                                       params=params)
+            resp = cast(
+                BrowseAJAXSequence,
+                self._download_page(self._BROWSE_AJAX_URL,
+                                    return_json=True,
+                                    headers=headers,
+                                    data={'session_token': xsrf},
+                                    method='post',
+                                    params=params))
             contents = resp[1]['response']
             yield from (contents['continuationContents']
                         ['itemSectionContinuation']['contents'])
@@ -692,7 +759,7 @@ class YouTube(object):
             params['ctoken'] = next_cont['continuation']
             params['continuation'] = next_cont['continuation']
 
-    def remove_video_id_from_history(self, video_id):
+    def remove_video_id_from_history(self, video_id: str) -> bool:
         """Delete a history entry by video ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
@@ -700,7 +767,7 @@ class YouTube(object):
 
         history_info = self.get_history_info()
         content = self._download_page_soup(self._HISTORY_URL)
-        ytcfg = self._find_ytcfg(content)
+        ytcfg = _find_ytcfg(content)
         headers = self._ytcfg_headers(ytcfg)
 
         try:
@@ -709,7 +776,7 @@ class YouTube(object):
                     lambda x: 'videoRenderer' in x and x['videoRenderer'][
                         'videoId'] == video_id, history_info))[0]
         except IndexError:
-            return
+            return False
 
         form_data = {
             'sej':
@@ -721,11 +788,13 @@ class YouTube(object):
             'session_token':
             ytcfg['XSRF_TOKEN'],
         }
-        resp = self._download_page(self._SERVICE_AJAX_URL,
-                                   json=True,
-                                   data=form_data,
-                                   method='post',
-                                   headers=headers,
-                                   params={'name': 'feedbackEndpoint'})
+        resp = cast(
+            HasStringCode,
+            self._download_page(self._SERVICE_AJAX_URL,
+                                return_json=True,
+                                data=form_data,
+                                method='post',
+                                headers=headers,
+                                params={'name': 'feedbackEndpoint'}))
 
         return resp['code'] == 'SUCCESS'

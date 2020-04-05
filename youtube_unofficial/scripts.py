@@ -1,18 +1,28 @@
-# encoding: utf-8
-from __future__ import print_function
-from __future__ import unicode_literals
+# pylint: disable=broad-except
 from os.path import expanduser
+from typing import Any, Callable, Mapping, Optional
 import argparse
 import logging
 import sys
 
 from . import YouTube
 
+__all__ = (
+    'clear_favorites',
+    'clear_watch_history',
+    'clear_watch_later',
+    'print_history_ids',
+    'print_playlist_ids',
+    'print_watchlater_ids',
+    'remove_history_entry',
+    'remove_setvideoid',
+    'remove_watchlater_setvideoid',
+)
 
-def _common_arguments():
+
+def _common_arguments() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description='Clear your YouTube watch history')
-
     parser.add_argument('-u',
                         '--username',
                         help='If not specified, a netrc file will be used')
@@ -29,13 +39,11 @@ def _common_arguments():
                         '--debug',
                         action='store_true',
                         help='Log and raise exceptions')
-
     return parser
 
 
-def _parse_common_arguments(args):
+def _parse_common_arguments(args: argparse.Namespace) -> Mapping[str, Any]:
     kwargs = {}
-
     if args.username:
         kwargs['username'] = args.username
         kwargs['password'] = args.password
@@ -43,24 +51,21 @@ def _parse_common_arguments(args):
         kwargs['netrc_file'] = args.netrc
     if args.cookies:
         kwargs['cookies_path'] = args.cookies
-
     if args.debug:
         channel = logging.StreamHandler()
         channel.setLevel(logging.DEBUG)
         channel.setFormatter(
             logging.Formatter('%(asctime)s - %(name)s - '
                               '%(levelname)s - %(message)s'))
-
-        for logname in ('youtube-unofficial', 'requests'):
+        for logname in ('youtube-unofficial', 'requests', 'urllib3'):
             log = logging.getLogger(logname)
             log.setLevel(logging.DEBUG)
             log.addHandler(channel)
-
     return kwargs
 
 
-def _simple_method_call(method_name):
-    def f():
+def _simple_method_call(method_name: str) -> Callable[..., int]:
+    def f() -> int:
         parser = _common_arguments()
         args = parser.parse_args()
         kwargs = _parse_common_arguments(args)
@@ -74,12 +79,16 @@ def _simple_method_call(method_name):
                 raise e
             print(str(e), file=sys.stderr)
             return 1
+        return 0
 
     return f
 
 
-def print_playlist_ids_callback(parser=None, playlist_id=None):
-    def f():
+def print_playlist_ids_callback(
+    parser: Optional[argparse.ArgumentParser] = None,  # pylint: disable=unused-argument
+    playlist_id: Optional[str] = None
+) -> Callable[..., int]:
+    def f() -> int:
         nonlocal parser
         if not parser:
             parser = _common_arguments()
@@ -96,21 +105,22 @@ def print_playlist_ids_callback(parser=None, playlist_id=None):
         for item in yt.get_playlist_info(playlist_id or args.playlist_id):
             print('{} {}'.format(item['playlistVideoRenderer']['videoId'],
                                  item['playlistVideoRenderer']['setVideoId']))
+        return 0
 
     return f
 
 
-def print_watchlater_ids():
+def print_watchlater_ids() -> int:
     return print_playlist_ids_callback(playlist_id='WL')()
 
 
-def print_playlist_ids():
+def print_playlist_ids() -> int:
     parser = _common_arguments()
     parser.add_argument('playlist_id')
     return print_playlist_ids_callback(parser=parser)()
 
 
-def print_history_ids():
+def print_history_ids() -> int:
     parser = _common_arguments()
     args = parser.parse_args()
     kwargs = _parse_common_arguments(args)
@@ -125,9 +135,10 @@ def print_history_ids():
     for item in yt.get_history_info():
         if 'videoRenderer' in item:
             print(item['videoRenderer']['videoId'])
+    return 0
 
 
-def remove_history_entry():
+def remove_history_entry() -> int:
     parser = _common_arguments()
     parser.add_argument('video_id', nargs='+')
     args = parser.parse_args()
@@ -142,10 +153,14 @@ def remove_history_entry():
         return 1
     for vid in args.video_id:
         yt.remove_video_id_from_history(vid)
+    return 0
 
 
-def remove_svi_callback(playlist_id=None, parser=None):
-    def f():
+def remove_svi_callback(
+    playlist_id: Optional[str] = None,
+    parser: Optional[argparse.ArgumentParser] = None  # pylint: disable=unused-argument
+) -> Callable[..., int]:
+    def f() -> int:
         nonlocal parser
         if not parser:
             parser = _common_arguments()
@@ -163,23 +178,25 @@ def remove_svi_callback(playlist_id=None, parser=None):
         for svi in args.set_video_ids:
             yt.remove_set_video_id_from_playlist(
                 playlist_id or args.playlist_id, svi)
+        return 0
 
     return f
 
 
-def remove_watchlater_setvideoid():
+def remove_watchlater_setvideoid() -> int:
     parser = _common_arguments()
     parser.add_argument('set_video_ids', nargs='+')
     return remove_svi_callback(playlist_id='WL')()
 
 
-def remove_setvideoid():
+def remove_setvideoid() -> int:
     parser = _common_arguments()
     parser.add_argument('playlist_id')
     parser.add_argument('set_video_ids', nargs='+')
     return remove_svi_callback(parser=parser)()
 
 
+# pylint: disable=invalid-name
+clear_favorites = _simple_method_call('clear_favorites')
 clear_watch_history = _simple_method_call('clear_watch_history')
 clear_watch_later = _simple_method_call('clear_watch_later')
-clear_favorites = _simple_method_call('clear_favorites')
