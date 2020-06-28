@@ -11,7 +11,7 @@ from . import YouTube
 from .constants import (EXTRACTED_THUMBNAIL_KEYS, HISTORY_ENTRY_KEYS_TO_SKIP,
                         SIMPLE_TEXT_KEYS, TEXT_RUNS_KEYS, THUMBNAILS_KEYS)
 from .typing.history import MetadataBadgeRendererTopDict
-from .util import extract_keys, get_text_runs, path, try_get
+from .util import extract_keys, get_text_runs, path
 
 __all__ = (
     'clear_favorites',

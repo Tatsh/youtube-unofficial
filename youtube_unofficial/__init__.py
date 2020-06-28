@@ -1,31 +1,22 @@
 from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
-from netrc import netrc
 from os.path import expanduser
-from typing import (Any, Callable, Dict, Iterable, Iterator, Mapping, Optional,
-                    Sequence, Tuple, Type, Union, cast)
+from typing import Any, Iterable, Iterator, Mapping, Optional, Type, cast
 import json
 import logging
-import re
-import sys
-import warnings
 
-from bs4 import BeautifulSoup as Soup
-from requests import Request
-from typing_extensions import Final, Literal, overload
+from typing_extensions import Final
 import requests
 
 from .constants import (BROWSE_AJAX_URL, HISTORY_URL, HOMEPAGE_URL,
-                        NETRC_MACHINE, SERVICE_AJAX_URL, USER_AGENT,
-                        WATCH_LATER_URL)
+                        SERVICE_AJAX_URL, USER_AGENT, WATCH_LATER_URL)
 from .download import DownloadMixin
-from .exceptions import AuthenticationError, TwoFactorError, UnexpectedError
+from .exceptions import AuthenticationError, UnexpectedError
 from .initial import initial_data, initial_guide_data
 from .login import YouTubeLogin
 from .typing import HasStringCode
 from .typing.browse_ajax import BrowseAJAXSequence
-from .typing.guide_data import GuideData, SectionItemDict
+from .typing.guide_data import SectionItemDict
 from .typing.playlist import PlaylistInfo
-from .util import html_hidden_inputs, remove_start, try_get
 from .ytcfg import find_ytcfg, ytcfg_headers
 
 __all__ = ('YouTube', )
