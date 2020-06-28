@@ -493,8 +493,7 @@ class YouTube(DownloadMixin):
              'confirmDialogRenderer.confirmEndpoint'), yt_init_data)
         metadata = info['commandMetadata']['webCommandMetadata']
         api_url = metadata['apiUrl']
-
-        resp = cast(
+        return cast(
             Mapping[str, Any],
             self._download_page(
                 f'https://www.youtube.com{api_url}',
@@ -526,5 +525,4 @@ class YouTube(DownloadMixin):
                     'isFeedbackTokenUnencrypted': False,
                     'shouldMerge': False
                 },
-                return_json=True))
-        return resp['feedbackResponses'][0]['isProcessed']
+                return_json=True))['feedbackResponses'][0]['isProcessed']
