@@ -5,9 +5,11 @@ import re
 
 from typing_extensions import overload
 
+from .constants import USER_AGENT
 from .typing.history import DescriptionSnippetDict
 
 __all__ = (
+    'context_client_body',
     'extract_attributes',
     'extract_keys',
     'get_text_runs',
@@ -119,3 +121,22 @@ def path(s: str, obj: Any) -> Any:
 def get_text_runs(desc: DescriptionSnippetDict) -> str:
     return ''.join(x['text']
                    for x in desc['runs']).strip().replace('\n', ' - ')
+
+
+def context_client_body(ytcfg: Mapping[str, Any]) -> Mapping[str, Any]:
+    return {
+        'browserName': 'Chrome',
+        'browserVersion': '84.0.4147.45',
+        'clientName': 'WEB',
+        'clientVersion': ytcfg['INNERTUBE_CONTEXT_CLIENT_VERSION'],
+        'gl': ytcfg['INNERTUBE_CONTEXT_GL'],
+        'hl': ytcfg['INNERTUBE_CONTEXT_HL'],
+        'osName': 'X11',
+        'screenHeightPoints': 771,
+        'screenPixelDensity': 2,
+        'screenWidthPoints': 1272,
+        'userAgent': USER_AGENT,
+        'userInterfaceTheme': 'USER_INTERFACE_THEME_DARK',
+        'utcOffsetMinutes': -240,
+        'visitorData': ytcfg['VISITOR_DATA'],
+    }
