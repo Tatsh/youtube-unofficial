@@ -17,6 +17,7 @@ __all__ = (
     'clear_favorites',
     'clear_watch_history',
     'clear_watch_later',
+    'pause_resume_search_history',
     'print_history_ids',
     'print_playlist_ids',
     'print_watchlater_ids',
@@ -283,3 +284,5 @@ def remove_setvideoid() -> int:
 clear_favorites = _simple_method_call('clear_favorites')
 clear_watch_history = _simple_method_call('clear_watch_history')
 clear_watch_later = _simple_method_call('clear_watch_later')
+pause_resume_search_history = _simple_method_call(
+    'pause_resume_search_history')

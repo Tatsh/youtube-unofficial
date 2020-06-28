@@ -1,6 +1,8 @@
+from datetime import datetime
 from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from os.path import expanduser
 from typing import Any, Iterable, Iterator, Mapping, Optional, Type, cast
+import hashlib
 import json
 import logging
 
@@ -8,7 +10,8 @@ from typing_extensions import Final
 import requests
 
 from .constants import (BROWSE_AJAX_URL, HISTORY_URL, HOMEPAGE_URL,
-                        SERVICE_AJAX_URL, USER_AGENT, WATCH_LATER_URL)
+                        SEARCH_HISTORY_URL, SERVICE_AJAX_URL, USER_AGENT,
+                        WATCH_LATER_URL)
 from .download import DownloadMixin
 from .exceptions import AuthenticationError, UnexpectedError
 from .initial import initial_data, initial_guide_data
@@ -17,6 +20,7 @@ from .typing import HasStringCode
 from .typing.browse_ajax import BrowseAJAXSequence
 from .typing.guide_data import SectionItemDict
 from .typing.playlist import PlaylistInfo
+from .util import context_client_body, path as at_path
 from .ytcfg import find_ytcfg, ytcfg_headers
 
 __all__ = ('YouTube', )
@@ -461,3 +465,66 @@ class YouTube(DownloadMixin):
                                 params={'name': 'feedbackEndpoint'}))
 
         return resp['code'] == 'SUCCESS'
+
+    def _get_authorization_sapisidhash_header(self) -> str:
+        now = int(datetime.now().timestamp())
+        sapisid: Optional[str] = None
+        for cookie in self._cj:
+            if cookie.name in ('SAPISID', '__Secure-3PAPISID'):
+                sapisid = cookie.value
+                break
+        assert sapisid is not None
+        m = hashlib.sha1()
+        m.update(f'{now} {sapisid} https://www.youtube.com'.encode())
+        return f'SAPISIDHASH {now}_{m.hexdigest()}'
+
+    def pause_resume_search_history(self) -> bool:
+        """Pauses or resumes history depending on the current state."""
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+        content = self._download_page_soup(SEARCH_HISTORY_URL)
+        ytcfg = find_ytcfg(content)
+        yt_init_data = initial_data(content)
+        info = at_path(
+            ('contents.twoColumnBrowseResultsRenderer.'
+             'secondaryContents.browseFeedActionsRenderer.contents.2.'
+             'buttonRenderer.navigationEndpoint.confirmDialogEndpoint.content.'
+             'confirmDialogRenderer.confirmEndpoint'), yt_init_data)
+        metadata = info['commandMetadata']['webCommandMetadata']
+        api_url = metadata['apiUrl']
+
+        resp = cast(
+            Mapping[str, Any],
+            self._download_page(
+                f'https://www.youtube.com{api_url}',
+                method='post',
+                params=dict(key=ytcfg['INNERTUBE_API_KEY']),
+                headers={
+                    'Authority': 'www.youtube.com',
+                    'Authorization':
+                    self._get_authorization_sapisidhash_header(),
+                    'x-goog-authuser': '0',
+                    'x-origin': 'https://www.youtube.com',
+                },
+                json={
+                    'context': {
+                        'clickTracking': {
+                            'clickTrackingParams': info['clickTrackingParams']
+                        },
+                        'client': context_client_body(ytcfg),
+                        'request': {
+                            'consistencyTokenJars': [],
+                            'internalExperimentFlags': [],
+                        },
+                        'user': {
+                            'onBehalfOfUser': ytcfg['DELEGATED_SESSION_ID'],
+                        }
+                    },
+                    'feedbackTokens':
+                    [info['feedbackEndpoint']['feedbackToken']],
+                    'isFeedbackTokenUnencrypted': False,
+                    'shouldMerge': False
+                },
+                return_json=True))
+        return resp['feedbackResponses'][0]['isProcessed']

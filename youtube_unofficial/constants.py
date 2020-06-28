@@ -24,6 +24,8 @@ HISTORY_URL: Final = 'https://www.youtube.com/feed/history'
 HOMEPAGE_URL: Final = 'https://www.youtube.com'
 LOGIN_URL: Final = 'https://accounts.google.com/ServiceLogin'
 LOOKUP_URL: Final = 'https://accounts.google.com/_/signin/sl/lookup'
+SEARCH_HISTORY_URL: Final = ('https://www.youtube.com/feed/history/'
+                             'search_history')
 SERVICE_AJAX_URL: Final = 'https://www.youtube.com/service_ajax'
 TFA_URL: Final = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
 WATCH_LATER_URL: Final = 'https://www.youtube.com/playlist?list=WL'
