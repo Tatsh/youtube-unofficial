@@ -59,7 +59,7 @@ class YouTube(DownloadMixin):
 
     @property
     def _logged_in(self):
-        return self._login_handler._logged_in
+        return self._login_handler._logged_in  # pylint: disable=protected-access
 
     def _init_cookiejar(self,
                         path: str,
