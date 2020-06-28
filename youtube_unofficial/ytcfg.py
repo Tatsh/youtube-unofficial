@@ -21,12 +21,12 @@ def find_ytcfg(soup: Soup) -> Mapping[str, Any]:
 
 def ytcfg_headers(ytcfg: Mapping[str, str]) -> Dict[str, str]:
     return {
-        'x-youtube-page-cl': str(ytcfg['PAGE_CL']),
-        'x-youtube-identity-token': ytcfg['ID_TOKEN'],
-        'x-spf-referer': WATCH_LATER_URL,
-        'x-youtube-utc-offset': '-240',
         'x-spf-previous': WATCH_LATER_URL,
+        'x-spf-referer': WATCH_LATER_URL,
+        'x-youtube-client-name': str(ytcfg['INNERTUBE_CONTEXT_CLIENT_NAME']),
         'x-youtube-client-version': ytcfg['INNERTUBE_CONTEXT_CLIENT_VERSION'],
+        'x-youtube-identity-token': ytcfg['ID_TOKEN'],
+        'x-youtube-page-cl': str(ytcfg['PAGE_CL']),
+        'x-youtube-utc-offset': '-240',
         'x-youtube-variants-checksum': ytcfg['VARIANTS_CHECKSUM'],
-        'x-youtube-client-name': str(ytcfg['INNERTUBE_CONTEXT_CLIENT_NAME'])
     }
