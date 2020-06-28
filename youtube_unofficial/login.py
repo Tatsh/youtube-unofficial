@@ -1,5 +1,6 @@
 from http.cookiejar import CookieJar
 from netrc import netrc
+from os.path import expanduser
 from typing import Any, Callable, Mapping, Optional, Sequence, Tuple, cast
 import json
 import logging
@@ -16,7 +17,7 @@ from .exceptions import AuthenticationError, TwoFactorError
 from .util import html_hidden_inputs, remove_start, try_get
 from .ytcfg import find_ytcfg
 
-__all__ = ('login', )
+__all__ = ('YouTubeLogin', )
 
 
 def _stdin_tfa_code_callback() -> str:
@@ -28,9 +29,13 @@ class YouTubeLogin(DownloadMixin):
                  session: requests.Session,
                  cookies: CookieJar,
                  netrc_file: Optional[str] = None,
-                 username: Optional[str] = None):
+                 username: Optional[str] = None,
+                 password: Optional[str] = None):
+        if not netrc_file:
+            netrc_file = expanduser('~/.netrc')
         self.netrc_file = netrc_file
         self.username = username
+        self.password = password
         self._cj = cookies
         self._sess = session
         self._log: Final = logging.getLogger('youtube-unofficial')
