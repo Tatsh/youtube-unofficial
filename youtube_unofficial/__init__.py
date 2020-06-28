@@ -466,7 +466,7 @@ class YouTube(DownloadMixin):
 
         return resp['code'] == 'SUCCESS'
 
-    def _get_authorization_sapisidhash_header(self) -> str:
+    def _authorization_sapisidhash_header(self) -> str:
         now = int(datetime.now().timestamp())
         sapisid: Optional[str] = None
         for cookie in self._cj:
@@ -485,44 +485,35 @@ class YouTube(DownloadMixin):
                                       'login() first')
         content = self._download_page_soup(SEARCH_HISTORY_URL)
         ytcfg = find_ytcfg(content)
-        yt_init_data = initial_data(content)
         info = at_path(
             ('contents.twoColumnBrowseResultsRenderer.'
              'secondaryContents.browseFeedActionsRenderer.contents.2.'
              'buttonRenderer.navigationEndpoint.confirmDialogEndpoint.content.'
-             'confirmDialogRenderer.confirmEndpoint'), yt_init_data)
+             'confirmDialogRenderer.confirmEndpoint'), initial_data(content))
         metadata = info['commandMetadata']['webCommandMetadata']
-        api_url = metadata['apiUrl']
         return cast(
             Mapping[str, Any],
             self._download_page(
-                f'https://www.youtube.com{api_url}',
+                f'https://www.youtube.com{metadata["apiUrl"]}',
                 method='post',
                 params=dict(key=ytcfg['INNERTUBE_API_KEY']),
                 headers={
                     'Authority': 'www.youtube.com',
                     'Authorization':
-                    self._get_authorization_sapisidhash_header(),
+                    self._authorization_sapisidhash_header(),
                     'x-goog-authuser': '0',
                     'x-origin': 'https://www.youtube.com',
                 },
-                json={
-                    'context': {
-                        'clickTracking': {
-                            'clickTrackingParams': info['clickTrackingParams']
-                        },
-                        'client': context_client_body(ytcfg),
-                        'request': {
-                            'consistencyTokenJars': [],
-                            'internalExperimentFlags': [],
-                        },
-                        'user': {
-                            'onBehalfOfUser': ytcfg['DELEGATED_SESSION_ID'],
-                        }
-                    },
-                    'feedbackTokens':
-                    [info['feedbackEndpoint']['feedbackToken']],
-                    'isFeedbackTokenUnencrypted': False,
-                    'shouldMerge': False
-                },
+                json=dict(context=dict(
+                    clickTracking=dict(
+                        clickTrackingParams=info['clickTrackingParams']),
+                    client=context_client_body(ytcfg),
+                    request=dict(consistencyTokenJars=[],
+                                 internalExperimentFlags=[]),
+                    user=dict(onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
+                          feedbackTokens=[
+                              info['feedbackEndpoint']['feedbackToken']
+                          ],
+                          isFeedbackTokenUnencrypted=False,
+                          shouldMerge=False),
                 return_json=True))['feedbackResponses'][0]['isProcessed']
