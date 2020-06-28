@@ -1,14 +1,17 @@
 # pylint: disable=broad-except
 from operator import itemgetter
 from os.path import expanduser
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 import argparse
 import json
 import logging
 import sys
 
 from . import YouTube
-from .util import try_get
+from .constants import (EXTRACTED_THUMBNAIL_KEYS, HISTORY_ENTRY_KEYS_TO_SKIP,
+                        SIMPLE_TEXT_KEYS, TEXT_RUNS_KEYS, THUMBNAILS_KEYS)
+from .typing.history import MetadataBadgeRendererTopDict
+from .util import extract_keys, get_text_runs, path, try_get
 
 __all__ = (
     'clear_favorites',
@@ -154,6 +157,13 @@ def print_playlist_ids() -> int:
 
 
 def print_history_ids() -> int:
+    def is_verified(
+            owner_badges: Sequence[MetadataBadgeRendererTopDict]) -> bool:
+        for badge in (x['metadataBadgeRenderer'] for x in owner_badges):
+            if badge['style'] == 'BADGE_STYLE_TYPE_VERIFIED':
+                return True
+        return False
+
     parser = _common_arguments()
     parser.add_argument('-j', '--json', action='store_true')
     args = parser.parse_args()
@@ -166,24 +176,48 @@ def print_history_ids() -> int:
             raise e
         print(str(e), file=sys.stderr)
         return 1
-    for item in yt.get_history_info():
-        if 'videoRenderer' in item:
-            if args.json:
-                print(
-                    json.dumps({
-                        'owner':
-                        ' - '.join(
-                            map(itemgetter('text'),
-                                item['videoRenderer']['ownerText']['runs'])),
-                        'title':
-                        ' - '.join(
-                            map(itemgetter('text'),
-                                item['videoRenderer']['title']['runs'])),
-                        'videoId':
-                        item['videoRenderer']['videoId']
-                    }))
-            else:
-                print(item['videoRenderer']['videoId'])
+    if args.json:
+        for entry in yt.get_history_info():
+            d: Dict[str, Any] = {}
+            for k, v in sorted(entry['videoRenderer'].items()):
+                if k in HISTORY_ENTRY_KEYS_TO_SKIP:
+                    continue
+                if isinstance(v, (int, str, float, bool)):
+                    d[k] = v
+                elif k in TEXT_RUNS_KEYS:
+                    d[TEXT_RUNS_KEYS[k]] = get_text_runs(v)
+                elif k in THUMBNAILS_KEYS:
+                    list_path = THUMBNAILS_KEYS[k][0]
+                    target_key = THUMBNAILS_KEYS[k][1]
+                    for thumb in path(list_path, v):
+                        try:
+                            d[target_key].append(
+                                extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb))
+                        except KeyError:
+                            d[target_key] = [
+                                extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb)
+                            ]
+                elif k in SIMPLE_TEXT_KEYS:
+                    d[SIMPLE_TEXT_KEYS[k]] = v['simpleText']
+                elif k == 'lengthText':
+                    d['length_accessible'] = path(
+                        "accessibility.accessibilityData.label", v)
+                    d['length'] = v['simpleText']
+                elif k == 'ownerBadges':
+                    d['verified'] = is_verified(v)
+                elif k == 'thumbnail':
+                    for thumb in v['thumbnails']:
+                        try:
+                            d['video_thumbnails'].append(
+                                extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb))
+                        except KeyError:
+                            d['video_thumbnails'] = [
+                                extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb)
+                            ]
+            print(json.dumps(d))
+    else:
+        for item in yt.get_history_info():
+            print(item['videoRenderer']['videoId'])
     return 0
 
 

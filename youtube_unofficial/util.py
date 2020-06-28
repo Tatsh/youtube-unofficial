@@ -5,9 +5,14 @@ import re
 
 from typing_extensions import overload
 
+from .typing.history import DescriptionSnippetDict
+
 __all__ = (
     'extract_attributes',
+    'extract_keys',
+    'get_text_runs',
     'html_hidden_inputs',
+    'path',
     'remove_start',
     'try_get',
 )
@@ -88,3 +93,29 @@ def html_hidden_inputs(html: str) -> Dict[str, str]:
         if name and value is not None:
             hidden_inputs[name] = value
     return hidden_inputs
+
+
+def extract_keys(keys: Sequence[Any], obj: Mapping[Any,
+                                                   Any]) -> Mapping[Any, Any]:
+    new = {}
+    for key in keys:
+        new[key] = obj[key]
+    return new
+
+
+def path(s: str, obj: Any) -> Any:
+    for prop in s.split('.'):
+        if isinstance(obj, list):
+            try:
+                int_prop = int(prop)
+            except TypeError:
+                raise TypeError('Property for a list must be an integer')
+            obj = obj[int_prop]
+        else:
+            obj = obj[prop]
+    return obj
+
+
+def get_text_runs(desc: DescriptionSnippetDict) -> str:
+    return ''.join(x['text']
+                   for x in desc['runs']).strip().replace('\n', ' - ')

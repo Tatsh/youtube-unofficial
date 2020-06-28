@@ -27,3 +27,28 @@ LOOKUP_URL: Final = 'https://accounts.google.com/_/signin/sl/lookup'
 SERVICE_AJAX_URL: Final = 'https://www.youtube.com/service_ajax'
 TFA_URL: Final = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
 WATCH_LATER_URL: Final = 'https://www.youtube.com/playlist?list=WL'
+
+# print-history-ids constants
+EXTRACTED_THUMBNAIL_KEYS = ('width', 'height', 'url')
+HISTORY_ENTRY_KEYS_TO_SKIP = {
+    'menu', 'navigationEndpoint', 'thumbnailOverlays', 'trackingParams'
+}
+SIMPLE_TEXT_KEYS = {
+    'shortViewCountText': 'short_view_count_text',
+    'viewCountText': 'view_count_text'
+}
+TEXT_RUNS_KEYS = {
+    'descriptionSnippet': 'description',
+    'longBylineText': 'long_byline_text',
+    'ownerText': 'owner_text',
+    'title': 'title',
+    'shortBylineText': 'short_byline_text',
+}
+THUMBNAILS_KEYS = {
+    'channelThumbnailSupportedRenderers':
+    ('channelThumbnailWithLinkRenderer.thumbnail.thumbnails',
+     'channel_thumbnails'),
+    'richThumbnail':
+    ('movingThumbnailRenderer.movingThumbnailDetails.thumbnails',
+     'moving_thumbnails'),
+}
