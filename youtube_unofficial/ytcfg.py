@@ -5,11 +5,12 @@ import re
 from bs4 import BeautifulSoup as Soup
 
 from .constants import WATCH_LATER_URL
+from .typing.ytcfg import YtcfgDict
 
 
-def find_ytcfg(soup: Soup) -> Mapping[str, Any]:
+def find_ytcfg(soup: Soup) -> YtcfgDict:
     return cast(
-        Mapping[str, Any],
+        YtcfgDict,
         json.JSONDecoder().raw_decode(
             re.sub(
                 r'.+ytcfg.set\(\{', '{',
@@ -19,7 +20,7 @@ def find_ytcfg(soup: Soup) -> Mapping[str, Any]:
                         text, soup.select('script')))[0].text.strip()))[0])
 
 
-def ytcfg_headers(ytcfg: Mapping[str, str]) -> Dict[str, str]:
+def ytcfg_headers(ytcfg: YtcfgDict) -> Dict[str, str]:
     return {
         'x-spf-previous': WATCH_LATER_URL,
         'x-spf-referer': WATCH_LATER_URL,
