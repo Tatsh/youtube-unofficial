@@ -1,4 +1,5 @@
-from typing import Sequence
+from dataclasses import dataclass
+from typing import Optional, Sequence
 
 from typing_extensions import TypedDict
 

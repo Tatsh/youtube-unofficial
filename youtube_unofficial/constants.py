@@ -7,6 +7,7 @@ __all__ = (
     'HISTORY_ENTRY_KEYS_TO_SKIP',
     'HISTORY_URL',
     'HOMEPAGE_URL',
+    'LIVE_CHAT_HISTORY_URL',
     'LOGIN_URL',
     'LOOKUP_URL',
     'NETRC_MACHINE',
@@ -28,6 +29,8 @@ BROWSE_AJAX_URL: Final = 'https://www.youtube.com/browse_ajax'
 CHALLENGE_URL: Final = 'https://accounts.google.com/_/signin/sl/challenge'
 HISTORY_URL: Final = 'https://www.youtube.com/feed/history'
 HOMEPAGE_URL: Final = 'https://www.youtube.com'
+LIVE_CHAT_HISTORY_URL: Final = ('https://www.youtube.com/feed/history/'
+                                'live_chat_history')
 LOGIN_URL: Final = 'https://accounts.google.com/ServiceLogin'
 LOOKUP_URL: Final = 'https://accounts.google.com/_/signin/sl/lookup'
 SEARCH_HISTORY_URL: Final = ('https://www.youtube.com/feed/history/'

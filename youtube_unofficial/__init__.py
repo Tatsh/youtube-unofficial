@@ -1,7 +1,8 @@
 from datetime import datetime
 from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from os.path import expanduser
-from typing import Any, Iterable, Iterator, Mapping, Optional, Type, cast
+from typing import (Any, Iterable, Iterator, Mapping, Optional, Sequence, Type,
+                    cast)
 import hashlib
 import json
 import logging
@@ -10,17 +11,19 @@ from typing_extensions import Final
 import requests
 
 from .constants import (BROWSE_AJAX_URL, HISTORY_URL, HOMEPAGE_URL,
-                        SEARCH_HISTORY_URL, SERVICE_AJAX_URL, USER_AGENT,
-                        WATCH_HISTORY_URL, WATCH_LATER_URL)
+                        LIVE_CHAT_HISTORY_URL, SEARCH_HISTORY_URL,
+                        SERVICE_AJAX_URL, USER_AGENT, WATCH_HISTORY_URL,
+                        WATCH_LATER_URL)
 from .download import DownloadMixin
 from .exceptions import AuthenticationError, UnexpectedError
 from .initial import initial_data, initial_guide_data
+from .live_chat import LiveChatHistoryEntry, make_live_chat_history_entry
 from .login import YouTubeLogin
 from .typing import HasStringCode
 from .typing.browse_ajax import BrowseAJAXSequence
 from .typing.guide_data import SectionItemDict
 from .typing.playlist import PlaylistInfo
-from .util import context_client_body, path as at_path
+from .util import context_client_body, path as at_path, try_get
 from .ytcfg import find_ytcfg, ytcfg_headers
 
 __all__ = ('YouTube', )
@@ -531,3 +534,91 @@ class YouTube(DownloadMixin):
     def toggle_watch_history(self) -> bool:
         """Pauses or resumes watch history depending on the current state."""
         return self._toggle_history(WATCH_HISTORY_URL, 3)
+
+    def live_chat_history(
+            self,
+            only_first_page: bool = False) -> Iterator[LiveChatHistoryEntry]:
+        """
+        Fetches all live chat history.
+
+        Fetches only the first page if ``only_first_page`` is ``True``.
+        """
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+        content = self._download_page_soup(LIVE_CHAT_HISTORY_URL)
+        ytcfg = find_ytcfg(content)
+        headers = ytcfg_headers(ytcfg)
+        headers['x-spf-previous'] = LIVE_CHAT_HISTORY_URL
+        headers['x-spf-referer'] = LIVE_CHAT_HISTORY_URL
+        item_section = at_path(
+            ('contents.twoColumnBrowseResultsRenderer.tabs.0.'
+             'tabRenderer.content.sectionListRenderer.contents.0.'
+             'itemSectionRenderer'), initial_data(content))
+        info = item_section['contents']
+        for api_entry in (x['liveChatHistoryEntryRenderer'] for x in info):
+            yield make_live_chat_history_entry(api_entry)
+        if (only_first_page or 'continuations' not in item_section
+                or not item_section['continuations']):
+            return
+        has_continuations = True
+        while has_continuations:
+            for cont in item_section['continuations']:
+                data = cast(
+                    Sequence[Any],
+                    self._download_page(
+                        BROWSE_AJAX_URL,
+                        method='post',
+                        params=dict(
+                            ctoken=(
+                                cont['nextContinuationData']['continuation']),
+                            continuation=(
+                                cont['nextContinuationData']['continuation']),
+                            itct=(cont['nextContinuationData']
+                                  ['clickTrackingParams'])),
+                        data=dict(session_token=ytcfg['XSRF_TOKEN']),
+                        headers=headers,
+                        return_json=True))
+                item_section = (data[1]['response']['continuationContents']
+                                ['itemSectionContinuation'])
+                for api_entry in (x['liveChatHistoryEntryRenderer']
+                                  for x in item_section['contents']):
+                    yield make_live_chat_history_entry(api_entry)
+                has_continuations = ('continuations' in item_section
+                                     and item_section['continuations'])
+
+    def delete_live_chat_message(
+            self,
+            params: str,
+            api_url: str = '/youtubei/v1/live_chat/delete_message',
+            ytcfg: Optional[Mapping[str, Any]] = None) -> Mapping[str, Any]:
+        """
+        Delete a live chat message by params value as given from
+        ``live_chat_history()``.
+        """
+        if not ytcfg:
+            content = self._download_page_soup(LIVE_CHAT_HISTORY_URL)
+            ytcfg = find_ytcfg(content)
+        return cast(
+            Mapping[str, Any],
+            self._download_page(
+                f'https://www.youtube.com{api_url}',
+                method='post',
+                params=dict(key=ytcfg['INNERTUBE_API_KEY']),
+                headers={
+                    'Authority': 'www.youtube.com',
+                    'Authorization': self._authorization_sapisidhash_header(),
+                    'x-goog-authuser': '0',
+                    'x-origin': 'https://www.youtube.com',
+                },
+                json=dict(
+                    context=dict(
+                        clickTracking=dict(clickTrackingParams=''),
+                        client=context_client_body(ytcfg),
+                        request=dict(consistencyTokenJars=[],
+                                     internalExperimentFlags=[]),
+                        user=dict(
+                            onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
+                    params=params,
+                ),
+                return_json=True))
