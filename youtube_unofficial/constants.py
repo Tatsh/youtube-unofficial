@@ -30,6 +30,8 @@ BROWSE_AJAX_URL: Final = 'https://www.youtube.com/browse_ajax'
 CHALLENGE_URL: Final = 'https://accounts.google.com/_/signin/sl/challenge'
 COMMENT_HISTORY_URL: Final = ('https://www.youtube.com/feed/history/'
                               'comment_history')
+COMMUNITY_HISTORY_URL: Final = ('https://www.youtube.com/feed/history/'
+                                'community_history')
 HISTORY_URL: Final = 'https://www.youtube.com/feed/history'
 HOMEPAGE_URL: Final = 'https://www.youtube.com'
 LIVE_CHAT_HISTORY_URL: Final = ('https://www.youtube.com/feed/history/'

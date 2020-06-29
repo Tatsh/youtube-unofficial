@@ -10,11 +10,14 @@ import logging
 from typing_extensions import Final
 import requests
 
+from youtube_unofficial.comment import DEFAULT_DELETE_ACTION_PATH
+
 from .comment import CommentHistoryEntry, make_comment_history_entry
-from .constants import (BROWSE_AJAX_URL, COMMENT_HISTORY_URL, HISTORY_URL,
-                        HOMEPAGE_URL, LIVE_CHAT_HISTORY_URL,
-                        SEARCH_HISTORY_URL, SERVICE_AJAX_URL, USER_AGENT,
-                        WATCH_HISTORY_URL, WATCH_LATER_URL)
+from .constants import (BROWSE_AJAX_URL, COMMENT_HISTORY_URL,
+                        COMMUNITY_HISTORY_URL, HISTORY_URL, HOMEPAGE_URL,
+                        LIVE_CHAT_HISTORY_URL, SEARCH_HISTORY_URL,
+                        SERVICE_AJAX_URL, USER_AGENT, WATCH_HISTORY_URL,
+                        WATCH_LATER_URL)
 from .download import DownloadMixin
 from .exceptions import AuthenticationError, UnexpectedError
 from .initial import initial_data, initial_guide_data
@@ -627,24 +630,33 @@ class YouTube(DownloadMixin):
                 ),
                 return_json=True))
 
-    def comment_history(
+    def _comment_community_history(
             self,
+            url: str,
             only_first_page: bool = False) -> Iterator[CommentHistoryEntry]:
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
-        content = self._download_page_soup(COMMENT_HISTORY_URL)
+        content = self._download_page_soup(url)
         ytcfg = find_ytcfg(content)
         headers = ytcfg_headers(ytcfg)
-        headers['x-spf-previous'] = COMMENT_HISTORY_URL
-        headers['x-spf-referer'] = COMMENT_HISTORY_URL
+        headers['x-spf-previous'] = url
+        headers['x-spf-referer'] = url
         item_section = at_path(
             ('contents.twoColumnBrowseResultsRenderer.tabs.'
              '0.tabRenderer.content.sectionListRenderer.contents.0.'
              'itemSectionRenderer'), initial_data(content))
         info = item_section['contents']
+        if url == COMMENT_HISTORY_URL:
+            delete_action_path = DEFAULT_DELETE_ACTION_PATH
+        else:
+            delete_action_path = (
+                'actionMenu.menuRenderer.items.0.menuNavigationItemRenderer.'
+                'navigationEndpoint.confirmDialogEndpoint.content.'
+                'confirmDialogRenderer.confirmButton.buttonRenderer.'
+                'serviceEndpoint.performCommentActionEndpoint.action')
         for api_entry in (x['commentHistoryEntryRenderer'] for x in info):
-            yield make_comment_history_entry(api_entry)
+            yield make_comment_history_entry(api_entry, delete_action_path)
         if (only_first_page or 'continuations' not in item_section
                 or not item_section['continuations']):
             return
@@ -670,9 +682,16 @@ class YouTube(DownloadMixin):
                                 ['itemSectionContinuation'])
                 for api_entry in (x['commentHistoryEntryRenderer']
                                   for x in item_section['contents']):
-                    yield make_comment_history_entry(api_entry)
+                    yield make_comment_history_entry(api_entry,
+                                                     delete_action_path)
                 has_continuations = ('continuations' in item_section
                                      and item_section['continuations'])
+
+    def comment_history(
+            self,
+            only_first_page: bool = False) -> Iterator[CommentHistoryEntry]:
+        yield from self._comment_community_history(COMMENT_HISTORY_URL,
+                                                   only_first_page)
 
     def delete_comment(
             self,
@@ -757,5 +776,49 @@ class YouTube(DownloadMixin):
                             user=dict(
                                 onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
                         updateCommentParams=params,
+                    ),
+                    return_json=True))) == 'STATUS_SUCCEEDED')
+
+    def community_history(
+            self,
+            only_first_page: bool = False) -> Iterator[CommentHistoryEntry]:
+        yield from self._comment_community_history(COMMUNITY_HISTORY_URL,
+                                                   only_first_page)
+
+    def delete_community_entry(
+            self,
+            action: str,
+            api_url: str = '/youtubei/v1/comment/perform_comment_action',
+            ytcfg: Optional[Mapping[str, Any]] = None) -> bool:
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+        if not ytcfg:
+            content = self._download_page_soup(COMMENT_HISTORY_URL)
+            ytcfg = find_ytcfg(content)
+        return (at_path(
+            'actionResults.0.status',
+            cast(
+                Mapping[str, Any],
+                self._download_page(
+                    f'https://www.youtube.com{api_url}',
+                    method='post',
+                    params=dict(key=ytcfg['INNERTUBE_API_KEY']),
+                    headers={
+                        'Authority': 'www.youtube.com',
+                        'Authorization':
+                        self._authorization_sapisidhash_header(),
+                        'x-goog-authuser': '0',
+                        'x-origin': 'https://www.youtube.com',
+                    },
+                    json=dict(
+                        actions=[action],
+                        context=dict(
+                            clickTracking=dict(clickTrackingParams=''),
+                            client=context_client_body(ytcfg),
+                            request=dict(consistencyTokenJars=[],
+                                         internalExperimentFlags=[]),
+                            user=dict(
+                                onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
                     ),
                     return_json=True))) == 'STATUS_SUCCEEDED')
