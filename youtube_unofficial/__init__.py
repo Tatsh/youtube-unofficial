@@ -23,7 +23,7 @@ from .typing import HasStringCode
 from .typing.browse_ajax import BrowseAJAXSequence
 from .typing.guide_data import SectionItemDict
 from .typing.playlist import PlaylistInfo
-from .util import context_client_body, path as at_path, try_get
+from .util import context_client_body, path as at_path
 from .ytcfg import find_ytcfg, ytcfg_headers
 
 __all__ = ('YouTube', )
