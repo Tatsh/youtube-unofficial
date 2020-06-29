@@ -282,6 +282,7 @@ def remove_setvideoid() -> int:
 
 # pylint: disable=invalid-name
 clear_favorites = _simple_method_call('clear_favorites')
+clear_search_history = _simple_method_call('clear_search_history')
 clear_watch_history = _simple_method_call('clear_watch_history')
 clear_watch_later = _simple_method_call('clear_watch_later')
 toggle_search_history = _simple_method_call('toggle_search_history')

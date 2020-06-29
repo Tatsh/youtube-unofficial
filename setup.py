@@ -18,6 +18,8 @@ setup(name='youtube-unofficial',
           'console_scripts':
           [('youtube-clear-history = youtube_unofficial.scripts:'
             'clear_watch_history'),
+           ('youtube-clear-search-history = youtube_unofficial.scripts:'
+            'clear_search_history'),
            ('youtube-clear-watch-later = youtube_unofficial.scripts:'
             'clear_watch_later'),
            ('youtube-clear-favorites = youtube_unofficial.scripts:'

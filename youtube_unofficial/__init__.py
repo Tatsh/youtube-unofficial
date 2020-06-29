@@ -489,7 +489,7 @@ class YouTube(DownloadMixin):
             self,
             ytcfg: Mapping[str, Any],
             feedback_token: str,
-            click_tracking_params: str,
+            click_tracking_params: str = '',
             api_url: str = '/youtubei/v1/feedback') -> bool:
         return cast(
             Mapping[str, Any],
@@ -822,3 +822,19 @@ class YouTube(DownloadMixin):
                                 onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
                     ),
                     return_json=True))) == 'STATUS_SUCCEEDED')
+
+    def clear_search_history(self):
+        """Clear search history."""
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+        content = self._download_page_soup(SEARCH_HISTORY_URL)
+        return self._single_feedback_api_call(
+            find_ytcfg(content),
+            at_path(
+                'contents.twoColumnBrowseResultsRenderer.'
+                'secondaryContents.browseFeedActionsRenderer.'
+                'contents.1.buttonRenderer.navigationEndpoint.'
+                'confirmDialogEndpoint.content.confirmDialogRenderer.'
+                'confirmEndpoint.feedbackEndpoint.feedbackToken',
+                initial_data(content)))
