@@ -36,3 +36,4 @@ Thumbs.db
 /build/
 /.vscode/.ropeproject/objectdb
 /.vscode/settings.json
+/.mypy_cache/
