@@ -823,7 +823,7 @@ class YouTube(DownloadMixin):
                     ),
                     return_json=True))) == 'STATUS_SUCCEEDED')
 
-    def clear_search_history(self):
+    def clear_search_history(self) -> bool:
         """Clear search history."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
