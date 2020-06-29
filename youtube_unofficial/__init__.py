@@ -478,7 +478,7 @@ class YouTube(DownloadMixin):
         m.update(f'{now} {sapisid} https://www.youtube.com'.encode())
         return f'SAPISIDHASH {now}_{m.hexdigest()}'
 
-    def pause_resume_search_history(self) -> bool:
+    def toggle_search_history(self) -> bool:
         """Pauses or resumes history depending on the current state."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
