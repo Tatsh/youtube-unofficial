@@ -15,6 +15,7 @@ __all__ = (
     'get_text_runs',
     'html_hidden_inputs',
     'path',
+    'path_default',
     'remove_start',
     'try_get',
 )
@@ -116,6 +117,13 @@ def path(s: str, obj: Any) -> Any:
         else:
             obj = obj[prop]
     return obj
+
+
+def path_default(s: str, obj: Any, default: Any = None) -> Any:
+    try:
+        return path(s, obj)
+    except (IndexError, KeyError):
+        return default
 
 
 def get_text_runs(desc: DescriptionSnippetDict) -> str:

@@ -3,6 +3,7 @@ from typing_extensions import Final
 __all__ = (
     'BROWSE_AJAX_URL',
     'CHALLENGE_URL',
+    'COMMENT_HISTORY_URL',
     'EXTRACTED_THUMBNAIL_KEYS',
     'HISTORY_ENTRY_KEYS_TO_SKIP',
     'HISTORY_URL',
@@ -27,6 +28,8 @@ USER_AGENT: Final = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
 
 BROWSE_AJAX_URL: Final = 'https://www.youtube.com/browse_ajax'
 CHALLENGE_URL: Final = 'https://accounts.google.com/_/signin/sl/challenge'
+COMMENT_HISTORY_URL: Final = ('https://www.youtube.com/feed/history/'
+                              'comment_history')
 HISTORY_URL: Final = 'https://www.youtube.com/feed/history'
 HOMEPAGE_URL: Final = 'https://www.youtube.com'
 LIVE_CHAT_HISTORY_URL: Final = ('https://www.youtube.com/feed/history/'
