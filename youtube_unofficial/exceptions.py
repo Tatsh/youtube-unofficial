@@ -2,7 +2,6 @@ __all__ = (
     'AuthenticationError',
     'TwoFactorError',
     'UnexpectedError',
-    'ValidationError',
 )
 
 
@@ -11,10 +10,6 @@ class AuthenticationError(Exception):
 
 
 class TwoFactorError(AuthenticationError):
-    pass
-
-
-class ValidationError(ValueError):
     pass
 
 
