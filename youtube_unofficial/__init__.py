@@ -10,9 +10,8 @@ import logging
 from typing_extensions import Final
 import requests
 
-from youtube_unofficial.comment import DEFAULT_DELETE_ACTION_PATH
-
-from .comment import CommentHistoryEntry, make_comment_history_entry
+from .comment import (DEFAULT_DELETE_ACTION_PATH, CommentHistoryEntry,
+                      make_comment_history_entry)
 from .constants import (BROWSE_AJAX_URL, COMMENT_HISTORY_URL,
                         COMMUNITY_HISTORY_URL, HISTORY_URL, HOMEPAGE_URL,
                         LIVE_CHAT_HISTORY_URL, SEARCH_HISTORY_URL,
@@ -27,6 +26,7 @@ from .typing import HasStringCode
 from .typing.browse_ajax import BrowseAJAXSequence
 from .typing.guide_data import SectionItemDict
 from .typing.playlist import PlaylistInfo
+from .typing.ytcfg import YtcfgDict
 from .util import context_client_body, path as at_path
 from .ytcfg import find_ytcfg, ytcfg_headers
 
@@ -487,7 +487,7 @@ class YouTube(DownloadMixin):
 
     def _single_feedback_api_call(
             self,
-            ytcfg: Mapping[str, Any],
+            ytcfg: YtcfgDict,
             feedback_token: str,
             click_tracking_params: str = '',
             api_url: str = '/youtubei/v1/feedback') -> bool:
@@ -595,7 +595,7 @@ class YouTube(DownloadMixin):
             self,
             params: str,
             api_url: str = '/youtubei/v1/live_chat/delete_message',
-            ytcfg: Optional[Mapping[str, Any]] = None) -> Mapping[str, Any]:
+            ytcfg: Optional[YtcfgDict] = None) -> Mapping[str, Any]:
         """
         Delete a live chat message by params value as given from
         ``live_chat_history()``.
@@ -696,7 +696,7 @@ class YouTube(DownloadMixin):
     def delete_comment(
             self,
             action: str,
-            ytcfg: Optional[Mapping[str, Any]] = None,
+            ytcfg: Optional[YtcfgDict] = None,
             api_url: str = '/youtubei/v1/comment/perform_comment_action'
     ) -> bool:
         if not self._logged_in:
@@ -736,7 +736,7 @@ class YouTube(DownloadMixin):
             self,
             text: str,
             params: str,
-            ytcfg: Optional[Mapping[str, Any]] = None,
+            ytcfg: Optional[YtcfgDict] = None,
             api_url: str = '/youtubei/v1/comment/update_comment') -> bool:
         """
         Update a comment.
@@ -789,7 +789,7 @@ class YouTube(DownloadMixin):
             self,
             action: str,
             api_url: str = '/youtubei/v1/comment/perform_comment_action',
-            ytcfg: Optional[Mapping[str, Any]] = None) -> bool:
+            ytcfg: Optional[YtcfgDict] = None) -> bool:
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')

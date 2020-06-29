@@ -7,6 +7,7 @@ from typing_extensions import overload
 
 from .constants import USER_AGENT
 from .typing.history import DescriptionSnippetDict
+from .typing.ytcfg import YtcfgDict
 
 __all__ = (
     'context_client_body',
@@ -131,7 +132,7 @@ def get_text_runs(desc: DescriptionSnippetDict) -> str:
                    for x in desc['runs']).strip().replace('\n', ' - ')
 
 
-def context_client_body(ytcfg: Mapping[str, Any]) -> Mapping[str, Any]:
+def context_client_body(ytcfg: YtcfgDict) -> Mapping[str, Union[str, int]]:
     return {
         'browserName': 'Chrome',
         'browserVersion': '84.0.4147.45',
