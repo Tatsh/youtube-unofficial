@@ -31,7 +31,7 @@ def download_page(
     return cast(Mapping[str, Any], r.json())
 
 
-class DownloadMixin:
+class DownloadMixin:  # pylint: disable=too-few-public-methods
     _sess: Session
 
     def _download_page(
