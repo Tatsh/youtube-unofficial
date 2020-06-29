@@ -11,7 +11,7 @@ import requests
 
 from .constants import (BROWSE_AJAX_URL, HISTORY_URL, HOMEPAGE_URL,
                         SEARCH_HISTORY_URL, SERVICE_AJAX_URL, USER_AGENT,
-                        WATCH_LATER_URL)
+                        WATCH_HISTORY_URL, WATCH_LATER_URL)
 from .download import DownloadMixin
 from .exceptions import AuthenticationError, UnexpectedError
 from .initial import initial_data, initial_guide_data
@@ -478,42 +478,56 @@ class YouTube(DownloadMixin):
         m.update(f'{now} {sapisid} https://www.youtube.com'.encode())
         return f'SAPISIDHASH {now}_{m.hexdigest()}'
 
-    def toggle_search_history(self) -> bool:
-        """Pauses or resumes history depending on the current state."""
-        if not self._logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-        content = self._download_page_soup(SEARCH_HISTORY_URL)
-        ytcfg = find_ytcfg(content)
-        info = at_path(
-            ('contents.twoColumnBrowseResultsRenderer.'
-             'secondaryContents.browseFeedActionsRenderer.contents.2.'
-             'buttonRenderer.navigationEndpoint.confirmDialogEndpoint.content.'
-             'confirmDialogRenderer.confirmEndpoint'), initial_data(content))
-        metadata = info['commandMetadata']['webCommandMetadata']
+    def _single_feedback_api_call(
+            self,
+            ytcfg: Mapping[str, Any],
+            feedback_token: str,
+            click_tracking_params: str,
+            api_url: str = '/youtubei/v1/feedback') -> bool:
         return cast(
             Mapping[str, Any],
             self._download_page(
-                f'https://www.youtube.com{metadata["apiUrl"]}',
+                f'https://www.youtube.com{api_url}',
                 method='post',
                 params=dict(key=ytcfg['INNERTUBE_API_KEY']),
                 headers={
                     'Authority': 'www.youtube.com',
-                    'Authorization':
-                    self._authorization_sapisidhash_header(),
+                    'Authorization': self._authorization_sapisidhash_header(),
                     'x-goog-authuser': '0',
                     'x-origin': 'https://www.youtube.com',
                 },
                 json=dict(context=dict(
                     clickTracking=dict(
-                        clickTrackingParams=info['clickTrackingParams']),
+                        clickTrackingParams=click_tracking_params),
                     client=context_client_body(ytcfg),
                     request=dict(consistencyTokenJars=[],
                                  internalExperimentFlags=[]),
                     user=dict(onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
-                          feedbackTokens=[
-                              info['feedbackEndpoint']['feedbackToken']
-                          ],
+                          feedbackTokens=[feedback_token],
                           isFeedbackTokenUnencrypted=False,
                           shouldMerge=False),
                 return_json=True))['feedbackResponses'][0]['isProcessed']
+
+    def _toggle_history(self, page_url: str, contents_index: int) -> bool:
+        if not self._logged_in:
+            raise AuthenticationError('This method requires a call to '
+                                      'login() first')
+        content = self._download_page_soup(page_url)
+        ytcfg = find_ytcfg(content)
+        info = at_path(('contents.twoColumnBrowseResultsRenderer.'
+                        'secondaryContents.browseFeedActionsRenderer.contents.'
+                        f'{contents_index}.buttonRenderer.navigationEndpoint.'
+                        'confirmDialogEndpoint.content.confirmDialogRenderer.'
+                        'confirmEndpoint'), initial_data(content))
+        return self._single_feedback_api_call(
+            ytcfg, info['feedbackEndpoint']['feedbackToken'],
+            info['clickTrackingParams'],
+            info['commandMetadata']['webCommandMetadata']['apiUrl'])
+
+    def toggle_search_history(self) -> bool:
+        """Pauses or resumes search history depending on the current state."""
+        return self._toggle_history(SEARCH_HISTORY_URL, 2)
+
+    def toggle_watch_history(self) -> bool:
+        """Pauses or resumes watch history depending on the current state."""
+        return self._toggle_history(WATCH_HISTORY_URL, 3)

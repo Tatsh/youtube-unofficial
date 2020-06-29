@@ -3,14 +3,20 @@ from typing_extensions import Final
 __all__ = (
     'BROWSE_AJAX_URL',
     'CHALLENGE_URL',
+    'EXTRACTED_THUMBNAIL_KEYS',
+    'HISTORY_ENTRY_KEYS_TO_SKIP',
     'HISTORY_URL',
     'HOMEPAGE_URL',
     'LOGIN_URL',
     'LOOKUP_URL',
     'NETRC_MACHINE',
     'SERVICE_AJAX_URL',
+    'SIMPLE_TEXT_KEYS',
+    'TEXT_RUNS_KEYS',
     'TFA_URL',
+    'THUMBNAILS_KEYS',
     'USER_AGENT',
+    'WATCH_HISTORY_URL',
     'WATCH_LATER_URL',
 )
 
@@ -28,6 +34,7 @@ SEARCH_HISTORY_URL: Final = ('https://www.youtube.com/feed/history/'
                              'search_history')
 SERVICE_AJAX_URL: Final = 'https://www.youtube.com/service_ajax'
 TFA_URL: Final = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
+WATCH_HISTORY_URL: Final = 'https://www.youtube.com/feed/history'
 WATCH_LATER_URL: Final = 'https://www.youtube.com/playlist?list=WL'
 
 # print-history-ids constants

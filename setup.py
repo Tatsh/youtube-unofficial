@@ -24,6 +24,8 @@ setup(name='youtube-unofficial',
             'clear_favorites'),
            ('youtube-toggle-search-history = youtube_unofficial.scripts:'
             'toggle_search_history'),
+           ('youtube-toggle-watch-history = youtube_unofficial.scripts:'
+            'toggle_watch_history'),
            ('youtube-print-watch-later-ids = youtube_unofficial.scripts:'
             'print_watchlater_ids'),
            ('youtube-print-playlist-ids = youtube_unofficial.scripts:'
