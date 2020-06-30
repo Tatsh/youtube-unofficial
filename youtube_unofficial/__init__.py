@@ -39,14 +39,14 @@ class YouTube(DownloadMixin):
                  password: Optional[str] = None,
                  netrc_file: Optional[str] = None,
                  cookies_path: Optional[str] = None,
-                 cookiejar_cls: Type[CookieJar] = MozillaCookieJar):
+                 cookiejar_cls: Type[CookieJar] = MozillaCookieJar,
+                 logged_in: bool = False):
         if not netrc_file:
             self.netrc_file = expanduser('~/.netrc')
         else:
             self.netrc_file = netrc_file
         if not cookies_path:
             cookies_path = expanduser('~/.config/ytch-cookies.txt')
-
         self.username = username
         self.password = password
         self._log: Final = logging.getLogger('youtube-unofficial')
@@ -58,6 +58,8 @@ class YouTube(DownloadMixin):
             'User-Agent': USER_AGENT,
         })
         self._login_handler = YouTubeLogin(self._sess, self._cj, username)
+        if logged_in:
+            self._login_handler._logged_in = True  # pylint: disable=protected-access
 
     @property
     def _logged_in(self):
