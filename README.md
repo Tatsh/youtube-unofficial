@@ -12,7 +12,7 @@ Every command can take a `--username` and `--password` argument.
 
 You should consider using a netrc file for your login. Example at `~/.netrc`:
 
-```
+```plain
 machine youtube login LOGIN password YOUR_PASSWORD
 ```
 
@@ -22,25 +22,31 @@ You can specify a custom netrc file with the `--netrc` argument.
 
 ### Command line
 
-- `youtube-clear-favorites` - Clear your _Favourites_
+- `youtube-clear-favorites` - Clear your _Favourites_ playlist
 - `youtube-clear-history` - Clear your _Watch History_
+- `youtube-clear-search-history` - Clear your _Search History_
 - `youtube-clear-watch-later` - Clear your _Watch Later_ queue
+- `youtube-print-history-ids` - Print _Watch History_ video IDs
+- `youtube-print-playlist-ids` - Print video IDs from a specific playlist
+- `youtube-print-watch-later-ids` - Print _Watch Later_ video IDs
+- `youtube-remove-history-entry` - Remove a video from your _Watch History_
+- `youtube-remove-setvideoid` - Remove a video from a playlist
+- `youtube-remove-watch-later-setvideoid` - Remove a video from your _Watch Later_ queue
+- `youtube-toggle-search-history` - Turn on/off _Search History_
+- `youtube-toggle-watch-history` - Turn on/off _Watch History_
 
 Every command takes a `--debug` argument.
 
-You can use exported cookies (in Netscape format) with the `--cookies COOKIES_FILE` argument.
+You can use exported cookies in Netscape format with the `--cookies COOKIES_FILE` argument.
+
+Some commands accept a `-j`/`--json` argument to print machine-readable output.
 
 ### In Python
 
-```bash
-git clone git@github.com:Tatsh/youtube-unofficial.git
-cd youtube-unofficial
-pip install -e .
-```
-
 ```python
 from youtube_unofficial import YouTube
-yt = YouTube()
+
+yt = YouTube(cookies=expanduser('~/my-cookies-file.txt'), logged_in=True)
 
 # Clear watch history
 yt.clear_watch_history()
