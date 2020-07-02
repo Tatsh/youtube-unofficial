@@ -19,9 +19,7 @@ def make_live_chat_history_entry(
     video_title_info = try_get(
         api_entry,
         lambda x: x['videoTitle']['runs'][0],
-    ) or {
-        'text': None
-    }
+    ) or dict(text=None)
     video_url = try_get(
         video_title_info, lambda x: (x['navigationEndpoint']['commandMetadata']
                                      ['webCommandMetadata']['url']))
