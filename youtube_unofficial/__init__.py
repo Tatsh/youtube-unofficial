@@ -27,7 +27,7 @@ from .typing.browse_ajax import BrowseAJAXSequence
 from .typing.guide_data import SectionItemDict
 from .typing.playlist import PlaylistInfo
 from .typing.ytcfg import YtcfgDict
-from .util import context_client_body, path as at_path
+from .util import context_client_body, first, path as at_path
 from .ytcfg import find_ytcfg, ytcfg_headers
 
 __all__ = ('YouTube', )
@@ -39,8 +39,8 @@ class YouTube(DownloadMixin):
                  password: Optional[str] = None,
                  netrc_file: Optional[str] = None,
                  cookies_path: Optional[str] = None,
-                 cookiejar_cls: Type[CookieJar] = MozillaCookieJar,
-                 logged_in: bool = False):
+                 logged_in: bool = False,
+                 cookiejar_cls: Type[CookieJar] = MozillaCookieJar):
         if not netrc_file:
             self.netrc_file = expanduser('~/.netrc')
         else:
@@ -94,57 +94,56 @@ class YouTube(DownloadMixin):
             playlist_id: str,
             set_video_id: str,
             csn: Optional[str] = None,
-            xsrf_token: Optional[str] = None,
-            headers: Optional[Mapping[str, str]] = None) -> None:
+            headers: Optional[Mapping[str, str]] = None,
+            xsrf_token: Optional[str] = None) -> None:
         """Removes a video from a playlist. The set_video_id is NOT the same as
         the video ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
-
         if not headers or not csn or not xsrf_token:
             soup = self._download_page_soup(WATCH_LATER_URL)
             ytcfg = find_ytcfg(soup)
             headers = ytcfg_headers(ytcfg)
-
-        params = {'name': 'playlistEditEndpoint'}
-        form_data = {
-            'sej':
-            json.dumps({
-                'clickTrackingParams': '',
-                'commandMetadata': {
-                    'webCommandMetadata': {
-                        'url': '/service_ajax',
-                        'sendPost': True
-                    }
-                },
-                'playlistEditEndpoint': {
-                    'playlistId':
-                    playlist_id,
-                    'actions': [{
-                        'setVideoId': set_video_id,
-                        'action': 'ACTION_REMOVE_VIDEO'
-                    }],
-                    'params':
-                    'CAE%3D',
-                    'clientActions': [{
-                        'playlistRemoveVideosAction': {
-                            'setVideoIds': [set_video_id]
-                        }
-                    }]
-                }
-            }),
-            'csn':
-            csn or ytcfg['EVENT_ID'],
-            'session_token':
-            xsrf_token or ytcfg['XSRF_TOKEN']
-        }
         data = cast(
             HasStringCode,
             self._download_page(SERVICE_AJAX_URL,
                                 method='post',
-                                data=form_data,
-                                params=params,
+                                data={
+                                    'sej':
+                                    json.dumps({
+                                        'clickTrackingParams': '',
+                                        'commandMetadata': {
+                                            'webCommandMetadata': {
+                                                'url': '/service_ajax',
+                                                'sendPost': True
+                                            }
+                                        },
+                                        'playlistEditEndpoint': {
+                                            'playlistId':
+                                            playlist_id,
+                                            'actions': [{
+                                                'setVideoId':
+                                                set_video_id,
+                                                'action':
+                                                'ACTION_REMOVE_VIDEO'
+                                            }],
+                                            'params':
+                                            'CAE%3D',
+                                            'clientActions': [{
+                                                'playlistRemoveVideosAction': {
+                                                    'setVideoIds':
+                                                    [set_video_id]
+                                                }
+                                            }]
+                                        }
+                                    }),
+                                    'csn':
+                                    csn or ytcfg['EVENT_ID'],
+                                    'session_token':
+                                    xsrf_token or ytcfg['XSRF_TOKEN']
+                                },
+                                params={'name': 'playlistEditEndpoint'},
                                 return_json=True,
                                 headers=headers))
         if data['code'] != 'SUCCESS':
@@ -183,7 +182,6 @@ class YouTube(DownloadMixin):
             self._log.debug('Clear button is likely disabled. History is '
                             'likely empty')
             return
-
         self._download_page(SERVICE_AJAX_URL,
                             params=params,
                             data=data,
@@ -339,7 +337,7 @@ class YouTube(DownloadMixin):
             self.remove_set_video_id_from_playlist(playlist_id,
                                                    set_video_id,
                                                    csn,
-                                                   xsrf_token,
+                                                   xsrf_token=xsrf_token,
                                                    headers=headers)
 
     def clear_watch_later(self) -> None:
@@ -372,7 +370,7 @@ class YouTube(DownloadMixin):
         self.remove_set_video_id_from_playlist(playlist_id,
                                                set_video_id,
                                                ytcfg['EVENT_ID'],
-                                               ytcfg['XSRF_TOKEN'],
+                                               xsrf_token=ytcfg['XSRF_TOKEN'],
                                                headers=headers)
 
     def get_history_info(self) -> Iterator[Mapping[str, Any]]:
@@ -397,14 +395,11 @@ class YouTube(DownloadMixin):
         except KeyError:
             return
 
-        continuation = next_continuation['continuation']
-        itct = next_continuation['clickTrackingParams']
-
-        params = {
-            'ctoken': continuation,
-            'continuation': continuation,
-            'itct': itct
-        }
+        params = dict(
+            continuation=next_continuation['continuation'],
+            ctoken=next_continuation['continuation'],
+            itct=next_continuation['clickTrackingParams'],
+        )
         xsrf = ytcfg['XSRF_TOKEN']
 
         while True:
@@ -440,39 +435,28 @@ class YouTube(DownloadMixin):
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
-
         history_info = self.get_history_info()
         content = self._download_page_soup(HISTORY_URL)
         ytcfg = find_ytcfg(content)
         headers = ytcfg_headers(ytcfg)
-
         try:
-            entry = list(
-                filter(
-                    lambda x: 'videoRenderer' in x and x['videoRenderer'][
-                        'videoId'] == video_id, history_info))[0]
+            entry = first(x for x in history_info
+                          if x['videoRenderer']['videoId'] == video_id)
         except IndexError:
             return False
-
-        form_data = {
-            'sej':
-            json.dumps(
-                entry['videoRenderer']['menu']['menuRenderer']
-                ['topLevelButtons'][0]['buttonRenderer']['serviceEndpoint']),
-            'csn':
-            ytcfg['EVENT_ID'],
-            'session_token':
-            ytcfg['XSRF_TOKEN'],
-        }
         resp = cast(
             HasStringCode,
             self._download_page(SERVICE_AJAX_URL,
                                 return_json=True,
-                                data=form_data,
+                                data=dict(sej=json.dumps(
+                                    entry['videoRenderer']['menu']
+                                    ['menuRenderer']['topLevelButtons'][0]
+                                    ['buttonRenderer']['serviceEndpoint']),
+                                          csn=ytcfg['EVENT_ID'],
+                                          session_token=ytcfg['XSRF_TOKEN']),
                                 method='post',
                                 headers=headers,
-                                params={'name': 'feedbackEndpoint'}))
-
+                                params=dict(name='feedbackEndpoint')))
         return resp['code'] == 'SUCCESS'
 
     def _authorization_sapisidhash_header(self) -> str:
