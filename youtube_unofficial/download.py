@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup as Soup
 from requests import Request, Session
 from typing_extensions import Literal
 
-__all__ = ('download_page', 'DownloadMixin')
+__all__ = ('DownloadMixin', 'download_page')
 
 
 def download_page(
