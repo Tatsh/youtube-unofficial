@@ -24,6 +24,7 @@ __all__ = (
     'remove_setvideoid',
     'remove_watchlater_setvideoid',
     'toggle_search_history',
+    'toggle_watch_history',
 )
 
 
