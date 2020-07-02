@@ -1,8 +1,4 @@
-__all__ = (
-    'AuthenticationError',
-    'TwoFactorError',
-    'UnexpectedError',
-)
+__all__ = ('AuthenticationError', 'TwoFactorError', 'UnexpectedError')
 
 
 class AuthenticationError(Exception):
