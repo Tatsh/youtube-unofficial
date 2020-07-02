@@ -1,6 +1,6 @@
 from html.parser import HTMLParser
-from typing import (Any, Callable, Dict, Mapping, Optional, Sequence, Type,
-                    Union)
+from typing import (Any, Callable, Dict, Iterable, Mapping, Optional, Sequence,
+                    Type, TypeVar, Union)
 import re
 
 from typing_extensions import overload
@@ -20,6 +20,8 @@ __all__ = (
     'remove_start',
     'try_get',
 )
+
+T = TypeVar('T')
 
 
 class HTMLAttributeParser(HTMLParser):  # pylint: disable=abstract-method
@@ -149,3 +151,7 @@ def context_client_body(ytcfg: YtcfgDict) -> Mapping[str, Union[str, int]]:
         'utcOffsetMinutes': -240,
         'visitorData': ytcfg['VISITOR_DATA'],
     }
+
+
+def first(it: Iterable[T]) -> T:
+    return list(it)[0]
