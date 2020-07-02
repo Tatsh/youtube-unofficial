@@ -28,9 +28,9 @@ class YouTubeLogin(DownloadMixin):
     def __init__(self,
                  session: requests.Session,
                  cookies: CookieJar,
-                 netrc_file: Optional[str] = None,
                  username: Optional[str] = None,
-                 password: Optional[str] = None):
+                 password: Optional[str] = None,
+                 netrc_file: Optional[str] = None):
         if not netrc_file:
             netrc_file = expanduser('~/.netrc')
         self.netrc_file = netrc_file
@@ -45,9 +45,9 @@ class YouTubeLogin(DownloadMixin):
             self,
             tfa_code_callback: Optional[Callable[..., str]] = None) -> None:
         """
-            This is heavily based on youtube-dl's code.
-            See https://goo.gl/J3YFSe
-            """
+        This is heavily based on youtube-dl's code.
+        See https://goo.gl/J3YFSe
+        """
         if self._logged_in:
             return
 
