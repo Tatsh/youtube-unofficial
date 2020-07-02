@@ -6,18 +6,18 @@ from bs4 import BeautifulSoup as Soup
 
 from .constants import WATCH_LATER_URL
 from .typing.ytcfg import YtcfgDict
+from .util import first
 
 
 def find_ytcfg(soup: Soup) -> YtcfgDict:
     return cast(
         YtcfgDict,
-        json.JSONDecoder().raw_decode(
+        first(json.JSONDecoder().raw_decode(
             re.sub(
                 r'.+ytcfg.set\(\{', '{',
-                list(
-                    filter(
-                        lambda x: '"INNERTUBE_CONTEXT_CLIENT_VERSION":' in x.
-                        text, soup.select('script')))[0].text.strip()))[0])
+                first(x for x in soup.select('script')
+                      if '"INNERTUBE_CONTEXT_CLIENT_VERSION":' in
+                      x.text).text.strip()))))
 
 
 def ytcfg_headers(ytcfg: YtcfgDict) -> Dict[str, str]:
