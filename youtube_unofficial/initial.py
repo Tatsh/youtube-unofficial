@@ -5,30 +5,34 @@ import re
 from bs4 import BeautifulSoup as Soup
 
 from .typing.guide_data import GuideData
+from .util import first
 
 
 def initial_data(content: Soup) -> Mapping[str, Any]:
-    text = list(
+    text = first(
         filter(lambda x: '"ytInitialData"' in x.text,
-               content.select('script')))[0].text.strip()
+               content.select('script'))).text.strip()
     if 'JSON.parse' in text:
         return cast(
             Mapping[str, Any],
-            json.loads(json.JSONDecoder().raw_decode(
-                re.sub(r'^window[^=]+= JSON\.parse\(', '',
-                       text).split('\n')[0][:-1])[0]))
+            json.loads(
+                first(json.JSONDecoder().raw_decode(
+                    first(
+                        re.sub(r'^window[^=]+= JSON\.parse\(', '',
+                               text).split('\n'))[:-1]))))
     return cast(
         Mapping[str, Any],
-        json.loads(re.sub('^window[^=]+= ', '', text).split('\n')[0][:-1]))
+        json.loads(first(re.sub('^window[^=]+= ', '', text).split('\n'))[:-1]))
 
 
 def initial_guide_data(content: Soup) -> GuideData:
     return cast(
         GuideData,
-        json.loads(
-            re.sub(
-                '^var ytInitialGuideData = ', '',
-                list(
-                    filter(lambda x: 'var ytInitialGuideData =' in x.text,
-                           content.select('script')))[0].text.strip()).split(
-                               '\n')[0][:-1]))
+        first(
+            json.loads(
+                re.sub(
+                    '^var ytInitialGuideData = ', '',
+                    first(
+                        filter(lambda x: 'var ytInitialGuideData =' in x.text,
+                               content.select('script'))).text.strip()).split(
+                                   '\n')))[:-1])
