@@ -27,9 +27,8 @@ __all__ = (
 )
 
 
-def _common_arguments() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description='Clear your YouTube watch history')
+def _common_arguments(description: str) -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-u',
                         '--username',
                         help='If not specified, a netrc file will be used')
@@ -71,9 +70,10 @@ def _parse_common_arguments(args: argparse.Namespace) -> Mapping[str, Any]:
     return kwargs
 
 
-def _simple_method_call(method_name: str) -> Callable[..., int]:
+def _simple_method_call(method_name: str,
+                        description: str) -> Callable[..., int]:
     def f() -> int:
-        parser = _common_arguments()
+        parser = _common_arguments(description)
         args = parser.parse_args()
         kwargs = _parse_common_arguments(args)
 
@@ -98,7 +98,7 @@ def print_playlist_ids_callback(
     def f() -> int:
         nonlocal parser
         if not parser:
-            parser = _common_arguments()
+            parser = _common_arguments('Print playlist video IDs/information')
         parser.add_argument('-j', '--json', action='store_true')
         args = parser.parse_args()
         kwargs = _parse_common_arguments(args)
@@ -152,7 +152,7 @@ def print_watchlater_ids() -> int:
 
 
 def print_playlist_ids() -> int:
-    parser = _common_arguments()
+    parser = _common_arguments('Print playlist video IDs/information')
     parser.add_argument('playlist_id')
     return print_playlist_ids_callback(parser=parser)()
 
@@ -165,7 +165,7 @@ def print_history_ids() -> int:
                 return True
         return False
 
-    parser = _common_arguments()
+    parser = _common_arguments('Print Watch History video IDs/information')
     parser.add_argument('-j', '--json', action='store_true')
     args = parser.parse_args()
     kwargs = _parse_common_arguments(args)
@@ -223,7 +223,7 @@ def print_history_ids() -> int:
 
 
 def remove_history_entry() -> int:
-    parser = _common_arguments()
+    parser = _common_arguments('Remove videos from Watch History')
     parser.add_argument('video_id', nargs='+')
     args = parser.parse_args()
     kwargs = _parse_common_arguments(args)
@@ -247,7 +247,7 @@ def remove_svi_callback(
     def f() -> int:
         nonlocal parser
         if not parser:
-            parser = _common_arguments()
+            parser = _common_arguments('Remove videos from a playlist')
             parser.add_argument('set_video_ids', nargs='+')
         args = parser.parse_args()
         kwargs = _parse_common_arguments(args)
@@ -268,22 +268,28 @@ def remove_svi_callback(
 
 
 def remove_watchlater_setvideoid() -> int:
-    parser = _common_arguments()
+    parser = _common_arguments('Remove videos from your Watch Later queue')
     parser.add_argument('set_video_ids', nargs='+')
     return remove_svi_callback(playlist_id='WL')()
 
 
 def remove_setvideoid() -> int:
-    parser = _common_arguments()
+    parser = _common_arguments('Remove videos from a playlist')
     parser.add_argument('playlist_id')
     parser.add_argument('set_video_ids', nargs='+')
     return remove_svi_callback(parser=parser)()
 
 
 # pylint: disable=invalid-name
-clear_favorites = _simple_method_call('clear_favorites')
-clear_search_history = _simple_method_call('clear_search_history')
-clear_watch_history = _simple_method_call('clear_watch_history')
-clear_watch_later = _simple_method_call('clear_watch_later')
-toggle_search_history = _simple_method_call('toggle_search_history')
-toggle_watch_history = _simple_method_call('toggle_watch_history')
+clear_favorites = _simple_method_call('clear_favorites',
+                                      'Clear your favourites playlist')
+clear_search_history = _simple_method_call('clear_search_history',
+                                           'Clear your search history')
+clear_watch_history = _simple_method_call('clear_watch_history',
+                                          'Clear your watch history')
+clear_watch_later = _simple_method_call('clear_watch_later',
+                                        'Clear your Watch Later queue')
+toggle_search_history = _simple_method_call('toggle_search_history',
+                                            'Turn on/off your search history')
+toggle_watch_history = _simple_method_call('toggle_watch_history',
+                                           'Turn on/off your watch history')
