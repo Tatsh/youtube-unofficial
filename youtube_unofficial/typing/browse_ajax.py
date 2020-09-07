@@ -29,8 +29,17 @@ class ContinuationContentsDict(TypedDict):
     sectionListContinuation: ItemSectionContinuationDict
 
 
-class ResponseDict(TypedDict):
+class ContinuationItemsDict(TypedDict):
+    continuationItems: Sequence[Any]
+
+
+class AppendContinuationDict(TypedDict):
+    appendContinuationItemsAction: Any
+
+
+class ResponseDict(TypedDict, total=False):
     continuationContents: ContinuationContentsDict
+    onResponseReceivedActions: Sequence[AppendContinuationDict]
 
 
 class BrowseAJAXDict(TypedDict):

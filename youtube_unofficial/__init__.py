@@ -1,12 +1,14 @@
 from datetime import datetime
 from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from os.path import expanduser
+from time import sleep
 from typing import (Any, Iterable, Iterator, Mapping, Optional, Sequence, Type,
                     cast)
 import hashlib
 import json
 import logging
 
+from requests.exceptions import HTTPError
 from typing_extensions import Final
 import requests
 
@@ -387,14 +389,29 @@ class YouTube(DownloadMixin):
         section_list_renderer = (
             init_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]
             ['tabRenderer']['content']['sectionListRenderer'])
+        next_continuation = None
         for section_list in section_list_renderer['contents']:
-            yield from section_list['itemSectionRenderer']['contents']
-        try:
-            next_continuation = (section_list_renderer['continuations'][0]
-                                 ['nextContinuationData'])
-        except KeyError:
-            return
+            try:
+                yield from section_list['itemSectionRenderer']['contents']
+            except KeyError:
+                if 'continuationItemRenderer' in section_list:
+                    next_continuation = dict(
+                        continuation=(section_list['continuationItemRenderer']
+                                      ['continuationEndpoint']
+                                      ['continuationCommand']['token']),
+                        clickTrackingParams=(
+                            section_list['continuationItemRenderer']
+                            ['continuationEndpoint']['clickTrackingParams']))
+                    break
 
+        if not next_continuation:
+            try:
+                next_continuation = (section_list_renderer['continuations'][0]
+                                     ['nextContinuationData'])
+            except KeyError as e:
+                return
+
+        assert next_continuation is not None
         params = dict(
             continuation=next_continuation['continuation'],
             ctoken=next_continuation['continuation'],
@@ -403,28 +420,75 @@ class YouTube(DownloadMixin):
         xsrf = ytcfg['XSRF_TOKEN']
 
         while True:
-            resp = cast(
-                BrowseAJAXSequence,
-                self._download_page(BROWSE_AJAX_URL,
-                                    return_json=True,
-                                    headers=headers,
-                                    data={'session_token': xsrf},
-                                    method='post',
-                                    params=params))
-            contents = resp[1]['response']
-            section_list_renderer = (
-                contents['continuationContents']['sectionListContinuation'])
-            for section_list in section_list_renderer['contents']:
-                yield from section_list['itemSectionRenderer']['contents']
-
-            try:
-                continuations = section_list_renderer['continuations']
-            except KeyError as e:
-                # Probably the end of the history
-                self._log.debug('Caught KeyError: %s. Possible keys: %s', e,
-                                ', '.join(section_list_renderer.keys()))
+            tries = 0
+            time = 0
+            last_exception = None
+            while tries < 5:
+                if time:
+                    sleep(time)
+                try:
+                    resp = cast(
+                        BrowseAJAXSequence,
+                        self._download_page(BROWSE_AJAX_URL,
+                                            return_json=True,
+                                            headers=headers,
+                                            data={'session_token': xsrf},
+                                            method='post',
+                                            params=params))
+                    break
+                except HTTPError as e:
+                    last_exception = e
+                    tries += 1
+                    time = 2**tries
+            if last_exception:
+                self._log.debug('Caught HTTP error: %s, text: %s',
+                                last_exception, last_exception.response.text)
                 break
+            contents = resp[1]['response']
+            try:
+                section_list_renderer = (
+                    contents['onResponseReceivedActions'][0]
+                    ['appendContinuationItemsAction']['continuationItems'])
+            except KeyError as e:
+                self._log.debug('Caught KeyError: %s. Possible keys: %s', e,
+                                ', '.join(contents.keys()))
+                break
+            continuations = None
+            for section_list in section_list_renderer:
+                try:
+                    yield from section_list['itemSectionRenderer']['contents']
+                except KeyError:
+                    if 'continuationItemRenderer' in section_list:
+                        continuations = [
+                            dict(nextContinuationData=dict(
+                                continuation=(
+                                    section_list['continuationItemRenderer']
+                                    ['continuationEndpoint']
+                                    ['continuationCommand']['token']),
+                                clickTrackingParams=(
+                                    section_list['continuationItemRenderer']
+                                    ['continuationEndpoint']
+                                    ['clickTrackingParams'])))
+                        ]
+                        break
+                    raise e
+
+            if not continuations:
+                try:
+                    continuations = section_list_renderer['continuations']
+                except KeyError as e:
+                    # Probably the end of the history
+                    self._log.debug('Caught KeyError: %s. Possible keys: %s',
+                                    e, ', '.join(section_list_renderer.keys()))
+                    break
+                except TypeError as e:
+                    # Probably the end of the history
+                    self._log.debug(
+                        'Caught TypeError evaluating '
+                        '"section_list_renderer[\'continuations\']": %s', e)
+                    break
             xsrf = resp[1]['xsrf_token']
+            assert continuations is not None
             next_cont = continuations[0]['nextContinuationData']
             params['itct'] = next_cont['clickTrackingParams']
             params['ctoken'] = next_cont['continuation']
