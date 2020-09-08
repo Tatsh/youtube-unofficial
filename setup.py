@@ -38,6 +38,6 @@ setup(name='youtube-unofficial',
             'scripts:remove_setvideoid'),
            ('youtube-print-history-ids = youtube_unofficial.'
             'scripts:print_history_ids'),
-           ('youtube-remove-history-entry = youtube_unofficial.'
-            'scripts:remove_history_entry')]
+           ('youtube-remove-history-entries = youtube_unofficial.'
+            'scripts:remove_history_entries')]
       })

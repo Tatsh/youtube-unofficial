@@ -494,34 +494,41 @@ class YouTube(DownloadMixin):
             params['ctoken'] = next_cont['continuation']
             params['continuation'] = next_cont['continuation']
 
-    def remove_video_id_from_history(self, video_id: str) -> bool:
+    def remove_video_ids_from_history(self, video_ids: Sequence[str]) -> bool:
         """Delete a history entry by video ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
+        if not video_ids:
+            return False
         history_info = self.get_history_info()
         content = self._download_page_soup(HISTORY_URL)
         ytcfg = find_ytcfg(content)
         headers = ytcfg_headers(ytcfg)
-        try:
-            entry = first(x for x in history_info
-                          if x['videoRenderer']['videoId'] == video_id)
-        except IndexError:
+        entries = [
+            x for x in history_info
+            if x['videoRenderer']['videoId'] in video_ids
+        ]
+        if not entries:
             return False
-        resp = cast(
-            HasStringCode,
-            self._download_page(SERVICE_AJAX_URL,
-                                return_json=True,
-                                data=dict(sej=json.dumps(
-                                    entry['videoRenderer']['menu']
-                                    ['menuRenderer']['topLevelButtons'][0]
-                                    ['buttonRenderer']['serviceEndpoint']),
-                                          csn=ytcfg['EVENT_ID'],
-                                          session_token=ytcfg['XSRF_TOKEN']),
-                                method='post',
-                                headers=headers,
-                                params=dict(name='feedbackEndpoint')))
-        return resp['code'] == 'SUCCESS'
+        codes = []
+        for entry in entries:
+            resp = cast(
+                HasStringCode,
+                self._download_page(
+                    SERVICE_AJAX_URL,
+                    return_json=True,
+                    data=dict(
+                        sej=json.dumps(entry['videoRenderer']['menu']
+                                       ['menuRenderer']['topLevelButtons'][0]
+                                       ['buttonRenderer']['serviceEndpoint']),
+                        csn=ytcfg['EVENT_ID'],
+                        session_token=ytcfg['XSRF_TOKEN']),
+                    method='post',
+                    headers=headers,
+                    params=dict(name='feedbackEndpoint')))
+            codes.append(resp['code'] == 'SUCCESS')
+        return all(codes)
 
     def _authorization_sapisidhash_header(self) -> str:
         now = int(datetime.now().timestamp())

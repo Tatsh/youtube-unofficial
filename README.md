@@ -29,7 +29,7 @@ You can specify a custom netrc file with the `--netrc` argument.
 - `youtube-print-history-ids` - Print _Watch History_ video IDs
 - `youtube-print-playlist-ids` - Print video IDs from a specific playlist
 - `youtube-print-watch-later-ids` - Print _Watch Later_ video IDs
-- `youtube-remove-history-entry` - Remove a video from your _Watch History_
+- `youtube-remove-history-entries` - Remove videos from your _Watch History_
 - `youtube-remove-setvideoid` - Remove a video from a playlist
 - `youtube-remove-watch-later-setvideoid` - Remove a video from your _Watch Later_ queue
 - `youtube-toggle-search-history` - Turn on/off _Search History_

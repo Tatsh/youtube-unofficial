@@ -20,7 +20,7 @@ __all__ = (
     'print_history_ids',
     'print_playlist_ids',
     'print_watchlater_ids',
-    'remove_history_entry',
+    'remove_history_entries',
     'remove_setvideoid',
     'remove_watchlater_setvideoid',
     'toggle_search_history',
@@ -223,7 +223,7 @@ def print_history_ids() -> int:
     return 0
 
 
-def remove_history_entry() -> int:
+def remove_history_entries() -> int:
     parser = _common_arguments('Remove videos from Watch History')
     parser.add_argument('video_id', nargs='+')
     args = parser.parse_args()
@@ -236,8 +236,7 @@ def remove_history_entry() -> int:
             raise e
         print(str(e), file=sys.stderr)
         return 1
-    for vid in args.video_id:
-        yt.remove_video_id_from_history(vid)
+    yt.remove_video_ids_from_history(args.video_id)
     return 0
 
 
