@@ -218,6 +218,7 @@ class YouTubeLogin(DownloadMixin):
         res = try_get(challenge_results, lambda x: x[0][-1], list)
         if not res:
             raise AuthenticationError('Unable to extract result entry')
+        check_cookie_url = try_get(res, lambda x: x[2], str)
 
         tfa = try_get(res, lambda x: x[0][0], list)
         if tfa:
@@ -263,8 +264,6 @@ class YouTubeLogin(DownloadMixin):
 
                 check_cookie_url = try_get(tfa_results, lambda x: x[0][-1][2],
                                            str)
-        else:
-            check_cookie_url = try_get(res, lambda x: x[2], str)
 
         if not check_cookie_url:
             raise AuthenticationError('Unable to extract CheckCookie URL')
