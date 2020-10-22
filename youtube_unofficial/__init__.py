@@ -29,7 +29,7 @@ from .typing.browse_ajax import BrowseAJAXSequence
 from .typing.guide_data import SectionItemDict
 from .typing.playlist import PlaylistInfo
 from .typing.ytcfg import YtcfgDict
-from .util import context_client_body, first, path as at_path
+from .util import context_client_body, path as at_path, path_default
 from .ytcfg import find_ytcfg, ytcfg_headers
 
 __all__ = ('YouTube', )
@@ -103,6 +103,7 @@ class YouTube(DownloadMixin):
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
+        ytcfg = None
         if not headers or not csn or not xsrf_token:
             soup = self._download_page_soup(WATCH_LATER_URL)
             ytcfg = find_ytcfg(soup)
@@ -141,9 +142,9 @@ class YouTube(DownloadMixin):
                                         }
                                     }),
                                     'csn':
-                                    csn or ytcfg['EVENT_ID'],
+                                    csn or path_default('EVENT_ID', ytcfg),
                                     'session_token':
-                                    xsrf_token or ytcfg['XSRF_TOKEN']
+                                    xsrf_token or path_default('XSRF_TOKEN', ytcfg)
                                 },
                                 params={'name': 'playlistEditEndpoint'},
                                 return_json=True,
@@ -418,6 +419,7 @@ class YouTube(DownloadMixin):
             itct=next_continuation['clickTrackingParams'],
         )
         xsrf = ytcfg['XSRF_TOKEN']
+        resp = None
 
         while True:
             tries = 0
@@ -444,6 +446,7 @@ class YouTube(DownloadMixin):
                 self._log.debug('Caught HTTP error: %s, text: %s',
                                 last_exception, last_exception.response.text)
                 break
+            assert resp is not None
             contents = resp[1]['response']
             try:
                 section_list_renderer = (
@@ -457,7 +460,7 @@ class YouTube(DownloadMixin):
             for section_list in section_list_renderer:
                 try:
                     yield from section_list['itemSectionRenderer']['contents']
-                except KeyError:
+                except KeyError as e:
                     if 'continuationItemRenderer' in section_list:
                         continuations = [
                             dict(nextContinuationData=dict(
