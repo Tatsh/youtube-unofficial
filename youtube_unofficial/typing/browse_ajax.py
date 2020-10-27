@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Mapping, Sequence, Tuple
+from typing import Any, Iterable, Sequence, Tuple
 
 from typing_extensions import TypedDict
 
@@ -6,7 +6,7 @@ __all__ = ('BrowseAJAXSequence', )
 
 
 class NextContinuationDict(TypedDict):
-    clickTrackingParams: Mapping[str, str]
+    clickTrackingParams: str
     continuation: str
 
 
