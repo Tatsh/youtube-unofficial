@@ -1,6 +1,8 @@
-from typing import Sequence
+from typing import Iterable, Sequence
 
 from typing_extensions import TypedDict
+
+from youtube_unofficial.typing.browse_ajax import NextContinuationDict
 
 __all__ = ('PlaylistInfo', )
 
@@ -37,3 +39,12 @@ class PlaylistVideoRendererDict(TypedDict, total=False):
 
 class PlaylistInfo(TypedDict):
     playlistVideoRenderer: PlaylistVideoRendererDict
+
+
+class PlaylistVideoListRendererContinuationsDict(TypedDict):
+    nextContinuationData: NextContinuationDict
+
+
+class PlaylistVideoListRenderer(TypedDict):
+    contents: Iterable[PlaylistInfo]
+    continuations: Sequence[PlaylistVideoListRendererContinuationsDict]
