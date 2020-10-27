@@ -1,10 +1,10 @@
 from datetime import datetime
+import hashlib
 from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from os.path import expanduser
 from time import sleep
 from typing import (Any, Iterable, Iterator, Mapping, Optional, Sequence, Type,
-                    cast)
-import hashlib
+                    Union, cast)
 import json
 import logging
 
@@ -25,9 +25,9 @@ from .initial import initial_data, initial_guide_data
 from .live_chat import LiveChatHistoryEntry, make_live_chat_history_entry
 from .login import YouTubeLogin
 from .typing import HasStringCode
-from .typing.browse_ajax import BrowseAJAXSequence
+from .typing.browse_ajax import BrowseAJAXSequence, NextContinuationDict
 from .typing.guide_data import SectionItemDict
-from .typing.playlist import PlaylistInfo
+from .typing.playlist import PlaylistInfo, PlaylistVideoListRenderer
 from .typing.ytcfg import YtcfgDict
 from .util import context_client_body, path as at_path, path_default
 from .ytcfg import find_ytcfg, ytcfg_headers
@@ -144,7 +144,8 @@ class YouTube(DownloadMixin):
                                     'csn':
                                     csn or path_default('EVENT_ID', ytcfg),
                                     'session_token':
-                                    xsrf_token or path_default('XSRF_TOKEN', ytcfg)
+                                    xsrf_token
+                                    or path_default('XSRF_TOKEN', ytcfg)
                                 },
                                 params={'name': 'playlistEditEndpoint'},
                                 return_json=True,
@@ -260,17 +261,24 @@ class YouTube(DownloadMixin):
         ytcfg = find_ytcfg(content)
         headers = ytcfg_headers(ytcfg)
         yt_init_data = initial_data(content)
+        video_list_renderer: Optional[PlaylistVideoListRenderer] = None
 
-        video_list_renderer = (
-            yt_init_data['contents']['twoColumnBrowseResultsRenderer']['tabs']
-            [0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]
-            ['itemSectionRenderer']['contents'][0]['playlistVideoListRenderer']
-        )
+        try:
+            video_list_renderer = (
+                yt_init_data['contents']['twoColumnBrowseResultsRenderer']
+                ['tabs'][0]['tabRenderer']['content']['sectionListRenderer']
+                ['contents'][0]['itemSectionRenderer']['contents'][0]
+                ['playlistVideoListRenderer'])
+        except KeyError as e:
+            if str(e) == 'playlistVideoListRenderer':
+                raise KeyError('This playlist might be empty.') from e
+        assert video_list_renderer is not None
         try:
             yield from video_list_renderer['contents']
         except KeyError:
             yield from []
 
+        next_cont: Optional[NextContinuationDict]
         next_cont = continuation = itct = None
         try:
             next_cont = video_list_renderer['continuations'][0][
@@ -303,6 +311,7 @@ class YouTube(DownloadMixin):
                         ['playlistVideoListContinuation']['continuations'])
                 except KeyError:
                     break
+                assert continuations is not None
                 next_cont = continuations[0]['nextContinuationData']
                 itct = next_cont['clickTrackingParams']
                 continuation = next_cont['continuation']
