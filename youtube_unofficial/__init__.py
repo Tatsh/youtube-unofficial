@@ -272,6 +272,7 @@ class YouTube(DownloadMixin):
         except KeyError as e:
             if str(e) == 'playlistVideoListRenderer':
                 raise KeyError('This playlist might be empty.') from e
+            raise e
         assert video_list_renderer is not None
         try:
             yield from video_list_renderer['contents']
