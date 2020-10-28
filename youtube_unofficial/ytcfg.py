@@ -17,7 +17,7 @@ def find_ytcfg(soup: Soup) -> YtcfgDict:
                 r'.+ytcfg.set\(\{', '{',
                 first(x for x in soup.select('script')
                       if '"INNERTUBE_CONTEXT_CLIENT_VERSION":' in
-                      x.text).text.strip()))))
+                      x.text).text.strip().replace('\n', ''), 1))))
 
 
 def ytcfg_headers(ytcfg: YtcfgDict) -> Dict[str, str]:
