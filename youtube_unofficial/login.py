@@ -38,7 +38,8 @@ class YouTubeLogin(DownloadMixin):
         self.password = password
         self._cj = cookies
         self._sess = session
-        self._log: Final = logging.getLogger('youtube-unofficial')
+        self._log: Final[logging.Logger] = logging.getLogger(
+            'youtube-unofficial')
         self._logged_in = False
 
     def login(  # pylint: disable=too-many-branches,too-many-statements
