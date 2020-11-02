@@ -3,8 +3,6 @@ from typing import (Any, Callable, Dict, Iterable, Mapping, Optional, Sequence,
                     Type, TypeVar, Union)
 import re
 
-from typing_extensions import overload
-
 from .constants import USER_AGENT
 from .typing.history import DescriptionSnippetDict
 from .typing.ytcfg import YtcfgDict
@@ -71,23 +69,13 @@ def try_get(src: Any,
                 return v
 
 
-@overload
-def remove_start(s: str, start: str) -> str:
-    pass
-
-
-@overload
-def remove_start(s: None, start: str) -> None:
-    pass
-
-
 def remove_start(s: Optional[str], start: str) -> Optional[str]:
     return s[len(start):] if s is not None and s.startswith(start) else s
 
 
 def html_hidden_inputs(html: str) -> Dict[str, str]:
     html_ = re.sub(r'<!--(?:(?!<!--).)*-->', '', html)
-    hidden_inputs = dict()
+    hidden_inputs: Dict[str, str] = dict()
     for input in re.findall(r'(?i)(<input[^>]+>)', html_):
         attrs = extract_attributes(input)
         if not input:
@@ -154,4 +142,10 @@ def context_client_body(ytcfg: YtcfgDict) -> Mapping[str, Union[str, int]]:
 
 
 def first(it: Iterable[T]) -> T:
-    return list(it)[0]
+    ret = None
+    for item in it:
+        ret = item
+        break
+    if not ret:
+        raise IndexError(0)
+    return ret
