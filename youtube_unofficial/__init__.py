@@ -4,7 +4,7 @@ from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from os.path import expanduser
 from time import sleep
 from typing import (Any, Iterable, Iterator, Mapping, Optional, Sequence, Type,
-                    Union, cast)
+                    cast)
 import json
 import logging
 
@@ -51,7 +51,8 @@ class YouTube(DownloadMixin):
             cookies_path = expanduser('~/.config/ytch-cookies.txt')
         self.username = username
         self.password = password
-        self._log: Final = logging.getLogger('youtube-unofficial')
+        self._log: Final[logging.Logger] = logging.getLogger(
+            'youtube-unofficial')
         self._favorites_playlist_id: Optional[str] = None
         self._sess = requests.Session()
         self._init_cookiejar(cookies_path, cls=cookiejar_cls)
