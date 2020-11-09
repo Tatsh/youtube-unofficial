@@ -1,0 +1,12 @@
+{
+  "configurations": [
+    {
+      "args": ["--cookies", "~/.local/share/cookies/youtube.txt"],
+      "name": "Print Watch Later",
+      "program": "~/.virtualenvs/youtube-unofficial/bin/youtube-print-watch-later-ids",
+      "request": "launch",
+      "type": "python"
+    }
+  ],
+  "version": "0.2.0"
+}
