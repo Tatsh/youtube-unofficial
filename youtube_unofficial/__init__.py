@@ -276,17 +276,20 @@ class YouTube(DownloadMixin):
             raise e
         assert video_list_renderer is not None
         try:
-            yield from video_list_renderer['contents']
+            for item in video_list_renderer['contents']:
+                if 'playlistVideoRenderer' in item:
+                    yield item
+                elif 'continuationItemRenderer' in item:
+                    break
         except KeyError:
             yield from []
 
-        next_cont: Optional[NextContinuationDict]
-        next_cont = continuation = itct = None
+        endpoint = continuation = itct = None
         try:
-            next_cont = video_list_renderer['continuations'][0][
-                'nextContinuationData']
-            continuation = next_cont['continuation']
-            itct = next_cont['clickTrackingParams']
+            endpoint = (video_list_renderer['contents'][-1]
+                        ['continuationItemRenderer']['continuationEndpoint'])
+            continuation = endpoint['continuationCommand']['token']
+            itct = endpoint['clickTrackingParams']
         except KeyError:
             pass
 
@@ -304,19 +307,25 @@ class YouTube(DownloadMixin):
                                         return_json=True,
                                         headers=headers))
                 response = contents[1]['response']
-                yield from (response['continuationContents']
-                            ['playlistVideoListContinuation']['contents'])
-
-                try:
-                    continuations = (
-                        response['continuationContents']
-                        ['playlistVideoListContinuation']['continuations'])
-                except KeyError:
+                items = (
+                    response['onResponseReceivedActions'][0]
+                    ['appendContinuationItemsAction']['continuationItems'])
+                for item in items:
+                    if 'playlistVideoRenderer' in item:
+                        yield item
+                    elif 'continuationItemRenderer' in item:
+                        try:
+                            endpoint = (video_list_renderer['contents'][-1]
+                                        ['continuationItemRenderer']
+                                        ['continuationEndpoint'])
+                            continuation = endpoint['continuationCommand'][
+                                'token']
+                            itct = endpoint['clickTrackingParams']
+                        except KeyError:
+                            pass
+                        break
+                if 'continuationItemRenderer' not in items[-1]:
                     break
-                assert continuations is not None
-                next_cont = continuations[0]['nextContinuationData']
-                itct = next_cont['clickTrackingParams']
-                continuation = next_cont['continuation']
 
     def clear_playlist(self, playlist_id: str) -> None:
         """

@@ -1,4 +1,4 @@
-from typing import Iterable, Sequence
+from typing import Any, Dict, Sequence
 
 from typing_extensions import TypedDict
 
@@ -37,7 +37,8 @@ class PlaylistVideoRendererDict(TypedDict, total=False):
     videoId: str
 
 
-class PlaylistInfo(TypedDict):
+class PlaylistInfo(TypedDict, total=False):
+    continuationItemRenderer: Dict[str, Any]
     playlistVideoRenderer: PlaylistVideoRendererDict
 
 
@@ -46,5 +47,5 @@ class PlaylistVideoListRendererContinuationsDict(TypedDict):
 
 
 class PlaylistVideoListRenderer(TypedDict):
-    contents: Iterable[PlaylistInfo]
+    contents: Sequence[PlaylistInfo]
     continuations: Sequence[PlaylistVideoListRendererContinuationsDict]
