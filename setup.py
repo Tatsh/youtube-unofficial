@@ -39,5 +39,10 @@ setup(name='youtube-unofficial',
            ('youtube-print-history-ids = youtube_unofficial.'
             'scripts:print_history_ids'),
            ('youtube-remove-history-entries = youtube_unofficial.'
-            'scripts:remove_history_entries')]
+            'scripts:remove_history_entries'),
+           'ytdl-history = youtube_unofficial.downloaders:download_history',
+           ('ytdl-watch-later = youtube_unofficial.downloaders:'
+            'download_watch_later'),
+           'ytdl-playlist = youtube_unofficial.downloaders:download_playlist',
+           'ytdl-liked = youtube_unofficial.downloaders:download_liked']
       })
