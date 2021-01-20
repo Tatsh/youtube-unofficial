@@ -29,5 +29,4 @@ def ytcfg_headers(ytcfg: YtcfgDict) -> Dict[str, str]:
         'x-youtube-identity-token': ytcfg['ID_TOKEN'],
         'x-youtube-page-cl': str(ytcfg['PAGE_CL']),
         'x-youtube-utc-offset': '-240',
-        'x-youtube-variants-checksum': ytcfg['VARIANTS_CHECKSUM'],
     }
