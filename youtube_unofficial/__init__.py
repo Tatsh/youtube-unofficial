@@ -25,7 +25,7 @@ from .initial import initial_data, initial_guide_data
 from .live_chat import LiveChatHistoryEntry, make_live_chat_history_entry
 from .login import YouTubeLogin
 from .typing import HasStringCode
-from .typing.browse_ajax import BrowseAJAXSequence, NextContinuationDict
+from .typing.browse_ajax import BrowseAJAXSequence
 from .typing.guide_data import SectionItemDict
 from .typing.playlist import PlaylistInfo, PlaylistVideoListRenderer
 from .typing.ytcfg import YtcfgDict
