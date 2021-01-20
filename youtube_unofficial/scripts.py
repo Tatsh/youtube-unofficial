@@ -17,6 +17,8 @@ __all__ = (
     'clear_favorites',
     'clear_watch_history',
     'clear_watch_later',
+    'get_common_parser',
+    'parse_common_args',
     'print_history_ids',
     'print_playlist_ids',
     'print_watchlater_ids',
@@ -28,7 +30,7 @@ __all__ = (
 )
 
 
-def _common_arguments(description: str) -> argparse.ArgumentParser:
+def get_common_parser(description: Optional[str] = None) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-u',
                         '--username',
@@ -49,7 +51,7 @@ def _common_arguments(description: str) -> argparse.ArgumentParser:
     return parser
 
 
-def _parse_common_arguments(args: argparse.Namespace) -> Mapping[str, Any]:
+def parse_common_args(args: argparse.Namespace) -> Mapping[str, Any]:
     kwargs = {}
     if args.username:
         kwargs['username'] = args.username
@@ -74,9 +76,9 @@ def _parse_common_arguments(args: argparse.Namespace) -> Mapping[str, Any]:
 def _simple_method_call(method_name: str,
                         description: str) -> Callable[..., int]:
     def f() -> int:
-        parser = _common_arguments(description)
+        parser = get_common_parser(description)
         args = parser.parse_args()
-        kwargs = _parse_common_arguments(args)
+        kwargs = parse_common_args(args)
 
         yt = YouTube(**kwargs)
         try:
@@ -99,10 +101,10 @@ def print_playlist_ids_callback(
     def f() -> int:
         nonlocal parser
         if not parser:
-            parser = _common_arguments('Print playlist video IDs/information')
+            parser = get_common_parser('Print playlist video IDs/information')
         parser.add_argument('-j', '--json', action='store_true')
         args = parser.parse_args()
-        kwargs = _parse_common_arguments(args)
+        kwargs = parse_common_args(args)
         yt = YouTube(**kwargs)
         try:
             yt.login()
@@ -153,7 +155,7 @@ def print_watchlater_ids() -> int:
 
 
 def print_playlist_ids() -> int:
-    parser = _common_arguments('Print playlist video IDs/information')
+    parser = get_common_parser('Print playlist video IDs/information')
     parser.add_argument('playlist_id')
     return print_playlist_ids_callback(parser=parser)()
 
@@ -166,10 +168,10 @@ def print_history_ids() -> int:
                 return True
         return False
 
-    parser = _common_arguments('Print Watch History video IDs/information')
+    parser = get_common_parser('Print Watch History video IDs/information')
     parser.add_argument('-j', '--json', action='store_true')
     args = parser.parse_args()
-    kwargs = _parse_common_arguments(args)
+    kwargs = parse_common_args(args)
     yt = YouTube(**kwargs)
     try:
         yt.login()
@@ -224,10 +226,10 @@ def print_history_ids() -> int:
 
 
 def remove_history_entries() -> int:
-    parser = _common_arguments('Remove videos from Watch History')
+    parser = get_common_parser('Remove videos from Watch History')
     parser.add_argument('video_id', nargs='+')
     args = parser.parse_args()
-    kwargs = _parse_common_arguments(args)
+    kwargs = parse_common_args(args)
     yt = YouTube(**kwargs)
     try:
         yt.login()
@@ -247,10 +249,10 @@ def remove_svi_callback(
     def f() -> int:
         nonlocal parser
         if not parser:
-            parser = _common_arguments('Remove videos from a playlist')
+            parser = get_common_parser('Remove videos from a playlist')
             parser.add_argument('set_video_ids', nargs='+')
         args = parser.parse_args()
-        kwargs = _parse_common_arguments(args)
+        kwargs = parse_common_args(args)
         yt = YouTube(**kwargs)
         try:
             yt.login()
@@ -268,13 +270,13 @@ def remove_svi_callback(
 
 
 def remove_watchlater_setvideoid() -> int:
-    parser = _common_arguments('Remove videos from your Watch Later queue')
+    parser = get_common_parser('Remove videos from your Watch Later queue')
     parser.add_argument('set_video_ids', nargs='+')
     return remove_svi_callback(playlist_id='WL')()
 
 
 def remove_setvideoid() -> int:
-    parser = _common_arguments('Remove videos from a playlist')
+    parser = get_common_parser('Remove videos from a playlist')
     parser.add_argument('playlist_id')
     parser.add_argument('set_video_ids', nargs='+')
     return remove_svi_callback(parser=parser)()
