@@ -13,8 +13,8 @@ __all__ = ('download_history', 'download_playlist', 'download_watch_later',
 def call_youtube_dl(
         video_id: str,
         args: Optional[Iterable[str]] = None) -> sp.CompletedProcess:
-    return sp.run(('youtube-dl', '--quiet') +
-                  (tuple(args) if args else tuple()) + ('--', video_id),
+    return sp.run(('youtube-dl', ) + (tuple(args) if args else tuple()) +
+                  ('--', video_id),
                   check=True,
                   stderr=sp.PIPE)
 
