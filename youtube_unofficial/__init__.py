@@ -64,7 +64,6 @@ class YouTube(DownloadMixin):
         if logged_in:
             self._login_handler._logged_in = True  # pylint: disable=protected-access
         self._rsvi_cache: Optional[Dict[str, Any]] = None
-        self._rvih_cache: Optional[Dict[str, Any]] = None
 
     @property
     def _logged_in(self):
@@ -531,29 +530,17 @@ class YouTube(DownloadMixin):
 
     def remove_video_ids_from_history(
             self,
-            video_ids: Sequence[str],
-            cache_state: Optional[bool] = False) -> bool:
+            video_ids: Sequence[str]) -> bool:
         """Delete a history entry by video ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         if not video_ids:
             return False
-        if cache_state and self._rvih_cache:
-            history_info = self._rvih_cache['history_info']
-            content = self._rvih_cache['content']
-            ytcfg = self._rvih_cache['ytcfg']
-            headers = self._rvih_cache['headers']
-        else:
-            history_info = self.get_history_info()
-            content = self._download_page_soup(HISTORY_URL)
-            ytcfg = find_ytcfg(content)
-            headers = ytcfg_headers(ytcfg)
-            if cache_state:
-                self._rvih_cache = dict(history_info=history_info,
-                                        content=content,
-                                        ytcfg=ytcfg,
-                                        headers=headers)
+        history_info = self.get_history_info()
+        content = self._download_page_soup(HISTORY_URL)
+        ytcfg = find_ytcfg(content)
+        headers = ytcfg_headers(ytcfg)
         entries = [
             x for x in history_info
             if x['videoRenderer']['videoId'] in video_ids
