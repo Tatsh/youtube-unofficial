@@ -41,7 +41,8 @@ def download_history() -> int:
     for item in yt.get_history_info():
         call_youtube_dl(item['videoRenderer']['videoId'], ytdl_args[1:])
         if args.delete_after:
-            yt.remove_video_ids_from_history(item['videoRenderer']['videoId'])
+            yt.remove_video_ids_from_history(item['videoRenderer']['videoId'],
+                                             cache_state=True)
     return 0
 
 
@@ -83,7 +84,8 @@ def download_playlist(playlist_id: Optional[str] = None) -> int:
         call_youtube_dl(renderer['videoId'], ytdl_args)
         if args.delete_after:
             yt.remove_set_video_id_from_playlist(args.playlist_id[0],
-                                                 renderer['setVideoId'])
+                                                 renderer['setVideoId'],
+                                                 cache_values=True)
     return 0
 
 
