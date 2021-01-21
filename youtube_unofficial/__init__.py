@@ -3,8 +3,8 @@ import hashlib
 from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from os.path import expanduser
 from time import sleep
-from typing import (Any, Iterable, Iterator, Mapping, Optional, Sequence, Type,
-                    cast)
+from typing import (Any, Dict, Iterable, Iterator, Mapping, Optional, Sequence,
+                    Type, cast)
 import json
 import logging
 
@@ -63,6 +63,8 @@ class YouTube(DownloadMixin):
         self._login_handler = YouTubeLogin(self._sess, self._cj, username)
         if logged_in:
             self._login_handler._logged_in = True  # pylint: disable=protected-access
+        self._rsvi_cache: Optional[Dict[str, Any]] = None
+        self._rvih_cache: Optional[Dict[str, Any]] = None
 
     @property
     def _logged_in(self):
@@ -98,7 +100,8 @@ class YouTube(DownloadMixin):
             set_video_id: str,
             csn: Optional[str] = None,
             headers: Optional[Mapping[str, str]] = None,
-            xsrf_token: Optional[str] = None) -> None:
+            xsrf_token: Optional[str] = None,
+            cache_values: Optional[bool] = False) -> None:
         """Removes a video from a playlist. The set_video_id is NOT the same as
         the video ID."""
         if not self._logged_in:
@@ -106,9 +109,18 @@ class YouTube(DownloadMixin):
                                       'login() first')
         ytcfg = None
         if not headers or not csn or not xsrf_token:
-            soup = self._download_page_soup(WATCH_LATER_URL)
-            ytcfg = find_ytcfg(soup)
-            headers = ytcfg_headers(ytcfg)
+            if cache_values and self._rsvi_cache:
+                soup = self._rsvi_cache['soup']
+                ytcfg = self._rsvi_cache['ytcfg']
+                headers = self._rsvi_cache['headers']
+            else:
+                soup = self._download_page_soup(WATCH_LATER_URL)
+                ytcfg = find_ytcfg(soup)
+                headers = ytcfg_headers(ytcfg)
+            if cache_values:
+                self._rsvi_cache = dict(soup=soup,
+                                        ytcfg=ytcfg,
+                                        headers=headers)
         data = cast(
             HasStringCode,
             self._download_page(SERVICE_AJAX_URL,
@@ -517,17 +529,31 @@ class YouTube(DownloadMixin):
             params['ctoken'] = next_cont['continuation']
             params['continuation'] = next_cont['continuation']
 
-    def remove_video_ids_from_history(self, video_ids: Sequence[str]) -> bool:
+    def remove_video_ids_from_history(
+            self,
+            video_ids: Sequence[str],
+            cache_state: Optional[bool] = False) -> bool:
         """Delete a history entry by video ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         if not video_ids:
             return False
-        history_info = self.get_history_info()
-        content = self._download_page_soup(HISTORY_URL)
-        ytcfg = find_ytcfg(content)
-        headers = ytcfg_headers(ytcfg)
+        if cache_state and self._rvih_cache:
+            history_info = self._rvih_cache['history_info']
+            content = self._rvih_cache['content']
+            ytcfg = self._rvih_cache['ytcfg']
+            headers = self._rvih_cache['headers']
+        else:
+            history_info = self.get_history_info()
+            content = self._download_page_soup(HISTORY_URL)
+            ytcfg = find_ytcfg(content)
+            headers = ytcfg_headers(ytcfg)
+            if cache_state:
+                self._rvih_cache = dict(history_info=history_info,
+                                        content=content,
+                                        ytcfg=ytcfg,
+                                        headers=headers)
         entries = [
             x for x in history_info
             if x['videoRenderer']['videoId'] in video_ids
