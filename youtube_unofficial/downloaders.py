@@ -1,11 +1,10 @@
 from os import chdir, makedirs
-from typing import Any, Dict, Iterable, Optional, cast
+from typing import Iterable, Optional
 import subprocess as sp
 import sys
 
-from youtube_unofficial.scripts import get_common_parser, parse_common_args
-
 from . import YouTube
+from .scripts import get_common_parser, parse_common_args
 
 __all__ = ('download_history', 'download_playlist', 'download_watch_later',
            'download_liked')
@@ -14,8 +13,10 @@ __all__ = ('download_history', 'download_playlist', 'download_watch_later',
 def call_youtube_dl(
         video_id: str,
         args: Optional[Iterable[str]] = None) -> sp.CompletedProcess:
-    args = tuple(args) if args else tuple()
-    return sp.run(('youtube-dl', ) + args + ('--', video_id), check=True)
+    return sp.run(('youtube-dl', '--quiet') +
+                  (tuple(args) if args else tuple()) + ('--', video_id),
+                  check=True,
+                  stderr=sp.PIPE)
 
 
 def download_history() -> int:
@@ -26,9 +27,7 @@ def download_history() -> int:
                         action='store_true',
                         help='Delete each downloaded item from history')
     args, ytdl_args = parser.parse_known_args()
-    kwargs = cast(Dict[str, Any], parse_common_args(args))
-    kwargs['logged_in'] = True
-    yt = YouTube(**kwargs)
+    yt = YouTube(**{**parse_common_args(args), **{'logged_in': True}})
     try:
         yt.login()
     except Exception as e:  # pylint: disable=broad-except
@@ -39,10 +38,12 @@ def download_history() -> int:
     makedirs(args.output_dir[0], exist_ok=True)
     chdir(args.output_dir[0])
     for item in yt.get_history_info():
+        print('{}: {}'.format(
+            item['videoRenderer']['videoId'],
+            item['videoRenderer']['title']['runs'][0]['text']))
         call_youtube_dl(item['videoRenderer']['videoId'], ytdl_args[1:])
         if args.delete_after:
-            yt.remove_video_ids_from_history(item['videoRenderer']['videoId'],
-                                             cache_state=True)
+            yt.remove_video_ids_from_history(item['videoRenderer']['videoId'])
     return 0
 
 
@@ -65,9 +66,7 @@ def download_playlist(playlist_id: Optional[str] = None) -> int:
         ytdl_args.remove('--')
     except ValueError:
         pass
-    kwargs = cast(Dict[str, Any], parse_common_args(args))
-    kwargs['logged_in'] = True
-    yt = YouTube(**kwargs)
+    yt = YouTube(**{**parse_common_args(args), **{'logged_in': True}})
     try:
         yt.login()
     except Exception as e:  # pylint: disable=broad-except
