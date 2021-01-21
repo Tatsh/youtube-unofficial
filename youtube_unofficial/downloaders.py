@@ -47,7 +47,11 @@ def download_history() -> int:
 
 def download_playlist(playlist_id: Optional[str] = None) -> int:
     if playlist_id:
-        sys.argv.append(playlist_id)
+        try:
+            dd_index = sys.argv.index('--')
+            sys.argv.insert(dd_index, playlist_id)
+        except IndexError:
+            sys.argv.append(playlist_id)
     parser = get_common_parser()
     parser.add_argument('-o', '--output-dir', nargs=1)
     parser.add_argument('-D',
@@ -56,6 +60,10 @@ def download_playlist(playlist_id: Optional[str] = None) -> int:
                         help='Delete each downloaded item from history')
     parser.add_argument('playlist_id', nargs=1, default=playlist_id)
     args, ytdl_args = parser.parse_known_args()
+    try:
+        ytdl_args.remove('--')
+    except ValueError:
+        pass
     kwargs = cast(Dict[str, Any], parse_common_args(args))
     kwargs['logged_in'] = True
     yt = YouTube(**kwargs)
@@ -72,7 +80,7 @@ def download_playlist(playlist_id: Optional[str] = None) -> int:
     chdir(args.output_dir[0])
     for item in yt.get_playlist_info(args.playlist_id[0]):
         renderer = item['playlistVideoRenderer']
-        call_youtube_dl(renderer['videoId'], ytdl_args[1:])
+        call_youtube_dl(renderer['videoId'], ytdl_args)
         if args.delete_after:
             yt.remove_set_video_id_from_playlist(args.playlist_id[0],
                                                  renderer['setVideoId'])
