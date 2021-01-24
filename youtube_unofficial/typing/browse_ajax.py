@@ -29,10 +29,6 @@ class ContinuationContentsDict(TypedDict):
     sectionListContinuation: ItemSectionContinuationDict
 
 
-class ContinuationItemsDict(TypedDict):
-    continuationItems: Sequence[Any]
-
-
 class AppendContinuationDict(TypedDict):
     appendContinuationItemsAction: Any
 
