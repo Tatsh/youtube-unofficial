@@ -8,6 +8,8 @@ from .constants import WATCH_LATER_URL
 from .typing.ytcfg import YtcfgDict
 from .util import first
 
+__all__ = ('find_ytcfg', 'ytcfg_headers')
+
 
 def find_ytcfg(soup: Soup) -> YtcfgDict:
     return cast(
