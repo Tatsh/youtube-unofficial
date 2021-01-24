@@ -48,5 +48,5 @@ class DownloadMixin:  # pylint: disable=too-few-public-methods
                              return_json, json)
 
     def _download_page_soup(self, *args: Any, **kwargs: Any) -> Soup:
-        return Soup(self._download_page(*args, **kwargs),
+        return Soup(cast(str, self._download_page(*args, **kwargs)),
                     kwargs.pop('parser', 'html5lib'))
