@@ -1,5 +1,7 @@
 from typing_extensions import TypedDict
 
+__all__ = ('YtcfgDict', )
+
 
 class YtcfgDict(TypedDict, total=False):
     DELEGATED_SESSION_ID: str
