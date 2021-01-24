@@ -3,8 +3,8 @@ import hashlib
 from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from os.path import expanduser
 from time import sleep
-from typing import (Any, Dict, Iterable, Iterator, Mapping, Optional, Sequence,
-                    Type, cast)
+from typing import (Any, Dict, Iterator, Mapping, Optional, Sequence, Type,
+                    cast)
 import json
 import logging
 
@@ -15,18 +15,17 @@ import requests
 from .comment import (DEFAULT_DELETE_ACTION_PATH, CommentHistoryEntry,
                       make_comment_history_entry)
 from .constants import (BROWSE_AJAX_URL, COMMENT_HISTORY_URL,
-                        COMMUNITY_HISTORY_URL, HISTORY_URL, HOMEPAGE_URL,
+                        COMMUNITY_HISTORY_URL, HISTORY_URL,
                         LIVE_CHAT_HISTORY_URL, SEARCH_HISTORY_URL,
                         SERVICE_AJAX_URL, USER_AGENT, WATCH_HISTORY_URL,
                         WATCH_LATER_URL)
 from .download import DownloadMixin
 from .exceptions import AuthenticationError, UnexpectedError
-from .initial import initial_data, initial_guide_data
+from .initial import initial_data
 from .live_chat import LiveChatHistoryEntry, make_live_chat_history_entry
 from .login import YouTubeLogin
 from .typing import HasStringCode
 from .typing.browse_ajax import BrowseAJAXSequence
-from .typing.guide_data import SectionItemDict
 from .typing.playlist import PlaylistInfo, PlaylistVideoListRenderer
 from .typing.ytcfg import YtcfgDict
 from .util import context_client_body, path as at_path, path_default
@@ -53,7 +52,6 @@ class YouTube(DownloadMixin):
         self.password = password
         self._log: Final[logging.Logger] = logging.getLogger(
             'youtube-unofficial')
-        self._favorites_playlist_id: Optional[str] = None
         self._sess = requests.Session()
         self._init_cookiejar(cookies_path, cls=cookiejar_cls)
         self._sess.cookies = self._cj  # type: ignore[assignment]
@@ -206,62 +204,6 @@ class YouTube(DownloadMixin):
                             method='post')
         self._log.info('Successfully cleared history')
 
-    def get_favorites_playlist_id(self) -> str:
-        """Get the Favourites playlist ID."""
-        if not self._logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-        if self._favorites_playlist_id:
-            return self._favorites_playlist_id
-
-        def check_section_items(
-                items: Iterable[SectionItemDict]) -> Optional[str]:
-            for item in items:
-                if 'guideEntryRenderer' in item:
-                    if (item['guideEntryRenderer']['icon']['iconType']
-                        ) == 'LIKES_PLAYLIST':
-                        return (item['guideEntryRenderer']['entryData']
-                                ['guideEntryData']['guideEntryId'])
-                elif 'guideCollapsibleEntryRenderer' in item:
-                    renderer = item['guideCollapsibleEntryRenderer']
-                    for e_item in renderer['expandableItems']:
-                        if e_item['guideEntryRenderer']['icon'][
-                                'iconType'] == 'LIKES_PLAYLIST':
-                            return (e_item['guideEntryRenderer']['entryData']
-                                    ['guideEntryData']['guideEntryId'])
-            return None
-
-        content = self._download_page_soup(HOMEPAGE_URL)
-        gd = initial_guide_data(content)
-        section_items = (
-            gd['items'][0]['guideSectionRenderer']['items'][4]
-            ['guideCollapsibleSectionEntryRenderer']['sectionItems'])
-
-        found = check_section_items(section_items)
-        if found:
-            self._favorites_playlist_id = found
-            return self._favorites_playlist_id
-
-        expandable_items = (section_items[-1]['guideCollapsibleEntryRenderer']
-                            ['expandableItems'])
-        found = check_section_items(expandable_items)
-        if not found:
-            raise ValueError('Could not determine favourites playlist ID')
-
-        self._favorites_playlist_id = found
-        self._log.debug('Got favourites playlist ID: %s',
-                        self._favorites_playlist_id)
-
-        return self._favorites_playlist_id
-
-    def clear_favorites(self) -> None:
-        """Removes all videos from the Favourites playlist."""
-        if not self._logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-
-        self.clear_playlist(self.get_favorites_playlist_id())
-
     def get_playlist_info(self, playlist_id: str) -> Iterator[PlaylistInfo]:
         """Get playlist information given a playlist ID."""
         if not self._logged_in:
@@ -377,35 +319,6 @@ class YouTube(DownloadMixin):
     def clear_watch_later(self) -> None:
         """Removes all videos from the 'Watch Later' playlist."""
         self.clear_playlist('WL')
-
-    def remove_video_id_from_favorites(
-            self,
-            video_id: str,
-            headers: Optional[Mapping[str, str]] = None) -> None:
-        """Removes a video from Favourites by video ID."""
-        playlist_id = self.get_favorites_playlist_id()
-        playlist_info = self.get_playlist_info(playlist_id)
-        url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
-        content = self._download_page_soup(url)
-        ytcfg = find_ytcfg(content)
-        headers = ytcfg_headers(ytcfg)
-
-        try:
-            entry = list(
-                filter(
-                    lambda x: (x['playlistVideoRenderer']['navigationEndpoint']
-                               ['watchEndpoint']['videoId']) == video_id,
-                    playlist_info))[0]
-        except IndexError:
-            return
-
-        set_video_id = entry['playlistVideoRenderer']['setVideoId']
-
-        self.remove_set_video_id_from_playlist(playlist_id,
-                                               set_video_id,
-                                               ytcfg['EVENT_ID'],
-                                               xsrf_token=ytcfg['XSRF_TOKEN'],
-                                               headers=headers)
 
     def get_history_info(self) -> Iterator[Mapping[str, Any]]:
         """Get information about the History playlist."""
@@ -528,9 +441,7 @@ class YouTube(DownloadMixin):
             params['ctoken'] = next_cont['continuation']
             params['continuation'] = next_cont['continuation']
 
-    def remove_video_ids_from_history(
-            self,
-            video_ids: Sequence[str]) -> bool:
+    def remove_video_ids_from_history(self, video_ids: Sequence[str]) -> bool:
         """Delete a history entry by video ID."""
         if not self._logged_in:
             raise AuthenticationError('This method requires a call to '

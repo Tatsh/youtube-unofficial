@@ -22,8 +22,6 @@ setup(name='youtube-unofficial',
             'clear_search_history'),
            ('youtube-clear-watch-later = youtube_unofficial.scripts:'
             'clear_watch_later'),
-           ('youtube-clear-favorites = youtube_unofficial.scripts:'
-            'clear_favorites'),
            ('youtube-toggle-search-history = youtube_unofficial.scripts:'
             'toggle_search_history'),
            ('youtube-toggle-watch-history = youtube_unofficial.scripts:'

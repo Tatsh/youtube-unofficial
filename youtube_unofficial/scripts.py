@@ -14,7 +14,6 @@ from .typing.history import MetadataBadgeRendererTopDict
 from .util import extract_keys, get_text_runs, path
 
 __all__ = (
-    'clear_favorites',
     'clear_watch_history',
     'clear_watch_later',
     'get_common_parser',
@@ -280,8 +279,6 @@ def remove_setvideoid() -> int:
 
 
 # pylint: disable=invalid-name
-clear_favorites = _simple_method_call('clear_favorites',
-                                      'Clear your favourites playlist')
 clear_search_history = _simple_method_call('clear_search_history',
                                            'Clear your search history')
 clear_watch_history = _simple_method_call('clear_watch_history',

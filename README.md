@@ -22,7 +22,6 @@ You can specify a custom netrc file with the `--netrc` argument.
 
 ### Command line
 
-- `youtube-clear-favorites` - Clear your _Favourites_ playlist
 - `youtube-clear-history` - Clear your _Watch History_
 - `youtube-clear-search-history` - Clear your _Search History_
 - `youtube-clear-watch-later` - Clear your _Watch Later_ queue

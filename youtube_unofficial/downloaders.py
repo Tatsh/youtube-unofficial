@@ -74,8 +74,6 @@ def download_playlist(playlist_id: Optional[str] = None) -> int:
             raise e
         print(str(e), file=sys.stderr)
         return 1
-    if playlist_id == 'FAVORITES':
-        args.playlist_id = [yt.get_favorites_playlist_id()]
     makedirs(args.output_dir[0], exist_ok=True)
     chdir(args.output_dir[0])
     for item in yt.get_playlist_info(args.playlist_id[0]):
