@@ -1,4 +1,4 @@
-from typing import Any, Iterable, List, Mapping, Optional
+from typing import Any, Iterable, List, Mapping, Optional, TextIO, Union
 
 
 class PageElement:
@@ -13,6 +13,9 @@ class ResultSet(List[PageElement]):
 
 
 class BeautifulSoup:
+    def __init__(self, content: Union[str, TextIO], parser: str) -> None:
+        ...
+
     def select(self,
                selector: str,
                namespace: Optional[Mapping[str, str]] = ...,
