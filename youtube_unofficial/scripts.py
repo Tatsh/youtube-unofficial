@@ -30,7 +30,8 @@ __all__ = (
 )
 
 
-def get_common_parser(description: Optional[str] = None) -> argparse.ArgumentParser:
+def get_common_parser(
+        description: Optional[str] = None) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-u',
                         '--username',
@@ -41,9 +42,10 @@ def get_common_parser(description: Optional[str] = None) -> argparse.ArgumentPar
     parser.add_argument('--netrc',
                         default=expanduser('~/.netrc'),
                         help='A netrc file to use')
-    parser.add_argument('--cookies',
-                        default=expanduser('~/.ytch-cookies.txt'),
-                        help='Netscape cookies file to use')
+    parser.add_argument(
+        '--cookies',
+        default=expanduser('~/.local/share/cookies/youtube.txt'),
+        help='Netscape cookies file to use')
     parser.add_argument('-d',
                         '--debug',
                         action='store_true',
