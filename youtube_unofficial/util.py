@@ -56,9 +56,10 @@ def extract_attributes(html_element: str) -> Mapping[str, str]:
 
 def try_get(src: Any,
             getter: Union[Sequence[Callable[..., Any]], Callable[..., Any]],
-            expected_type: Type[Any] = None) -> Any:
+            expected_type: Optional[Type[Any]] = None) -> Any:
     if not isinstance(getter, (list, tuple)):
         getter = [getter]  # type: ignore[list-item]
+    assert isinstance(getter, list)
     for get in getter:
         try:
             v = get(src)
