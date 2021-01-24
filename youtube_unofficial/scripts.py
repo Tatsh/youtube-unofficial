@@ -133,17 +133,12 @@ def print_playlist_ids_callback(
                         map(itemgetter('text'), renderer['title']['runs']))
             if args.json:
                 print(
-                    json.dumps({
-                        'owner':
-                        owner,
-                        'title':
-                        title,
-                        'setVideoId':
-                        renderer['setVideoId']
-                        if 'setVideoId' in renderer else None,
-                        'videoId':
-                        renderer['videoId']
-                    }))
+                    json.dumps(
+                        dict(owner=owner,
+                             title=title,
+                             setVideoId=renderer['setVideoId']
+                             if 'setVideoId' in renderer else None,
+                             videoId=renderer['videoId'])))
             else:
                 print('{} {}'.format(renderer['videoId'],
                                      renderer['setVideoId']))
