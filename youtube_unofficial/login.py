@@ -237,7 +237,7 @@ class YouTubeLogin(DownloadMixin):
                     raise TwoFactorError('Unable to extract TL')
 
                 tfa_code = tfa_code_callback()
-                tfa_code = remove_start(tfa_code, 'G-')
+                tfa_code = cast(str, remove_start(tfa_code, 'G-'))
 
                 if not tfa_code:
                     raise TwoFactorError('Two-factor authentication required')
