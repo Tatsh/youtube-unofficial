@@ -11,17 +11,13 @@ from requests.exceptions import HTTPError
 from typing_extensions import Final
 import requests
 
-from .comment import (DEFAULT_DELETE_ACTION_PATH, CommentHistoryEntry,
-                      make_comment_history_entry)
-from .constants import (BROWSE_AJAX_URL, COMMENT_HISTORY_URL,
-                        COMMUNITY_HISTORY_URL, HISTORY_URL,
-                        LIVE_CHAT_HISTORY_URL, SEARCH_HISTORY_URL,
-                        SERVICE_AJAX_URL, USER_AGENT, WATCH_HISTORY_URL,
-                        WATCH_LATER_URL)
+from .community import CommunityHistoryEntry, make_community_history_entry
+from .constants import (BROWSE_AJAX_URL, COMMUNITY_HISTORY_URL, HISTORY_URL,
+                        SEARCH_HISTORY_URL, SERVICE_AJAX_URL, USER_AGENT,
+                        WATCH_HISTORY_URL, WATCH_LATER_URL)
 from .download import DownloadMixin
 from .exceptions import AuthenticationError, UnexpectedError
 from .initial import initial_data
-from .live_chat import LiveChatHistoryEntry, make_live_chat_history_entry
 from .login import YouTubeLogin
 from .typing import HasStringCode
 from .typing.browse_ajax import BrowseAJAXSequence
@@ -46,7 +42,7 @@ class YouTube(DownloadMixin):
         else:
             self.netrc_file = netrc_file
         if not cookies_path:
-            cookies_path = expanduser('~/.config/ytch-cookies.txt')
+            cookies_path = expanduser('~/.local/share/cookies/youtube.txt')
         self.username = username
         self.password = password
         self._log: Final[logging.Logger] = logging.getLogger(
@@ -524,120 +520,29 @@ class YouTube(DownloadMixin):
         """Pauses or resumes watch history depending on the current state."""
         return self._toggle_history(WATCH_HISTORY_URL, 3)
 
-    def live_chat_history(
+    def _community_history(
             self,
-            only_first_page: bool = False) -> Iterator[LiveChatHistoryEntry]:
-        """
-        Fetches all live chat history.
-        Fetches only the first page if ``only_first_page`` is ``True``.
-        """
+            only_first_page: bool = False) -> Iterator[CommunityHistoryEntry]:
         if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
-        content = self._download_page_soup(LIVE_CHAT_HISTORY_URL)
+        content = self._download_page_soup(COMMUNITY_HISTORY_URL)
         ytcfg = find_ytcfg(content)
         headers = ytcfg_headers(ytcfg)
-        headers['x-spf-previous'] = LIVE_CHAT_HISTORY_URL
-        headers['x-spf-referer'] = LIVE_CHAT_HISTORY_URL
-        item_section = at_path(
-            ('contents.twoColumnBrowseResultsRenderer.tabs.0.'
-             'tabRenderer.content.sectionListRenderer.contents.0.'
-             'itemSectionRenderer'), initial_data(content))
-        info = item_section['contents']
-        for api_entry in (x['liveChatHistoryEntryRenderer'] for x in info):
-            yield make_live_chat_history_entry(api_entry)
-        if (only_first_page or 'continuations' not in item_section
-                or not item_section['continuations']):
-            return
-        has_continuations = True
-        while has_continuations:
-            for cont in item_section['continuations']:
-                data = cast(
-                    Sequence[Any],
-                    self._download_page(
-                        BROWSE_AJAX_URL,
-                        method='post',
-                        params=dict(
-                            ctoken=(
-                                cont['nextContinuationData']['continuation']),
-                            continuation=(
-                                cont['nextContinuationData']['continuation']),
-                            itct=(cont['nextContinuationData']
-                                  ['clickTrackingParams'])),
-                        data=dict(session_token=ytcfg['XSRF_TOKEN']),
-                        headers=headers,
-                        return_json=True))
-                item_section = (data[1]['response']['continuationContents']
-                                ['itemSectionContinuation'])
-                for api_entry in (x['liveChatHistoryEntryRenderer']
-                                  for x in item_section['contents']):
-                    yield make_live_chat_history_entry(api_entry)
-                has_continuations = ('continuations' in item_section
-                                     and item_section['continuations'])
-
-    def delete_live_chat_message(
-            self,
-            params: str,
-            api_url: str = '/youtubei/v1/live_chat/delete_message',
-            ytcfg: Optional[YtcfgDict] = None) -> Mapping[str, Any]:
-        """
-        Delete a live chat message by params value as given from
-        ``live_chat_history()``.
-        """
-        if not self.logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-        if not ytcfg:
-            content = self._download_page_soup(LIVE_CHAT_HISTORY_URL)
-            ytcfg = find_ytcfg(content)
-        return cast(
-            Mapping[str, Any],
-            self._download_page(
-                f'https://www.youtube.com{api_url}',
-                method='post',
-                params=dict(key=ytcfg['INNERTUBE_API_KEY']),
-                headers={
-                    'Authority': 'www.youtube.com',
-                    'Authorization': self._authorization_sapisidhash_header(),
-                    'x-goog-authuser': '0',
-                    'x-origin': 'https://www.youtube.com',
-                },
-                json=dict(context=dict(
-                    clickTracking=dict(clickTrackingParams=''),
-                    client=context_client_body(ytcfg),
-                    request=dict(consistencyTokenJars=[],
-                                 internalExperimentFlags=[]),
-                    user=dict(onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
-                          params=params),
-                return_json=True))
-
-    def _comment_community_history(
-            self,
-            url: str,
-            only_first_page: bool = False) -> Iterator[CommentHistoryEntry]:
-        if not self.logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-        content = self._download_page_soup(url)
-        ytcfg = find_ytcfg(content)
-        headers = ytcfg_headers(ytcfg)
-        headers['x-spf-previous'] = url
-        headers['x-spf-referer'] = url
+        headers['x-spf-previous'] = COMMUNITY_HISTORY_URL
+        headers['x-spf-referer'] = COMMUNITY_HISTORY_URL
         item_section = at_path(
             ('contents.twoColumnBrowseResultsRenderer.tabs.'
              '0.tabRenderer.content.sectionListRenderer.contents.0.'
              'itemSectionRenderer'), initial_data(content))
         info = item_section['contents']
-        if url == COMMENT_HISTORY_URL:
-            delete_action_path = DEFAULT_DELETE_ACTION_PATH
-        else:
-            delete_action_path = (
-                'actionMenu.menuRenderer.items.0.menuNavigationItemRenderer.'
-                'navigationEndpoint.confirmDialogEndpoint.content.'
-                'confirmDialogRenderer.confirmButton.buttonRenderer.'
-                'serviceEndpoint.performCommentActionEndpoint.action')
+        delete_action_path = (
+            'actionMenu.menuRenderer.items.0.menuNavigationItemRenderer.'
+            'navigationEndpoint.confirmDialogEndpoint.content.'
+            'confirmDialogRenderer.confirmButton.buttonRenderer.'
+            'serviceEndpoint.performCommentActionEndpoint.action')
         for api_entry in (x['commentHistoryEntryRenderer'] for x in info):
-            yield make_comment_history_entry(api_entry, delete_action_path)
+            yield make_community_history_entry(api_entry, delete_action_path)
         if (only_first_page or 'continuations' not in item_section
                 or not item_section['continuations']):
             return
@@ -663,106 +568,15 @@ class YouTube(DownloadMixin):
                                 ['itemSectionContinuation'])
                 for api_entry in (x['commentHistoryEntryRenderer']
                                   for x in item_section['contents']):
-                    yield make_comment_history_entry(api_entry,
-                                                     delete_action_path)
+                    yield make_community_history_entry(api_entry,
+                                                       delete_action_path)
                 has_continuations = ('continuations' in item_section
                                      and item_section['continuations'])
 
-    def comment_history(
-            self,
-            only_first_page: bool = False) -> Iterator[CommentHistoryEntry]:
-        yield from self._comment_community_history(COMMENT_HISTORY_URL,
-                                                   only_first_page)
-
-    def delete_comment(
-            self,
-            action: str,
-            ytcfg: Optional[YtcfgDict] = None,
-            api_url: str = '/youtubei/v1/comment/perform_comment_action'
-    ) -> bool:
-        if not self.logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-        if not ytcfg:
-            content = self._download_page_soup(COMMENT_HISTORY_URL)
-            ytcfg = find_ytcfg(content)
-        return (at_path(
-            'actions.0.removeCommentAction.actionResult.status',
-            cast(
-                Mapping[str, Any],
-                self._download_page(
-                    f'https://www.youtube.com{api_url}',
-                    method='post',
-                    params=dict(key=ytcfg['INNERTUBE_API_KEY']),
-                    headers={
-                        'Authority': 'www.youtube.com',
-                        'Authorization':
-                        self._authorization_sapisidhash_header(),
-                        'x-goog-authuser': '0',
-                        'x-origin': 'https://www.youtube.com',
-                    },
-                    json=dict(
-                        actions=[action],
-                        context=dict(
-                            clickTracking=dict(clickTrackingParams=''),
-                            client=context_client_body(ytcfg),
-                            request=dict(consistencyTokenJars=[],
-                                         internalExperimentFlags=[]),
-                            user=dict(
-                                onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID']))
-                    ),
-                    return_json=True))) == 'STATUS_SUCCEEDED')
-
-    def update_comment(
-            self,
-            text: str,
-            params: str,
-            ytcfg: Optional[YtcfgDict] = None,
-            api_url: str = '/youtubei/v1/comment/update_comment') -> bool:
-        """
-        Update a comment.
-        The value for ``params`` is found on the video page where the comment
-        is posted. It can be found by digging through ``ytInitialData``. This
-        value must not be URL-encoded.
-        """
-        if not self.logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
-        if not ytcfg:
-            content = self._download_page_soup(COMMENT_HISTORY_URL)
-            ytcfg = find_ytcfg(content)
-        return (at_path(
-            'actions.0.updateCommentAction.actionResult.status',
-            cast(
-                Mapping[str, Any],
-                self._download_page(
-                    f'https://www.youtube.com{api_url}',
-                    method='post',
-                    params=dict(key=ytcfg['INNERTUBE_API_KEY']),
-                    headers={
-                        'Authority': 'www.youtube.com',
-                        'Authorization':
-                        self._authorization_sapisidhash_header(),
-                        'x-goog-authuser': '0',
-                        'x-origin': 'https://www.youtube.com',
-                    },
-                    json=dict(
-                        commentText=text,
-                        context=dict(
-                            clickTracking=dict(clickTrackingParams=''),
-                            client=context_client_body(ytcfg),
-                            request=dict(consistencyTokenJars=[],
-                                         internalExperimentFlags=[]),
-                            user=dict(
-                                onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
-                        updateCommentParams=params),
-                    return_json=True))) == 'STATUS_SUCCEEDED')
-
     def community_history(
             self,
-            only_first_page: bool = False) -> Iterator[CommentHistoryEntry]:
-        yield from self._comment_community_history(COMMUNITY_HISTORY_URL,
-                                                   only_first_page)
+            only_first_page: bool = False) -> Iterator[CommunityHistoryEntry]:
+        yield from self._community_history(only_first_page)
 
     def delete_community_entry(
             self,
@@ -773,7 +587,7 @@ class YouTube(DownloadMixin):
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         if not ytcfg:
-            content = self._download_page_soup(COMMENT_HISTORY_URL)
+            content = self._download_page_soup(COMMUNITY_HISTORY_URL)
             ytcfg = find_ytcfg(content)
         return (at_path(
             'actionResults.0.status',

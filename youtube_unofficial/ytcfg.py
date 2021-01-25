@@ -28,7 +28,7 @@ def ytcfg_headers(ytcfg: YtcfgDict) -> Dict[str, str]:
         'x-spf-referer': WATCH_LATER_URL,
         'x-youtube-client-name': str(ytcfg['INNERTUBE_CONTEXT_CLIENT_NAME']),
         'x-youtube-client-version': ytcfg['INNERTUBE_CONTEXT_CLIENT_VERSION'],
-        'x-youtube-identity-token': ytcfg['ID_TOKEN'],
+        # 'x-youtube-identity-token': ytcfg['ID_TOKEN'],
         'x-youtube-page-cl': str(ytcfg['PAGE_CL']),
-        'x-youtube-utc-offset': '-240',
+        'x-youtube-utc-offset': '-300',
     }
