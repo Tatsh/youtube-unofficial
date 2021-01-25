@@ -71,7 +71,6 @@ def _simple_method_call(method_name: str,
         parser = get_common_parser(description)
         args = parser.parse_args()
         kwargs = parse_common_args(args)
-
         yt = YouTube(**kwargs)
         try:
             yt.login()

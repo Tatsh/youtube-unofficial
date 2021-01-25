@@ -1,10 +1,9 @@
 from datetime import datetime
-import hashlib
 from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from os.path import expanduser
 from time import sleep
-from typing import (Any, Dict, Iterator, Mapping, Optional, Sequence, Type,
-                    cast)
+from typing import Any, Dict, Iterator, Mapping, Optional, Sequence, Type, cast
+import hashlib
 import json
 import logging
 
@@ -168,7 +167,6 @@ class YouTube(DownloadMixin):
         if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
-
         content = self._download_page_soup(HISTORY_URL)
         ytcfg = find_ytcfg(content)
         headers = ytcfg_headers(ytcfg)
@@ -208,14 +206,12 @@ class YouTube(DownloadMixin):
         if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
-
         url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
         content = self._download_page_soup(url)
         ytcfg = find_ytcfg(content)
         headers = ytcfg_headers(ytcfg)
         yt_init_data = initial_data(content)
         video_list_renderer: Optional[PlaylistVideoListRenderer] = None
-
         try:
             video_list_renderer = (
                 yt_init_data['contents']['twoColumnBrowseResultsRenderer']
@@ -235,7 +231,6 @@ class YouTube(DownloadMixin):
                     break
         except KeyError:
             yield from []
-
         endpoint = continuation = itct = None
         try:
             endpoint = (video_list_renderer['contents'][-1]
@@ -244,7 +239,6 @@ class YouTube(DownloadMixin):
             itct = endpoint['clickTrackingParams']
         except KeyError:
             pass
-
         if continuation and itct:
             while True:
                 params = {
@@ -282,13 +276,11 @@ class YouTube(DownloadMixin):
     def clear_playlist(self, playlist_id: str) -> None:
         """
         Removes all videos from the specified playlist.
-
         Use `WL` for Watch Later.
         """
         if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
-
         playlist_info = self.get_playlist_info(playlist_id)
         url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
         content = self._download_page_soup(url)
@@ -296,7 +288,6 @@ class YouTube(DownloadMixin):
         headers = ytcfg_headers(ytcfg)
         csn = ytcfg['EVENT_ID']
         xsrf_token = ytcfg['XSRF_TOKEN']
-
         try:
             set_video_ids = list(
                 map(lambda x: x['playlistVideoRenderer']['setVideoId'],
@@ -305,7 +296,6 @@ class YouTube(DownloadMixin):
             self._log.info('Caught KeyError. This probably means the playlist '
                            'is empty.')
             return
-
         for set_video_id in set_video_ids:
             self._log.debug('Deleting from playlist: set_video_id = %s',
                             set_video_id)
@@ -324,12 +314,10 @@ class YouTube(DownloadMixin):
         if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
-
         content = self._download_page_soup(HISTORY_URL)
         init_data = initial_data(content)
         ytcfg = find_ytcfg(content)
         headers = ytcfg_headers(ytcfg)
-
         section_list_renderer = (
             init_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]
             ['tabRenderer']['content']['sectionListRenderer'])
@@ -347,21 +335,18 @@ class YouTube(DownloadMixin):
                             section_list['continuationItemRenderer']
                             ['continuationEndpoint']['clickTrackingParams']))
                     break
-
         if not next_continuation:
             try:
                 next_continuation = (section_list_renderer['continuations'][0]
                                      ['nextContinuationData'])
             except KeyError as e:
                 return
-
         assert next_continuation is not None
         params = dict(continuation=next_continuation['continuation'],
                       ctoken=next_continuation['continuation'],
                       itct=next_continuation['clickTrackingParams'])
         xsrf = ytcfg['XSRF_TOKEN']
         resp = None
-
         while True:
             tries = 0
             time = 0
@@ -416,7 +401,6 @@ class YouTube(DownloadMixin):
                         ]
                         break
                     raise e
-
             if not continuations:
                 try:
                     continuations = section_list_renderer['continuations']
@@ -545,7 +529,6 @@ class YouTube(DownloadMixin):
             only_first_page: bool = False) -> Iterator[LiveChatHistoryEntry]:
         """
         Fetches all live chat history.
-
         Fetches only the first page if ``only_first_page`` is ``True``.
         """
         if not self.logged_in:
@@ -738,7 +721,6 @@ class YouTube(DownloadMixin):
             api_url: str = '/youtubei/v1/comment/update_comment') -> bool:
         """
         Update a comment.
-
         The value for ``params`` is found on the video page where the comment
         is posted. It can be found by digging through ``ytInitialData``. This
         value must not be URL-encoded.

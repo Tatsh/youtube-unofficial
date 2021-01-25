@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Any, Optional, Mapping, Sequence
+from typing import Any, Mapping, Optional, Sequence
+
 from .util import path as at_path, try_get
 
 __all__ = ('LiveChatHistoryEntry', 'make_live_chat_history_entry')

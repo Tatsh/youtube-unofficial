@@ -1,4 +1,5 @@
 from typing import Mapping, Set, Tuple
+
 from typing_extensions import Final
 
 __all__ = ('BROWSE_AJAX_URL', 'CHALLENGE_URL', 'COMMENT_HISTORY_URL',
@@ -12,7 +13,6 @@ NETRC_MACHINE: Final[str] = 'youtube'
 USER_AGENT: Final[str] = (
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
     '(KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36,gzip(gfe)')
-
 BROWSE_AJAX_URL: Final[str] = 'https://www.youtube.com/browse_ajax'
 CHALLENGE_URL: Final[str] = 'https://accounts.google.com/_/signin/sl/challenge'
 COMMENT_HISTORY_URL: Final[str] = ('https://www.youtube.com/feed/history/'

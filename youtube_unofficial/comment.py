@@ -5,7 +5,6 @@ from .util import path_default, try_get
 
 __all__ = ('CommentHistoryEntry', 'DEFAULT_DELETE_ACTION_PATH',
            'make_comment_history_entry')
-
 DEFAULT_DELETE_ACTION_PATH = (
     'actionMenu.menuRenderer.items.1.menuNavigationItemRenderer.'
     'navigationEndpoint.confirmDialogEndpoint.content.'
