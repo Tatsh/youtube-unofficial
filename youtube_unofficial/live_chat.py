@@ -17,9 +17,7 @@ class LiveChatHistoryEntry:
 def make_live_chat_history_entry(
         api_entry: Mapping[str, Any]) -> LiveChatHistoryEntry:
     video_title_info = try_get(
-        api_entry,
-        lambda x: x['videoTitle']['runs'][0],
-    ) or dict(text=None)
+        api_entry, lambda x: x['videoTitle']['runs'][0]) or dict(text=None)
     video_url = try_get(
         video_title_info, lambda x: (x['navigationEndpoint']['commandMetadata']
                                      ['webCommandMetadata']['url']))

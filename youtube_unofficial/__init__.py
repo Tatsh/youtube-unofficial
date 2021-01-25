@@ -101,8 +101,8 @@ class YouTube(DownloadMixin):
         """Removes a video from a playlist. The set_video_id is NOT the same as
         the video ID."""
         if not self.logged_in:
-            raise AuthenticationError('This method requires a call to '
-                                      'login() first')
+            raise AuthenticationError('This method requires a call to login()'
+                                      ' first')
         ytcfg = None
         if not headers or not csn or not xsrf_token:
             if cache_values and self._rsvi_cache:
@@ -356,11 +356,9 @@ class YouTube(DownloadMixin):
                 return
 
         assert next_continuation is not None
-        params = dict(
-            continuation=next_continuation['continuation'],
-            ctoken=next_continuation['continuation'],
-            itct=next_continuation['clickTrackingParams'],
-        )
+        params = dict(continuation=next_continuation['continuation'],
+                      ctoken=next_continuation['continuation'],
+                      itct=next_continuation['clickTrackingParams'])
         xsrf = ytcfg['XSRF_TOKEN']
         resp = None
 
@@ -621,16 +619,13 @@ class YouTube(DownloadMixin):
                     'x-goog-authuser': '0',
                     'x-origin': 'https://www.youtube.com',
                 },
-                json=dict(
-                    context=dict(
-                        clickTracking=dict(clickTrackingParams=''),
-                        client=context_client_body(ytcfg),
-                        request=dict(consistencyTokenJars=[],
-                                     internalExperimentFlags=[]),
-                        user=dict(
-                            onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
-                    params=params,
-                ),
+                json=dict(context=dict(
+                    clickTracking=dict(clickTrackingParams=''),
+                    client=context_client_body(ytcfg),
+                    request=dict(consistencyTokenJars=[],
+                                 internalExperimentFlags=[]),
+                    user=dict(onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
+                          params=params),
                 return_json=True))
 
     def _comment_community_history(
@@ -731,7 +726,7 @@ class YouTube(DownloadMixin):
                             request=dict(consistencyTokenJars=[],
                                          internalExperimentFlags=[]),
                             user=dict(
-                                onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
+                                onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID']))
                     ),
                     return_json=True))) == 'STATUS_SUCCEEDED')
 
@@ -778,8 +773,7 @@ class YouTube(DownloadMixin):
                                          internalExperimentFlags=[]),
                             user=dict(
                                 onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
-                        updateCommentParams=params,
-                    ),
+                        updateCommentParams=params),
                     return_json=True))) == 'STATUS_SUCCEEDED')
 
     def community_history(
@@ -822,7 +816,7 @@ class YouTube(DownloadMixin):
                             request=dict(consistencyTokenJars=[],
                                          internalExperimentFlags=[]),
                             user=dict(
-                                onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
+                                onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID']))
                     ),
                     return_json=True))) == 'STATUS_SUCCEEDED')
 

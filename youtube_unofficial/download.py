@@ -8,15 +8,14 @@ __all__ = ('DownloadMixin', 'download_page')
 
 
 def download_page(
-    sess: Session,
-    url: str,
-    data: Any = None,
-    method: Literal['get', 'post'] = 'get',
-    headers: Optional[Mapping[str, str]] = None,
-    params: Optional[Mapping[str, str]] = None,
-    return_json: bool = False,
-    json: Any = None,
-) -> Union[str, Sequence[Any], Mapping[str, Any]]:
+        sess: Session,
+        url: str,
+        data: Any = None,
+        method: Literal['get', 'post'] = 'get',
+        headers: Optional[Mapping[str, str]] = None,
+        params: Optional[Mapping[str, str]] = None,
+        return_json: bool = False,
+        json: Any = None) -> Union[str, Sequence[Any], Mapping[str, Any]]:
     if headers:
         sess.headers.update(headers)
     req = Request(method.upper(), url, data=data, params=params, json=json)
@@ -24,10 +23,8 @@ def download_page(
     del prepped.headers['accept-encoding']
     r = sess.send(prepped)  # type: ignore[no-untyped-call]
     r.raise_for_status()
-
     if not return_json:
-        return cast(str, r.text.strip())
-
+        return r.text.strip()
     return cast(Mapping[str, Any], r.json())
 
 
@@ -35,15 +32,14 @@ class DownloadMixin:  # pylint: disable=too-few-public-methods
     _sess: Session
 
     def _download_page(
-        self,
-        url: str,
-        data: Any = None,
-        method: Literal['get', 'post'] = 'get',
-        headers: Optional[Mapping[str, str]] = None,
-        params: Optional[Mapping[str, str]] = None,
-        return_json: bool = False,
-        json: Any = None,
-    ) -> Union[str, Sequence[Any], Mapping[str, Any]]:
+            self,
+            url: str,
+            data: Any = None,
+            method: Literal['get', 'post'] = 'get',
+            headers: Optional[Mapping[str, str]] = None,
+            params: Optional[Mapping[str, str]] = None,
+            return_json: bool = False,
+            json: Any = None) -> Union[str, Sequence[Any], Mapping[str, Any]]:
         return download_page(self._sess, url, data, method, headers, params,
                              return_json, json)
 

@@ -13,20 +13,11 @@ from .constants import (EXTRACTED_THUMBNAIL_KEYS, HISTORY_ENTRY_KEYS_TO_SKIP,
 from .typing.history import MetadataBadgeRendererTopDict
 from .util import extract_keys, get_text_runs, path
 
-__all__ = (
-    'clear_watch_history',
-    'clear_watch_later',
-    'get_common_parser',
-    'parse_common_args',
-    'print_history_ids',
-    'print_playlist_ids',
-    'print_watchlater_ids',
-    'remove_history_entries',
-    'remove_setvideoid',
-    'remove_watchlater_setvideoid',
-    'toggle_search_history',
-    'toggle_watch_history',
-)
+__all__ = ('clear_watch_history', 'clear_watch_later', 'get_common_parser',
+           'parse_common_args', 'print_history_ids', 'print_playlist_ids',
+           'print_watchlater_ids', 'remove_history_entries',
+           'remove_setvideoid', 'remove_watchlater_setvideoid',
+           'toggle_search_history', 'toggle_watch_history')
 
 
 def get_common_parser(
