@@ -1,32 +1,17 @@
 from typing import Mapping, Set, Tuple
 from typing_extensions import Final
 
-__all__ = (
-    'BROWSE_AJAX_URL',
-    'CHALLENGE_URL',
-    'COMMENT_HISTORY_URL',
-    'EXTRACTED_THUMBNAIL_KEYS',
-    'HISTORY_ENTRY_KEYS_TO_SKIP',
-    'HISTORY_URL',
-    'HOMEPAGE_URL',
-    'LIVE_CHAT_HISTORY_URL',
-    'LOGIN_URL',
-    'LOOKUP_URL',
-    'NETRC_MACHINE',
-    'SERVICE_AJAX_URL',
-    'SIMPLE_TEXT_KEYS',
-    'TEXT_RUNS_KEYS',
-    'TFA_URL',
-    'THUMBNAILS_KEYS',
-    'USER_AGENT',
-    'WATCH_HISTORY_URL',
-    'WATCH_LATER_URL',
-)
+__all__ = ('BROWSE_AJAX_URL', 'CHALLENGE_URL', 'COMMENT_HISTORY_URL',
+           'EXTRACTED_THUMBNAIL_KEYS', 'HISTORY_ENTRY_KEYS_TO_SKIP',
+           'HISTORY_URL', 'LIVE_CHAT_HISTORY_URL', 'LOGIN_URL', 'LOOKUP_URL',
+           'NETRC_MACHINE', 'SERVICE_AJAX_URL', 'SIMPLE_TEXT_KEYS',
+           'TEXT_RUNS_KEYS', 'TFA_URL', 'THUMBNAILS_KEYS', 'USER_AGENT',
+           'WATCH_HISTORY_URL', 'WATCH_LATER_URL')
 
 NETRC_MACHINE: Final[str] = 'youtube'
 USER_AGENT: Final[str] = (
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
-    '(KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36')
+    '(KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36,gzip(gfe)')
 
 BROWSE_AJAX_URL: Final[str] = 'https://www.youtube.com/browse_ajax'
 CHALLENGE_URL: Final[str] = 'https://accounts.google.com/_/signin/sl/challenge'
