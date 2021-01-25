@@ -55,9 +55,7 @@ class YouTube(DownloadMixin):
         self._sess = requests.Session()
         self._init_cookiejar(cookies_path, cls=cookiejar_cls)
         self._sess.cookies = self._cj  # type: ignore[assignment]
-        self._sess.headers.update({
-            'User-Agent': USER_AGENT,
-        })
+        self._sess.headers.update({'User-Agent': USER_AGENT})
         self._login_handler = YouTubeLogin(self._sess,
                                            self._cj,
                                            username,
