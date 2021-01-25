@@ -40,6 +40,21 @@ You can use exported cookies in Netscape format with the `--cookies COOKIES_FILE
 
 Some commands accept a `-j`/`--json` argument to print machine-readable output.
 
+### Download commands
+
+- `ytdl-history` - Use youtube-dl to download your history
+- `ytdl-liked` - Use youtube-dl to download your liked videos
+- `ytdl-playlist` - Use youtube-dl to download a playlist
+- `ytdl-watch-later` - Use youtube-dl to download your Watch Later playlist
+
+For downloads to work, `youtube-dl` must be in `PATH`. To pass arguments to `youtube-dl`, specify `--` before those arguments. Example with arguments to youtube-dl:
+
+```shell
+ytdl-history --output-dir ~/Downloads --delete-after -- --extract-audio --audio-format m4a --audio-quality 0
+```
+
+Each download command has a `-D`/`--delete-after` option, which makes the script delete the entry from the set of videos after a successful download.
+
 ### In Python
 
 ```python
