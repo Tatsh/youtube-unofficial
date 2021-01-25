@@ -1,23 +1,16 @@
 from html.parser import HTMLParser
 from typing import (Any, Callable, Dict, Iterable, Mapping, Optional, Sequence,
                     Type, TypeVar, Union)
+import random
 import re
 
 from .constants import USER_AGENT
 from .typing.history import DescriptionSnippetDict
-from .typing.ytcfg import YtcfgDict
+from .typing.ytcfg import CountryLocationInfoDict, YtcfgDict
 
-__all__ = (
-    'context_client_body',
-    'extract_attributes',
-    'extract_keys',
-    'get_text_runs',
-    'html_hidden_inputs',
-    'path',
-    'path_default',
-    'remove_start',
-    'try_get',
-)
+__all__ = ('context_client_body', 'extract_attributes', 'extract_keys',
+           'get_text_runs', 'html_hidden_inputs', 'path', 'path_default',
+           'remove_start', 'try_get')
 
 T = TypeVar('T')
 
@@ -123,21 +116,35 @@ def get_text_runs(desc: DescriptionSnippetDict) -> str:
                    for x in desc['runs']).strip().replace('\n', ' - ')
 
 
-def context_client_body(ytcfg: YtcfgDict) -> Mapping[str, Union[str, int]]:
+def context_client_body(
+    ytcfg: YtcfgDict
+) -> Mapping[str, Union[str, int, float, CountryLocationInfoDict]]:
     return {
         'browserName': 'Chrome',
-        'browserVersion': '84.0.4147.45',
+        'browserVersion': '88.0.4324.96',
+        'clientFormatFactor': 'UNKNOWN_FORM_FACTOR',
         'clientName': 'WEB',
         'clientVersion': ytcfg['INNERTUBE_CONTEXT_CLIENT_VERSION'],
+        'connectionType': 'CONN_WIFI',
+        'countryLocationInfo': {
+            'countryCode': 'US',
+            'countrySource': 'COUNTRY_SOURCE_IPGEO_INDEX'
+        },
+        'deviceMake': '',
+        'deviceModel': '',
+        'geo': 'US',
         'gl': ytcfg['INNERTUBE_CONTEXT_GL'],
         'hl': ytcfg['INNERTUBE_CONTEXT_HL'],
         'osName': 'X11',
-        'screenHeightPoints': 771,
-        'screenPixelDensity': 2,
-        'screenWidthPoints': 1272,
+        'platform': 'DESKTOP',
+        'screenDensityFloat': random.choice((1, 1.5, 2, 3)),
+        'screenHeightPoints': random.randrange(480, 7680),
+        'screenPixelDensity': random.choice((1, 2, 3)),
+        'screenWidthPoints': random.randrange(480, 7680),
+        'timeZone': 'America/New_York',
         'userAgent': USER_AGENT,
         'userInterfaceTheme': 'USER_INTERFACE_THEME_DARK',
-        'utcOffsetMinutes': -240,
+        'utcOffsetMinutes': -300,
         'visitorData': ytcfg['VISITOR_DATA'],
     }
 

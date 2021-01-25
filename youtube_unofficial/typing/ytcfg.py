@@ -1,6 +1,6 @@
 from typing_extensions import TypedDict
 
-__all__ = ('YtcfgDict', )
+__all__ = ('CountryLocationInfoDict', 'YtcfgDict')
 
 
 class YtcfgDict(TypedDict, total=False):
@@ -17,3 +17,8 @@ class YtcfgDict(TypedDict, total=False):
     VARIANTS_CHECKSUM: str
     VISITOR_DATA: str
     XSRF_TOKEN: str
+
+
+class CountryLocationInfoDict(TypedDict):
+    countryCode: str
+    countrySource: str
