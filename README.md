@@ -36,7 +36,7 @@ You can specify a custom netrc file with the `--netrc` argument.
 
 Every command takes a `--debug` argument.
 
-You can use exported cookies in Netscape format with the `--cookies COOKIES_FILE` argument.
+You can use exported cookies in Netscape format with the `--cookies COOKIES_FILE` argument. By default, cookies are read from `~/.local/share/cookies/youtube.txt`.
 
 Some commands accept a `-j`/`--json` argument to print machine-readable output.
 
