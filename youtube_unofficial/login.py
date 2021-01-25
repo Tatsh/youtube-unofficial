@@ -30,7 +30,8 @@ class YouTubeLogin(DownloadMixin):
                  cookies: CookieJar,
                  username: Optional[str] = None,
                  password: Optional[str] = None,
-                 netrc_file: Optional[str] = None):
+                 netrc_file: Optional[str] = None,
+                 logged_in: Optional[bool] = False):
         if not netrc_file:
             netrc_file = expanduser('~/.netrc')
         self.netrc_file = netrc_file
@@ -40,7 +41,7 @@ class YouTubeLogin(DownloadMixin):
         self._sess = session
         self._log: Final[logging.Logger] = logging.getLogger(
             'youtube-unofficial')
-        self._logged_in = False
+        self.logged_in = bool(logged_in)
 
     def login(  # pylint: disable=too-many-branches,too-many-statements
             self,
@@ -49,7 +50,7 @@ class YouTubeLogin(DownloadMixin):
         This is heavily based on youtube-dl's code.
         See https://goo.gl/J3YFSe
         """
-        if self._logged_in:
+        if self.logged_in:
             return
 
         if not tfa_code_callback:
@@ -61,9 +62,9 @@ class YouTubeLogin(DownloadMixin):
         ytcfg = find_ytcfg(content)
         if ytcfg['LOGGED_IN']:
             self._log.debug('Already logged in via cookies')
-            self._logged_in = True
+            self.logged_in = True
 
-        if self._logged_in:
+        if self.logged_in:
             return
 
         username, password = self._auth()
@@ -279,7 +280,7 @@ class YouTubeLogin(DownloadMixin):
 
         if hasattr(self._cj, 'save'):
             self._cj.save()  # type: ignore[attr-defined]
-        self._logged_in = True
+        self.logged_in = True
 
     def _auth(self) -> Tuple[str, Optional[str]]:
         if not self.username:
