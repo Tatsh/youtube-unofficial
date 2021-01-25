@@ -58,14 +58,15 @@ class YouTube(DownloadMixin):
         self._sess.headers.update({
             'User-Agent': USER_AGENT,
         })
-        self._login_handler = YouTubeLogin(self._sess, self._cj, username)
-        if logged_in:
-            self._login_handler._logged_in = True  # pylint: disable=protected-access
+        self._login_handler = YouTubeLogin(self._sess,
+                                           self._cj,
+                                           username,
+                                           logged_in=logged_in)
         self._rsvi_cache: Optional[Dict[str, Any]] = None
 
     @property
-    def _logged_in(self):
-        return self._login_handler._logged_in  # pylint: disable=protected-access
+    def logged_in(self):
+        return self._login_handler.logged_in
 
     def _init_cookiejar(self,
                         path: str,
@@ -101,7 +102,7 @@ class YouTube(DownloadMixin):
             cache_values: Optional[bool] = False) -> None:
         """Removes a video from a playlist. The set_video_id is NOT the same as
         the video ID."""
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         ytcfg = None
@@ -166,7 +167,7 @@ class YouTube(DownloadMixin):
 
     def clear_watch_history(self) -> None:
         """Clears watch history."""
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
@@ -206,7 +207,7 @@ class YouTube(DownloadMixin):
 
     def get_playlist_info(self, playlist_id: str) -> Iterator[PlaylistInfo]:
         """Get playlist information given a playlist ID."""
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
@@ -286,7 +287,7 @@ class YouTube(DownloadMixin):
 
         Use `WL` for Watch Later.
         """
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
@@ -322,7 +323,7 @@ class YouTube(DownloadMixin):
 
     def get_history_info(self) -> Iterator[Mapping[str, Any]]:
         """Get information about the History playlist."""
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
 
@@ -443,7 +444,7 @@ class YouTube(DownloadMixin):
 
     def remove_video_ids_from_history(self, video_ids: Sequence[str]) -> bool:
         """Delete a history entry by video ID."""
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         if not video_ids:
@@ -520,7 +521,7 @@ class YouTube(DownloadMixin):
                 return_json=True))['feedbackResponses'][0]['isProcessed']
 
     def _toggle_history(self, page_url: str, contents_index: int) -> bool:
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         content = self._download_page_soup(page_url)
@@ -551,7 +552,7 @@ class YouTube(DownloadMixin):
 
         Fetches only the first page if ``only_first_page`` is ``True``.
         """
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         content = self._download_page_soup(LIVE_CHAT_HISTORY_URL)
@@ -604,7 +605,7 @@ class YouTube(DownloadMixin):
         Delete a live chat message by params value as given from
         ``live_chat_history()``.
         """
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         if not ytcfg:
@@ -638,7 +639,7 @@ class YouTube(DownloadMixin):
             self,
             url: str,
             only_first_page: bool = False) -> Iterator[CommentHistoryEntry]:
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         content = self._download_page_soup(url)
@@ -703,7 +704,7 @@ class YouTube(DownloadMixin):
             ytcfg: Optional[YtcfgDict] = None,
             api_url: str = '/youtubei/v1/comment/perform_comment_action'
     ) -> bool:
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         if not ytcfg:
@@ -749,7 +750,7 @@ class YouTube(DownloadMixin):
         is posted. It can be found by digging through ``ytInitialData``. This
         value must not be URL-encoded.
         """
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         if not ytcfg:
@@ -794,7 +795,7 @@ class YouTube(DownloadMixin):
             action: str,
             api_url: str = '/youtubei/v1/comment/perform_comment_action',
             ytcfg: Optional[YtcfgDict] = None) -> bool:
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         if not ytcfg:
@@ -829,7 +830,7 @@ class YouTube(DownloadMixin):
 
     def clear_search_history(self) -> bool:
         """Clear search history."""
-        if not self._logged_in:
+        if not self.logged_in:
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         content = self._download_page_soup(SEARCH_HISTORY_URL)
