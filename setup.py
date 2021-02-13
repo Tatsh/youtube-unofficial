@@ -1,10 +1,10 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='youtube-unofficial',
       version='0.2.0',
       author='Andrew Udvare',
       author_email='audvare@gmail.com',
-      packages=('youtube_unofficial', ),
+      packages=find_packages(),
       url='https://github.com/Tatsh/youtube-unofficial',
       license='LICENSE.txt',
       description='Access parts of your account unavailable through normal '
