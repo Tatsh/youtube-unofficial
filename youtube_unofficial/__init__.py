@@ -130,19 +130,13 @@ class YouTube(DownloadMixin):
                                             'playlistId':
                                             playlist_id,
                                             'actions': [{
-                                                'setVideoId':
+                                                'removedVideoId':
                                                 set_video_id,
                                                 'action':
-                                                'ACTION_REMOVE_VIDEO'
+                                                'ACTION_REMOVE_VIDEO_BY_VIDEO_ID'
                                             }],
                                             'params':
-                                            'CAE%3D',
-                                            'clientActions': [{
-                                                'playlistRemoveVideosAction': {
-                                                    'setVideoIds':
-                                                    [set_video_id]
-                                                }
-                                            }]
+                                            'CAE%3D'
                                         }
                                     }),
                                     'csn':

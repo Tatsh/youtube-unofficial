@@ -58,15 +58,16 @@ Each download command has a `-D`/`--delete-after` option, which makes the script
 ### In Python
 
 ```python
+from os.path import expanduser
 from youtube_unofficial import YouTube
 
-yt = YouTube(cookies=expanduser('~/my-cookies-file.txt'), logged_in=True)
+yt = YouTube(cookies_path=expanduser('~/my-cookies-file.txt'), logged_in=True)
 
 # Clear watch history
 yt.clear_watch_history()
 
 # Remove a single video ID from Watch Later queue
-yt.remove_video_id_from_watch_later(video_id)
+yt.remove_set_video_id_from_playlist('WL', video_id)
 
 # Clear entire Watch Later queue
 yt.clear_watch_later()
