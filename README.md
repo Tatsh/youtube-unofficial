@@ -29,8 +29,8 @@ You can specify a custom netrc file with the `--netrc` argument.
 - `youtube-print-playlist-ids` - Print video IDs from a specific playlist
 - `youtube-print-watch-later-ids` - Print _Watch Later_ video IDs
 - `youtube-remove-history-entries` - Remove videos from your _Watch History_
-- `youtube-remove-setvideoid` - Remove a video from a playlist
-- `youtube-remove-watch-later-setvideoid` - Remove a video from your _Watch Later_ queue
+- `youtube-remove-videoid` - Remove a video from a playlist
+- `youtube-remove-watch-later-videoid` - Remove a video from your _Watch Later_ queue
 - `youtube-toggle-search-history` - Turn on/off _Search History_
 - `youtube-toggle-watch-history` - Turn on/off _Watch History_
 
@@ -67,7 +67,7 @@ yt = YouTube(cookies_path=expanduser('~/my-cookies-file.txt'), logged_in=True)
 yt.clear_watch_history()
 
 # Remove a single video ID from Watch Later queue
-yt.remove_set_video_id_from_playlist('WL', video_id)
+yt.remove_video_id_from_playlist('WL', video_id)
 
 # Clear entire Watch Later queue
 yt.clear_watch_later()

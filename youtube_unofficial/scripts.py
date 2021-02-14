@@ -15,9 +15,9 @@ from .util import extract_keys, get_text_runs, path
 
 __all__ = ('clear_watch_history', 'clear_watch_later', 'get_common_parser',
            'parse_common_args', 'print_history_ids', 'print_playlist_ids',
-           'print_watchlater_ids', 'remove_history_entries',
-           'remove_setvideoid', 'remove_watchlater_setvideoid',
-           'toggle_search_history', 'toggle_watch_history')
+           'print_watchlater_ids', 'remove_history_entries', 'remove_videoid',
+           'remove_watchlater_videoid', 'toggle_search_history',
+           'toggle_watch_history')
 
 
 def get_common_parser(
@@ -125,12 +125,9 @@ def print_playlist_ids_callback(
                     json.dumps(
                         dict(owner=owner,
                              title=title,
-                             setVideoId=renderer['setVideoId']
-                             if 'setVideoId' in renderer else None,
                              videoId=renderer['videoId'])))
             else:
-                print('{} {}'.format(renderer['videoId'],
-                                     renderer['setVideoId']))
+                print(renderer['videoId'])
         return 0
 
     return f
@@ -236,7 +233,7 @@ def remove_svi_callback(
         nonlocal parser
         if not parser:
             parser = get_common_parser('Remove videos from a playlist')
-            parser.add_argument('set_video_ids', nargs='+')
+            parser.add_argument('video_ids', nargs='+')
         args = parser.parse_args()
         kwargs = parse_common_args(args)
         yt = YouTube(**kwargs)
@@ -247,24 +244,24 @@ def remove_svi_callback(
                 raise e
             print(str(e), file=sys.stderr)
             return 1
-        for svi in args.set_video_ids:
-            yt.remove_set_video_id_from_playlist(
-                playlist_id or args.playlist_id, svi)
+        for svi in args.video_ids:
+            yt.remove_video_id_from_playlist(playlist_id or args.playlist_id,
+                                             svi)
         return 0
 
     return f
 
 
-def remove_watchlater_setvideoid() -> int:
+def remove_watchlater_videoid() -> int:
     parser = get_common_parser('Remove videos from your Watch Later queue')
-    parser.add_argument('set_video_ids', nargs='+')
+    parser.add_argument('video_ids', nargs='+')
     return remove_svi_callback(playlist_id='WL')()
 
 
-def remove_setvideoid() -> int:
+def remove_videoid() -> int:
     parser = get_common_parser('Remove videos from a playlist')
     parser.add_argument('playlist_id')
-    parser.add_argument('set_video_ids', nargs='+')
+    parser.add_argument('video_ids', nargs='+')
     return remove_svi_callback(parser=parser)()
 
 

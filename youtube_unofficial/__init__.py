@@ -85,16 +85,15 @@ class YouTube(DownloadMixin):
     def login(self) -> None:
         self._login_handler.login()
 
-    def remove_set_video_id_from_playlist(
+    def remove_video_id_from_playlist(
             self,
             playlist_id: str,
-            set_video_id: str,
+            video_id: str,
             csn: Optional[str] = None,
             headers: Optional[Mapping[str, str]] = None,
             xsrf_token: Optional[str] = None,
             cache_values: Optional[bool] = False) -> None:
-        """Removes a video from a playlist. The set_video_id is NOT the same as
-        the video ID."""
+        """Removes a video from a playlist."""
         if not self.logged_in:
             raise AuthenticationError('This method requires a call to login()'
                                       ' first')
@@ -114,40 +113,40 @@ class YouTube(DownloadMixin):
                                         headers=headers)
         data = cast(
             HasStringCode,
-            self._download_page(SERVICE_AJAX_URL,
-                                method='post',
-                                data={
-                                    'sej':
-                                    json.dumps({
-                                        'clickTrackingParams': '',
-                                        'commandMetadata': {
-                                            'webCommandMetadata': {
-                                                'url': '/service_ajax',
-                                                'sendPost': True
-                                            }
-                                        },
-                                        'playlistEditEndpoint': {
-                                            'playlistId':
-                                            playlist_id,
-                                            'actions': [{
-                                                'removedVideoId':
-                                                set_video_id,
-                                                'action':
-                                                'ACTION_REMOVE_VIDEO_BY_VIDEO_ID'
-                                            }],
-                                            'params':
-                                            'CAE%3D'
-                                        }
-                                    }),
-                                    'csn':
-                                    csn or path_default('EVENT_ID', ytcfg),
-                                    'session_token':
-                                    xsrf_token
-                                    or path_default('XSRF_TOKEN', ytcfg)
-                                },
-                                params={'name': 'playlistEditEndpoint'},
-                                return_json=True,
-                                headers=headers))
+            self._download_page(
+                SERVICE_AJAX_URL,
+                method='post',
+                data={
+                    'sej':
+                    json.dumps({
+                        'clickTrackingParams': '',
+                        'commandMetadata': {
+                            'webCommandMetadata': {
+                                'url': '/service_ajax',
+                                'sendPost': True
+                            }
+                        },
+                        'playlistEditEndpoint': {
+                            'playlistId':
+                            playlist_id,
+                            'actions': [{
+                                'removedVideoId':
+                                video_id,
+                                'action':
+                                'ACTION_REMOVE_VIDEO_BY_VIDEO_ID'
+                            }],
+                            'params':
+                            'CAE%3D'
+                        }
+                    }),
+                    'csn':
+                    csn or path_default('EVENT_ID', ytcfg),
+                    'session_token':
+                    xsrf_token or path_default('XSRF_TOKEN', ytcfg)
+                },
+                params={'name': 'playlistEditEndpoint'},
+                return_json=True,
+                headers=headers))
         if data['code'] != 'SUCCESS':
             raise UnexpectedError(
                 'Failed to delete video from Watch Later playlist')
@@ -279,21 +278,20 @@ class YouTube(DownloadMixin):
         csn = ytcfg['EVENT_ID']
         xsrf_token = ytcfg['XSRF_TOKEN']
         try:
-            set_video_ids = list(
-                map(lambda x: x['playlistVideoRenderer']['setVideoId'],
+            video_ids = list(
+                map(lambda x: x['playlistVideoRenderer']['videoId'],
                     playlist_info))
         except KeyError:
             self._log.info('Caught KeyError. This probably means the playlist '
                            'is empty.')
             return
-        for set_video_id in set_video_ids:
-            self._log.debug('Deleting from playlist: set_video_id = %s',
-                            set_video_id)
-            self.remove_set_video_id_from_playlist(playlist_id,
-                                                   set_video_id,
-                                                   csn,
-                                                   xsrf_token=xsrf_token,
-                                                   headers=headers)
+        for video_id in video_ids:
+            self._log.debug('Deleting from playlist: video_id = %s', video_id)
+            self.remove_video_id_from_playlist(playlist_id,
+                                               video_id,
+                                               csn,
+                                               xsrf_token=xsrf_token,
+                                               headers=headers)
 
     def clear_watch_later(self) -> None:
         """Removes all videos from the 'Watch Later' playlist."""

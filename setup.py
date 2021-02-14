@@ -30,10 +30,10 @@ setup(name='youtube-unofficial',
             'print_watchlater_ids'),
            ('youtube-print-playlist-ids = youtube_unofficial.scripts:'
             'print_playlist_ids'),
-           ('youtube-remove-watch-later-setvideoid = youtube_unofficial.'
-            'scripts:remove_watchlater_setvideoid'),
-           ('youtube-remove-setvideoid = youtube_unofficial.'
-            'scripts:remove_setvideoid'),
+           ('youtube-remove-watch-later-videoid = youtube_unofficial.'
+            'scripts:remove_watchlater_videoid'),
+           ('youtube-remove-videoid = youtube_unofficial.'
+            'scripts:remove_videoid'),
            ('youtube-print-history-ids = youtube_unofficial.'
             'scripts:print_history_ids'),
            ('youtube-remove-history-entries = youtube_unofficial.'

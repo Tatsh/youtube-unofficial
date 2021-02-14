@@ -80,9 +80,9 @@ def download_playlist(playlist_id: Optional[str] = None) -> int:
         renderer = item['playlistVideoRenderer']
         call_youtube_dl(renderer['videoId'], ytdl_args)
         if args.delete_after:
-            yt.remove_set_video_id_from_playlist(args.playlist_id[0],
-                                                 renderer['setVideoId'],
-                                                 cache_values=True)
+            yt.remove_video_id_from_playlist(args.playlist_id[0],
+                                             renderer['videoId'],
+                                             cache_values=True)
     return 0
 
 

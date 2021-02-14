@@ -32,7 +32,6 @@ class RunsOrTextDict(TypedDict, total=False):
 class PlaylistVideoRendererDict(TypedDict, total=False):
     navigationEndpoint: NavigationEndpointDict
     shortBylineText: RunsOrTextDict
-    setVideoId: str
     title: RunsOrSimpleTextDict
     videoId: str
 
