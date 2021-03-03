@@ -89,67 +89,51 @@ class YouTube(DownloadMixin):
             self,
             playlist_id: str,
             video_id: str,
-            csn: Optional[str] = None,
-            headers: Optional[Mapping[str, str]] = None,
-            xsrf_token: Optional[str] = None,
             cache_values: Optional[bool] = False) -> None:
         """Removes a video from a playlist."""
         if not self.logged_in:
             raise AuthenticationError('This method requires a call to login()'
                                       ' first')
-        ytcfg = None
-        if not headers or not csn or not xsrf_token:
-            if cache_values and self._rsvi_cache:
-                soup = self._rsvi_cache['soup']
-                ytcfg = self._rsvi_cache['ytcfg']
-                headers = self._rsvi_cache['headers']
-            else:
-                soup = self._download_page_soup(WATCH_LATER_URL)
-                ytcfg = find_ytcfg(soup)
-                headers = ytcfg_headers(ytcfg)
-            if cache_values:
-                self._rsvi_cache = dict(soup=soup,
-                                        ytcfg=ytcfg,
-                                        headers=headers)
-        data = cast(
-            HasStringCode,
-            self._download_page(
-                SERVICE_AJAX_URL,
-                method='post',
-                data={
-                    'sej':
-                    json.dumps({
-                        'clickTrackingParams': '',
-                        'commandMetadata': {
-                            'webCommandMetadata': {
-                                'url': '/service_ajax',
-                                'sendPost': True
-                            }
-                        },
-                        'playlistEditEndpoint': {
-                            'playlistId':
-                            playlist_id,
-                            'actions': [{
-                                'removedVideoId':
-                                video_id,
-                                'action':
-                                'ACTION_REMOVE_VIDEO_BY_VIDEO_ID'
-                            }],
-                            'params':
-                            'CAE%3D'
-                        }
-                    }),
-                    'csn':
-                    csn or path_default('EVENT_ID', ytcfg),
-                    'session_token':
-                    xsrf_token or path_default('XSRF_TOKEN', ytcfg)
-                },
-                params={'name': 'playlistEditEndpoint'},
-                return_json=True,
-                headers=headers))
-        if data['code'] != 'SUCCESS':
-            raise UnexpectedError(
-                'Failed to delete video from Watch Later playlist')
+
+        if cache_values and self._rsvi_cache:
+            soup = self._rsvi_cache['soup']
+            ytcfg = self._rsvi_cache['ytcfg']
+            headers = self._rsvi_cache['headers']
+        else:
+            soup = self._download_page_soup(WATCH_LATER_URL)
+            ytcfg = find_ytcfg(soup)
+            headers = ytcfg_headers(ytcfg)
+        if cache_values:
+            self._rsvi_cache = dict(soup=soup,
+                                    ytcfg=ytcfg,
+                                    headers=headers)
+
+        action = {'removedVideoId': video_id, 'action': 'ACTION_REMOVE_VIDEO_BY_VIDEO_ID'}
+
+        return (at_path(
+            'status',
+            cast(
+                Mapping[str, Any],
+                self._download_page(
+                    f'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
+                    method='post',
+                    params=dict(key=ytcfg['INNERTUBE_API_KEY']),
+                    headers={
+                        'Authorization': self._authorization_sapisidhash_header(),
+                        'x-goog-authuser': '0',
+                        'x-origin': 'https://www.youtube.com',
+                    },
+                    json=dict(
+                        actions=[action],
+                        playlistId=playlist_id,
+                        params='CAFAAQ%3D%3D',
+                        context=dict(
+                            client=context_client_body(ytcfg),
+                            request=dict(consistencyTokenJars=[],
+                                         internalExperimentFlags=[]),
+                            )
+                    ),
+                    return_json=True))) == 'STATUS_SUCCEEDED')
 
     def clear_watch_history(self) -> None:
         """Clears watch history."""
@@ -271,12 +255,6 @@ class YouTube(DownloadMixin):
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         playlist_info = self.get_playlist_info(playlist_id)
-        url = 'https://www.youtube.com/playlist?list={}'.format(playlist_id)
-        content = self._download_page_soup(url)
-        ytcfg = find_ytcfg(content)
-        headers = ytcfg_headers(ytcfg)
-        csn = ytcfg['EVENT_ID']
-        xsrf_token = ytcfg['XSRF_TOKEN']
         try:
             video_ids = list(
                 map(lambda x: x['playlistVideoRenderer']['videoId'],
@@ -288,10 +266,7 @@ class YouTube(DownloadMixin):
         for video_id in video_ids:
             self._log.debug('Deleting from playlist: video_id = %s', video_id)
             self.remove_video_id_from_playlist(playlist_id,
-                                               video_id,
-                                               csn,
-                                               xsrf_token=xsrf_token,
-                                               headers=headers)
+                                               video_id)
 
     def clear_watch_later(self) -> None:
         """Removes all videos from the 'Watch Later' playlist."""
