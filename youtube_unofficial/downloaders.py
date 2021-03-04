@@ -21,7 +21,7 @@ def call_youtube_dl(
 
 def download_history() -> int:
     parser = get_common_parser()
-    parser.add_argument('-o', '--output-dir', nargs=1)
+    parser.add_argument('-o', '--output-dir', nargs=1, required=True)
     parser.add_argument('-D',
                         '--delete-after',
                         action='store_true',
@@ -55,7 +55,7 @@ def download_playlist(playlist_id: Optional[str] = None) -> int:
         except IndexError:
             sys.argv.append(playlist_id)
     parser = get_common_parser()
-    parser.add_argument('-o', '--output-dir', nargs=1)
+    parser.add_argument('-o', '--output-dir', nargs=1, required=True)
     parser.add_argument('-D',
                         '--delete-after',
                         action='store_true',
