@@ -104,11 +104,12 @@ class YouTube(DownloadMixin):
             ytcfg = find_ytcfg(soup)
             headers = ytcfg_headers(ytcfg)
         if cache_values:
-            self._rsvi_cache = dict(soup=soup,
-                                    ytcfg=ytcfg,
-                                    headers=headers)
+            self._rsvi_cache = dict(soup=soup, ytcfg=ytcfg, headers=headers)
 
-        action = {'removedVideoId': video_id, 'action': 'ACTION_REMOVE_VIDEO_BY_VIDEO_ID'}
+        action = {
+            'removedVideoId': video_id,
+            'action': 'ACTION_REMOVE_VIDEO_BY_VIDEO_ID'
+        }
 
         return (at_path(
             'status',
@@ -119,20 +120,19 @@ class YouTube(DownloadMixin):
                     method='post',
                     params=dict(key=ytcfg['INNERTUBE_API_KEY']),
                     headers={
-                        'Authorization': self._authorization_sapisidhash_header(),
+                        'Authorization':
+                        self._authorization_sapisidhash_header(),
                         'x-goog-authuser': '0',
                         'x-origin': 'https://www.youtube.com',
                     },
-                    json=dict(
-                        actions=[action],
-                        playlistId=playlist_id,
-                        params='CAFAAQ%3D%3D',
-                        context=dict(
-                            client=context_client_body(ytcfg),
-                            request=dict(consistencyTokenJars=[],
-                                         internalExperimentFlags=[]),
-                            )
-                    ),
+                    json=dict(actions=[action],
+                              playlistId=playlist_id,
+                              params='CAFAAQ%3D%3D',
+                              context=dict(
+                                  client=context_client_body(ytcfg),
+                                  request=dict(consistencyTokenJars=[],
+                                               internalExperimentFlags=[]),
+                              )),
                     return_json=True))) == 'STATUS_SUCCEEDED')
 
     def clear_watch_history(self) -> None:
@@ -265,8 +265,7 @@ class YouTube(DownloadMixin):
             return
         for video_id in video_ids:
             self._log.debug('Deleting from playlist: video_id = %s', video_id)
-            self.remove_video_id_from_playlist(playlist_id,
-                                               video_id)
+            self.remove_video_id_from_playlist(playlist_id, video_id)
 
     def clear_watch_later(self) -> None:
         """Removes all videos from the 'Watch Later' playlist."""
