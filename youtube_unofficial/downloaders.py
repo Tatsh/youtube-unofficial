@@ -52,7 +52,7 @@ def download_playlist(playlist_id: Optional[str] = None) -> int:
         try:
             dd_index = sys.argv.index('--')
             sys.argv.insert(dd_index, playlist_id)
-        except IndexError:
+        except ValueError:
             sys.argv.append(playlist_id)
     parser = get_common_parser()
     parser.add_argument('-o', '--output-dir', nargs=1, required=True)
