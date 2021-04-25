@@ -320,9 +320,7 @@ class YouTube(DownloadMixin):
                 try:
                     resp = self._single_feedback_api_call(
                         ytcfg,
-                        '',
-                        '',
-                        '/youtubei/v1/browse',
+                        api_url='/youtubei/v1/browse',
                         merge_json=dict(continuation=params['continuation']),
                         return_is_processed=False)
                     break
