@@ -2,7 +2,8 @@ from datetime import datetime
 from http.cookiejar import CookieJar, LoadError, MozillaCookieJar
 from os.path import expanduser
 from time import sleep
-from typing import Any, Dict, Iterator, Mapping, Optional, Sequence, Type, cast
+from typing import (Any, Dict, Iterator, Mapping, Optional, Sequence, Type,
+                    Union, cast)
 import hashlib
 import json
 import logging
@@ -317,14 +318,13 @@ class YouTube(DownloadMixin):
                 if time:
                     sleep(time)
                 try:
-                    resp = cast(
-                        BrowseAJAXSequence,
-                        self._download_page(BROWSE_AJAX_URL,
-                                            return_json=True,
-                                            headers=headers,
-                                            data={'session_token': xsrf},
-                                            method='post',
-                                            params=params))
+                    resp = self._single_feedback_api_call(
+                        ytcfg,
+                        '',
+                        '',
+                        '/youtubei/v1/browse',
+                        merge_json=dict(continuation=params['continuation']),
+                        return_is_processed=False)
                     break
                 except HTTPError as e:
                     last_exception = e
@@ -335,7 +335,7 @@ class YouTube(DownloadMixin):
                                 last_exception, last_exception.response.text)
                 break
             assert resp is not None
-            contents = resp[1]['response']
+            contents = cast(Mapping[str, Any], resp)
             try:
                 section_list_renderer = (
                     contents['onResponseReceivedActions'][0]
@@ -377,7 +377,6 @@ class YouTube(DownloadMixin):
                         'Caught TypeError evaluating '
                         '"section_list_renderer[\'continuations\']": %s', e)
                     break
-            xsrf = resp[1]['xsrf_token']
             assert continuations is not None
             next_cont = continuations[0]['nextContinuationData']
             params['itct'] = next_cont['clickTrackingParams']
@@ -428,10 +427,19 @@ class YouTube(DownloadMixin):
     def _single_feedback_api_call(
             self,
             ytcfg: YtcfgDict,
-            feedback_token: str,
+            feedback_token: str = '',
             click_tracking_params: str = '',
-            api_url: str = '/youtubei/v1/feedback') -> bool:
-        return cast(
+            api_url: str = '/youtubei/v1/feedback',
+            merge_json: Optional[Dict[str, Any]] = None,
+            return_is_processed: bool = True
+    ) -> Union[Mapping[str, Any], bool]:
+        if not merge_json:
+            merge_json = {}
+        feedback_token_part = dict(
+            feedbackTokens=[feedback_token],
+            isFeedbackTokenUnencrypted=False,
+            shouldMerge=False) if feedback_token else {}
+        ret = cast(
             Mapping[str, Any],
             self._download_page(
                 f'https://www.youtube.com{api_url}',
@@ -440,20 +448,22 @@ class YouTube(DownloadMixin):
                 headers={
                     'Authority': 'www.youtube.com',
                     'Authorization': self._authorization_sapisidhash_header(),
+                    'x-goog-pageid': ytcfg['DELEGATED_SESSION_ID'],
                     'x-goog-authuser': '0',
                     'x-origin': 'https://www.youtube.com',
                 },
-                json=dict(context=dict(
-                    clickTracking=dict(
-                        clickTrackingParams=click_tracking_params),
-                    client=context_client_body(ytcfg),
-                    request=dict(consistencyTokenJars=[],
-                                 internalExperimentFlags=[]),
-                    user=dict(lockedSafetyMode=False))),
-                          feedbackTokens=[feedback_token],
-                          isFeedbackTokenUnencrypted=False,
-                          shouldMerge=False),
-                return_json=True))['feedbackResponses'][0]['isProcessed']
+                json={
+                    **dict(context=dict(client=context_client_body(ytcfg))),
+                    **feedback_token_part,
+                    **merge_json
+                },
+                return_json=True))
+        if return_is_processed:
+            try:
+                return ret['feedbackResponses'][0]['isProcessed']
+            except KeyError:
+                return False
+        return ret
 
     def _toggle_history(self, page_url: str, contents_index: int) -> bool:
         if not self.logged_in:
@@ -466,10 +476,12 @@ class YouTube(DownloadMixin):
                         f'{contents_index}.buttonRenderer.navigationEndpoint.'
                         'confirmDialogEndpoint.content.confirmDialogRenderer.'
                         'confirmEndpoint'), initial_data(content))
-        return self._single_feedback_api_call(
-            ytcfg, info['feedbackEndpoint']['feedbackToken'],
-            info['clickTrackingParams'],
-            info['commandMetadata']['webCommandMetadata']['apiUrl'])
+        return cast(
+            bool,
+            self._single_feedback_api_call(
+                ytcfg, info['feedbackEndpoint']['feedbackToken'],
+                info['clickTrackingParams'],
+                info['commandMetadata']['webCommandMetadata']['apiUrl']))
 
     def toggle_search_history(self) -> bool:
         """Pauses or resumes search history depending on the current state."""
@@ -581,12 +593,14 @@ class YouTube(DownloadMixin):
             raise AuthenticationError('This method requires a call to '
                                       'login() first')
         content = self._download_page_soup(SEARCH_HISTORY_URL)
-        return self._single_feedback_api_call(
-            find_ytcfg(content),
-            at_path(
-                'contents.twoColumnBrowseResultsRenderer.'
-                'secondaryContents.browseFeedActionsRenderer.'
-                'contents.1.buttonRenderer.navigationEndpoint.'
-                'confirmDialogEndpoint.content.confirmDialogRenderer.'
-                'confirmEndpoint.feedbackEndpoint.feedbackToken',
-                initial_data(content)))
+        return cast(
+            bool,
+            self._single_feedback_api_call(
+                find_ytcfg(content),
+                at_path(
+                    'contents.twoColumnBrowseResultsRenderer.'
+                    'secondaryContents.browseFeedActionsRenderer.'
+                    'contents.1.buttonRenderer.navigationEndpoint.'
+                    'confirmDialogEndpoint.content.confirmDialogRenderer.'
+                    'confirmEndpoint.feedbackEndpoint.feedbackToken',
+                    initial_data(content))))
