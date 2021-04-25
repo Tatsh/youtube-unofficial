@@ -403,21 +403,14 @@ class YouTube(DownloadMixin):
             return False
         codes = []
         for entry in entries:
-            resp = cast(
-                HasStringCode,
-                self._download_page(
-                    SERVICE_AJAX_URL,
-                    return_json=True,
-                    data=dict(
-                        sej=json.dumps(entry['videoRenderer']['menu']
-                                       ['menuRenderer']['topLevelButtons'][0]
-                                       ['buttonRenderer']['serviceEndpoint']),
-                        csn=ytcfg['EVENT_ID'],
-                        session_token=ytcfg['XSRF_TOKEN']),
-                    method='post',
-                    headers=headers,
-                    params=dict(name='feedbackEndpoint')))
-            codes.append(resp['code'] == 'SUCCESS')
+            codes.append(
+                self._single_feedback_api_call(
+                    ytcfg,
+                    at_path(
+                        ('videoRenderer.menu.menuRenderer.topLevelButtons.0.'
+                         'buttonRenderer.serviceEndpoint.feedbackEndpoint.'
+                         'feedbackToken'), entry),
+                ))
         return all(codes)
 
     def _authorization_sapisidhash_header(self) -> str:
