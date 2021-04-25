@@ -456,7 +456,7 @@ class YouTube(DownloadMixin):
                     client=context_client_body(ytcfg),
                     request=dict(consistencyTokenJars=[],
                                  internalExperimentFlags=[]),
-                    user=dict(onBehalfOfUser=ytcfg['DELEGATED_SESSION_ID'])),
+                    user=dict(lockedSafetyMode=False))),
                           feedbackTokens=[feedback_token],
                           isFeedbackTokenUnencrypted=False,
                           shouldMerge=False),
