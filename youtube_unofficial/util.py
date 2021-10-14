@@ -8,9 +8,9 @@ from .constants import USER_AGENT
 from .typing.history import DescriptionSnippetDict
 from .typing.ytcfg import CountryLocationInfoDict, YtcfgDict
 
-__all__ = ('context_client_body', 'extract_attributes', 'extract_keys',
-           'get_text_runs', 'html_hidden_inputs', 'path', 'path_default',
-           'remove_start', 'try_get')
+__all__ = ('assert_not_none', 'context_client_body', 'extract_attributes',
+           'extract_keys', 'get_text_runs', 'html_hidden_inputs', 'path',
+           'path_default', 'remove_start', 'try_get')
 
 T = TypeVar('T')
 
@@ -96,8 +96,9 @@ def path(s: str, obj: Any) -> Any:
         if isinstance(obj, list):
             try:
                 int_prop = int(prop)
-            except TypeError:
-                raise TypeError('Property for a list must be an integer')
+            except TypeError as e:
+                raise TypeError(
+                    'Property for a list must be an integer') from e
             obj = obj[int_prop]
         else:
             obj = obj[prop]
@@ -119,6 +120,10 @@ def get_text_runs(desc: DescriptionSnippetDict) -> str:
 def context_client_body(
     ytcfg: YtcfgDict
 ) -> Mapping[str, Union[str, int, float, CountryLocationInfoDict]]:
+    assert 'INNERTUBE_CONTEXT_CLIENT_VERSION' in ytcfg
+    assert 'INNERTUBE_CONTEXT_GL' in ytcfg
+    assert 'INNERTUBE_CONTEXT_HL' in ytcfg
+    assert 'VISITOR_DATA' in ytcfg
     return {
         'browserName': 'Chrome',
         'browserVersion': '88.0.4324.96',
@@ -157,3 +162,8 @@ def first(it: Iterable[T]) -> T:
     if not ret:
         raise IndexError(0)
     return ret
+
+
+def assert_not_none(x: Optional[T]) -> T:
+    assert x is not None
+    return x
