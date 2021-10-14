@@ -1,8 +1,6 @@
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Mapping, Sequence, TypedDict
 
-from typing_extensions import TypedDict
-
-from youtube_unofficial.typing.browse_ajax import NextContinuationDict
+from .browse_ajax import NextContinuationDict
 
 __all__ = ('PlaylistInfo', )
 
@@ -29,11 +27,35 @@ class RunsOrTextDict(TypedDict, total=False):
     text: str
 
 
+class IconDict(TypedDict):
+    iconType: str
+
+
+class PlaylistVideoRendererMenuRendererItemMenuServiceItemRendererDict(
+        TypedDict):
+    icon: IconDict
+    serviceEndpoint: Mapping[str, Any]
+
+
+class PlaylistVideoRendererMenuRendererItemDict(TypedDict):
+    menuServiceItemRenderer: PlaylistVideoRendererMenuRendererItemMenuServiceItemRendererDict
+
+
+class PlaylistVideoRendererMenuRendererDict(TypedDict):
+    items: Sequence[PlaylistVideoRendererMenuRendererItemDict]
+
+
+class PlaylistVideoRendererMenuDict(TypedDict):
+    menuRenderer: PlaylistVideoRendererMenuRendererDict
+
+
 class PlaylistVideoRendererDict(TypedDict, total=False):
     navigationEndpoint: NavigationEndpointDict
     shortBylineText: RunsOrTextDict
     title: RunsOrSimpleTextDict
     videoId: str
+
+    menu: PlaylistVideoRendererMenuDict
 
 
 class PlaylistInfo(TypedDict, total=False):
