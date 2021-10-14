@@ -17,14 +17,13 @@ from .constants import (BROWSE_AJAX_URL, COMMUNITY_HISTORY_URL, HISTORY_URL,
                         SEARCH_HISTORY_URL, SERVICE_AJAX_URL, USER_AGENT,
                         WATCH_HISTORY_URL, WATCH_LATER_URL)
 from .download import DownloadMixin
-from .exceptions import AuthenticationError, UnexpectedError
+from .exceptions import AuthenticationError
 from .initial import initial_data
 from .login import YouTubeLogin
-from .typing import HasStringCode
 from .typing.browse_ajax import BrowseAJAXSequence
 from .typing.playlist import PlaylistInfo, PlaylistVideoListRenderer
 from .typing.ytcfg import YtcfgDict
-from .util import context_client_body, path as at_path, path_default
+from .util import context_client_body, path as at_path
 from .ytcfg import find_ytcfg, ytcfg_headers
 
 __all__ = ('YouTube', )
@@ -111,20 +110,35 @@ class YouTube(DownloadMixin):
             'removedVideoId': video_id,
             'action': 'ACTION_REMOVE_VIDEO_BY_VIDEO_ID'
         }
+        assert 'INNERTUBE_API_KEY' in ytcfg
+        assert 'VISITOR_DATA' in ytcfg
+        assert 'DELEGATED_SESSION_ID' in ytcfg
 
         return (at_path(
             'status',
             cast(
                 Mapping[str, Any],
                 self._download_page(
-                    f'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
+                    'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
                     method='post',
                     params=dict(key=ytcfg['INNERTUBE_API_KEY']),
                     headers={
                         'Authorization':
                         self._authorization_sapisidhash_header(),
-                        'x-goog-authuser': '0',
-                        'x-origin': 'https://www.youtube.com',
+                        'x-goog-authuser':
+                        '0',
+                        'x-origin':
+                        'https://www.youtube.com',
+                        'x-goog-visitor-id':
+                        ytcfg['VISITOR_DATA'],
+                        'x-goog-pageid':
+                        ytcfg['DELEGATED_SESSION_ID'],
+                        'accept':
+                        '*/*',
+                        'origin':
+                        'https://www.youtube.com',
+                        'referer':
+                        f'https://www.youtube.com/playlist?list={playlist_id}',
                     },
                     json=dict(actions=[action],
                               playlistId=playlist_id,
@@ -134,6 +148,70 @@ class YouTube(DownloadMixin):
                                   request=dict(consistencyTokenJars=[],
                                                internalExperimentFlags=[]),
                               )),
+                    return_json=True))) == 'STATUS_SUCCEEDED')
+
+    def remove_set_video_id_from_playlist(
+            self,
+            playlist_id: str,
+            set_video_id: str,
+            cache_values: Optional[bool] = False):
+        """Removes a video from a playlist by setVideoId."""
+        if not self.logged_in:
+            raise AuthenticationError('This method requires a call to login()'
+                                      ' first')
+        if cache_values and self._rsvi_cache:
+            soup = self._rsvi_cache['soup']
+            ytcfg = self._rsvi_cache['ytcfg']
+            headers = self._rsvi_cache['headers']
+        else:
+            soup = self._download_page_soup(WATCH_LATER_URL)
+            ytcfg = find_ytcfg(soup)
+            headers = ytcfg_headers(ytcfg)
+        if cache_values:
+            self._rsvi_cache = dict(soup=soup, ytcfg=ytcfg, headers=headers)
+        assert 'INNERTUBE_API_KEY' in ytcfg
+        assert 'VISITOR_DATA' in ytcfg
+        assert 'DELEGATED_SESSION_ID' in ytcfg
+        return (at_path(
+            'status',
+            cast(
+                Mapping[str, Any],
+                self._download_page(
+                    'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
+                    method='post',
+                    params=dict(key=ytcfg['INNERTUBE_API_KEY']),
+                    headers={
+                        'Authorization':
+                        self._authorization_sapisidhash_header(),
+                        'x-goog-authuser':
+                        '0',
+                        'x-origin':
+                        'https://www.youtube.com',
+                        'x-goog-visitor-id':
+                        ytcfg['VISITOR_DATA'],
+                        'x-goog-pageid':
+                        ytcfg['DELEGATED_SESSION_ID'],
+                        'accept':
+                        '*/*',
+                        'origin':
+                        'https://www.youtube.com',
+                        'referer':
+                        f'https://www.youtube.com/playlist?list={playlist_id}',
+                    },
+                    json=dict(actions=[
+                        dict(
+                            action='ACTION_REMOVE_VIDEO',
+                            setVideoId=set_video_id,
+                        )
+                    ],
+                              playlistId=playlist_id,
+                              params='CAFAAQ%3D%3D',
+                              context=dict(client=context_client_body(ytcfg),
+                                           request=dict(
+                                               consistencyTokenJars=[],
+                                               internalExperimentFlags=[],
+                                               useSsl=True),
+                                           user=dict(lockedSafetyMode=False))),
                     return_json=True))) == 'STATUS_SUCCEEDED')
 
     def clear_watch_history(self) -> None:
@@ -227,6 +305,7 @@ class YouTube(DownloadMixin):
                                         return_json=True,
                                         headers=headers))
                 response = contents[1]['response']
+                assert 'onResponseReceivedActions' in response
                 items = (
                     response['onResponseReceivedActions'][0]
                     ['appendContinuationItemsAction']['continuationItems'])
@@ -280,7 +359,6 @@ class YouTube(DownloadMixin):
         content = self._download_page_soup(HISTORY_URL)
         init_data = initial_data(content)
         ytcfg = find_ytcfg(content)
-        headers = ytcfg_headers(ytcfg)
         section_list_renderer = (
             init_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]
             ['tabRenderer']['content']['sectionListRenderer'])
@@ -302,13 +380,12 @@ class YouTube(DownloadMixin):
             try:
                 next_continuation = (section_list_renderer['continuations'][0]
                                      ['nextContinuationData'])
-            except KeyError as e:
+            except KeyError:
                 return
         assert next_continuation is not None
         params = dict(continuation=next_continuation['continuation'],
                       ctoken=next_continuation['continuation'],
                       itct=next_continuation['clickTrackingParams'])
-        xsrf = ytcfg['XSRF_TOKEN']
         resp = None
         while True:
             tries = 0
@@ -391,7 +468,6 @@ class YouTube(DownloadMixin):
         history_info = self.get_history_info()
         content = self._download_page_soup(HISTORY_URL)
         ytcfg = find_ytcfg(content)
-        headers = ytcfg_headers(ytcfg)
         entries = [
             x for x in history_info
             if x['videoRenderer']['videoId'] in video_ids
@@ -426,7 +502,6 @@ class YouTube(DownloadMixin):
             self,
             ytcfg: YtcfgDict,
             feedback_token: str = '',
-            click_tracking_params: str = '',
             api_url: str = '/youtubei/v1/feedback',
             merge_json: Optional[Dict[str, Any]] = None,
             return_is_processed: bool = True
@@ -437,6 +512,8 @@ class YouTube(DownloadMixin):
             feedbackTokens=[feedback_token],
             isFeedbackTokenUnencrypted=False,
             shouldMerge=False) if feedback_token else {}
+        assert 'INNERTUBE_API_KEY' in ytcfg
+        assert 'DELEGATED_SESSION_ID' in ytcfg
         ret = cast(
             Mapping[str, Any],
             self._download_page(
@@ -516,6 +593,7 @@ class YouTube(DownloadMixin):
                 or not item_section['continuations']):
             return
         has_continuations = True
+        assert 'XSRF_TOKEN' in ytcfg
         while has_continuations:
             for cont in item_section['continuations']:
                 data = cast(
@@ -558,6 +636,8 @@ class YouTube(DownloadMixin):
         if not ytcfg:
             content = self._download_page_soup(COMMUNITY_HISTORY_URL)
             ytcfg = find_ytcfg(content)
+        assert 'INNERTUBE_API_KEY' in ytcfg
+        assert 'DELEGATED_SESSION_ID' in ytcfg
         return (at_path(
             'actionResults.0.status',
             cast(
