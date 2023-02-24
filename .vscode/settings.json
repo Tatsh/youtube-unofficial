@@ -73,6 +73,5 @@
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
   "python.formatting.provider": "yapf",
-  "python.linting.pylintEnabled": true,
-  "python.pythonPath": "/home/tatsh/.virtualenvs/youtube-unofficial/bin/python"
+  "python.linting.pylintEnabled": true
 }
