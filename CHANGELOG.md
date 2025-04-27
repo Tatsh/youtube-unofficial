@@ -1,0 +1,33 @@
+<!-- markdownlint-configure-file {"MD024": { "siblings_only": true } } -->
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
+adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Added man page.
+- Added docs.
+- Added tests.
+
+### Fixed
+
+- All broken commands.
+
+### Changed
+
+- Does authorised requests solely by getting cookies from a supported browser.
+- Interface is now a single command `youtube` with subcommands.
+
+### Removed
+
+- Log in feature.
+- Download commands.
+- Command to clear search history.
+
+[unreleased]: https://github.com/Tatsh/youtube-unofficial/compare/v0.2.0...HEAD

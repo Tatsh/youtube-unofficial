@@ -1,0 +1,10 @@
+[tool]
+
+[tool.ruff]
+extend = "../pyproject.toml"
+
+[tool.ruff.lint]
+extend-ignore = ["ARG001", "ARG002", "D100", "D103", "INP001", "PLC0415", "PLR2004", "S105", "S106"]
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["test_*"]

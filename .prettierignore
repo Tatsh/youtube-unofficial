@@ -1,9 +1,15 @@
+*.1
+*.j2
+*.jsonnet
+*.libjsonnet
+*.lock
 *.log
 *~
 .*_cache/
 .coverage
 .directory
 .pnp.*
+/.yarn/**/*.cjs
 /.yarn/install-state.gz
 /dist/
 /docs/_build/

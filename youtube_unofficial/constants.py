@@ -1,53 +1,53 @@
-from typing import Mapping, Set, Tuple
+from __future__ import annotations
 
-from typing_extensions import Final
+__all__ = ('EXTRACTED_THUMBNAIL_KEYS', 'HISTORY_ENTRY_KEYS_TO_SKIP', 'SIMPLE_TEXT_KEYS',
+           'TEXT_RUNS_KEYS', 'THUMBNAILS_KEYS', 'USER_AGENT', 'WATCH_HISTORY_URL',
+           'WATCH_LATER_URL')
 
-__all__ = ('BROWSE_AJAX_URL', 'CHALLENGE_URL', 'EXTRACTED_THUMBNAIL_KEYS',
-           'HISTORY_ENTRY_KEYS_TO_SKIP', 'HISTORY_URL', 'LOGIN_URL',
-           'LOOKUP_URL', 'NETRC_MACHINE', 'SERVICE_AJAX_URL',
-           'SIMPLE_TEXT_KEYS', 'TEXT_RUNS_KEYS', 'TFA_URL', 'THUMBNAILS_KEYS',
-           'USER_AGENT', 'WATCH_HISTORY_URL', 'WATCH_LATER_URL')
+USER_AGENT = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
+              'Chrome/136.0.0.0 Safari/537.36')
+"""
+User agent.
 
-NETRC_MACHINE: Final[str] = 'youtube'
-USER_AGENT: Final[str] = (
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
-    '(KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36,gzip(gfe)')
-BROWSE_AJAX_URL: Final[str] = 'https://www.youtube.com/browse_ajax'
-CHALLENGE_URL: Final[str] = 'https://accounts.google.com/_/signin/sl/challenge'
-COMMUNITY_HISTORY_URL: Final[str] = ('https://www.youtube.com/feed/history/'
-                                     'community_history')
-HISTORY_URL: Final[str] = 'https://www.youtube.com/feed/history'
-LOGIN_URL: Final[str] = 'https://accounts.google.com/ServiceLogin'
-LOOKUP_URL: Final[str] = 'https://accounts.google.com/_/signin/sl/lookup'
-SEARCH_HISTORY_URL: Final[str] = ('https://www.youtube.com/feed/history/'
-                                  'search_history')
-SERVICE_AJAX_URL: Final[str] = 'https://www.youtube.com/service_ajax'
-TFA_URL: Final[
-    str] = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
-WATCH_HISTORY_URL: Final[str] = 'https://www.youtube.com/feed/history'
-WATCH_LATER_URL: Final[str] = 'https://www.youtube.com/playlist?list=WL'
+:meta hide-value:
+"""
+WATCH_HISTORY_URL = 'https://www.youtube.com/feed/history'
+"""
+URL for the Watch History page.
+
+:meta hide-value:
+"""
+WATCH_LATER_URL = 'https://www.youtube.com/playlist?list=WL'
+"""
+URL for the Watch Later playlist.
+
+:meta hide-value:
+"""
 # print-history-ids constants
-EXTRACTED_THUMBNAIL_KEYS: Final[Tuple[str, str,
-                                      str]] = ('width', 'height', 'url')
-HISTORY_ENTRY_KEYS_TO_SKIP: Final[Set[str]] = {
-    'menu', 'navigationEndpoint', 'thumbnailOverlays', 'trackingParams'
+EXTRACTED_THUMBNAIL_KEYS = ('width', 'height', 'url')
+HISTORY_ENTRY_KEYS_TO_SKIP = {
+    'isWatched', 'menu', 'navigationEndpoint', 'showActionMenu', 'thumbnailOverlays',
+    'trackingParams'
 }
-SIMPLE_TEXT_KEYS: Final[Mapping[str, str]] = {
+SIMPLE_TEXT_KEYS = {
     'shortViewCountText': 'short_view_count_text',
     'viewCountText': 'view_count_text'
 }
-TEXT_RUNS_KEYS: Final[Mapping[str, str]] = {
+TEXT_RUNS_KEYS = {
     'descriptionSnippet': 'description',
     'longBylineText': 'long_byline_text',
     'ownerText': 'owner_text',
     'title': 'title',
     'shortBylineText': 'short_byline_text',
 }
-THUMBNAILS_KEYS: Final[Mapping[str, Tuple[str, str]]] = {
-    'channelThumbnailSupportedRenderers':
-    ('channelThumbnailWithLinkRenderer.thumbnail.thumbnails',
-     'channel_thumbnails'),
-    'richThumbnail':
-    ('movingThumbnailRenderer.movingThumbnailDetails.thumbnails',
-     'moving_thumbnails'),
+"""
+Mapping of text runs keys to output keys.
+
+:meta hide-value:
+"""
+THUMBNAILS_KEYS = {
+    'channelThumbnailSupportedRenderers': (
+        'channelThumbnailWithLinkRenderer.thumbnail.thumbnails', 'channel_thumbnails'),
+    'richThumbnail': (
+        'movingThumbnailRenderer.movingThumbnailDetails.thumbnails', 'moving_thumbnails'),
 }

@@ -1,8 +1,16 @@
-from typing import Any, Dict, Mapping, Sequence, TypedDict
+from __future__ import annotations
 
-from .browse_ajax import NextContinuationDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
-__all__ = ('PlaylistInfo', )
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+__all__ = ('PlaylistInfo', 'PlaylistVideoListRenderer')
+
+
+class NextContinuationDict(TypedDict):
+    clickTrackingParams: str
+    continuation: str
 
 
 class WatchEndpointDict(TypedDict):
@@ -31,8 +39,7 @@ class IconDict(TypedDict):
     iconType: str
 
 
-class PlaylistVideoRendererMenuRendererItemMenuServiceItemRendererDict(
-        TypedDict):
+class PlaylistVideoRendererMenuRendererItemMenuServiceItemRendererDict(TypedDict):
     icon: IconDict
     serviceEndpoint: Mapping[str, Any]
 
@@ -50,17 +57,19 @@ class PlaylistVideoRendererMenuDict(TypedDict):
 
 
 class PlaylistVideoRendererDict(TypedDict, total=False):
+    menu: PlaylistVideoRendererMenuDict
     navigationEndpoint: NavigationEndpointDict
     shortBylineText: RunsOrTextDict
     title: RunsOrSimpleTextDict
     videoId: str
 
-    menu: PlaylistVideoRendererMenuDict
-
 
 class PlaylistInfo(TypedDict, total=False):
-    continuationItemRenderer: Dict[str, Any]
+    """Playlist information."""
+    continuationItemRenderer: dict[str, Any]
+    """Continuation data."""
     playlistVideoRenderer: PlaylistVideoRendererDict
+    """Inner renderer data."""
 
 
 class PlaylistVideoListRendererContinuationsDict(TypedDict):
@@ -68,5 +77,8 @@ class PlaylistVideoListRendererContinuationsDict(TypedDict):
 
 
 class PlaylistVideoListRenderer(TypedDict):
+    """Playlist video list renderer dictionary."""
     contents: Sequence[PlaylistInfo]
+    """Inner contents."""
     continuations: Sequence[PlaylistVideoListRendererContinuationsDict]
+    """Continuation data."""

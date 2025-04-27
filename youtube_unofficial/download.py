@@ -1,48 +1,61 @@
-from typing import Any, Mapping, Optional, Sequence, Union, cast
+from __future__ import annotations
 
-from bs4 import BeautifulSoup as Soup
+from typing import TYPE_CHECKING, Any, Literal, cast
+import logging
+
 from requests import Request, Session
-from typing_extensions import Literal
+from typing_extensions import overload
 
-__all__ = ('DownloadMixin', 'download_page')
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+__all__ = ('download_page',)
+log = logging.getLogger(__name__)
 
 
-def download_page(
-        sess: Session,
-        url: str,
-        data: Any = None,
-        method: Literal['get', 'post'] = 'get',
-        headers: Optional[Mapping[str, str]] = None,
-        params: Optional[Mapping[str, str]] = None,
-        return_json: bool = False,
-        json: Any = None) -> Union[str, Sequence[Any], Mapping[str, Any]]:
+@overload
+def download_page(sess: Session,
+                  url: str,
+                  data: Any = None,
+                  method: Literal['get', 'post'] = 'get',
+                  headers: Mapping[str, str] | None = None,
+                  params: Mapping[str, str] | None = None,
+                  json: Any = None,
+                  *,
+                  return_json: Literal[False] = False) -> str:  # pragma: no cover
+    ...
+
+
+@overload
+def download_page(sess: Session,
+                  url: str,
+                  data: Any = None,
+                  method: Literal['get', 'post'] = 'get',
+                  headers: Mapping[str, str] | None = None,
+                  params: Mapping[str, str] | None = None,
+                  json: Any = None,
+                  *,
+                  return_json: Literal[True]) -> dict[str, Any]:  # pragma: no cover
+    ...
+
+
+@overload
+def download_page(sess: Session,
+                  url: str,
+                  data: Any = None,
+                  method: Literal['get', 'post'] = 'get',
+                  headers: Mapping[str, str] | None = None,
+                  params: Mapping[str, str] | None = None,
+                  json: Any = None,
+                  *,
+                  return_json: bool = False) -> str | dict[str, Any]:
     if headers:
         sess.headers.update(headers)
-    req = Request(method.upper(), url, data=data, params=params, json=json)
-    prepped = sess.prepare_request(req)  # type: ignore[no-untyped-call]
+    req = Request(method, url, data=data, params=params, json=json)
+    prepped = sess.prepare_request(req)
     del prepped.headers['accept-encoding']
-    r = sess.send(prepped)  # type: ignore[no-untyped-call]
+    r = sess.send(prepped)
     r.raise_for_status()
     if not return_json:
         return r.text.strip()
-    return cast(Mapping[str, Any], r.json())
-
-
-class DownloadMixin:  # pylint: disable=too-few-public-methods
-    _sess: Session
-
-    def _download_page(
-            self,
-            url: str,
-            data: Any = None,
-            method: Literal['get', 'post'] = 'get',
-            headers: Optional[Mapping[str, str]] = None,
-            params: Optional[Mapping[str, str]] = None,
-            return_json: bool = False,
-            json: Any = None) -> Union[str, Sequence[Any], Mapping[str, Any]]:
-        return download_page(self._sess, url, data, method, headers, params,
-                             return_json, json)
-
-    def _download_page_soup(self, *args: Any, **kwargs: Any) -> Soup:
-        return Soup(cast(str, self._download_page(*args, **kwargs)),
-                    kwargs.pop('parser', 'html5lib'))
+    return cast('dict[str, Any]', r.json())

@@ -1,0 +1,12 @@
+build:
+  jobs:
+    post_install:
+      - 'pip install poetry'
+      - 'VIRTUAL_ENV="$READTHEDOCS_VIRTUALENV_PATH" poetry install --all-extras --with=docs'
+  os: 'ubuntu-22.04'
+  tools:
+    python: '3.12'
+sphinx:
+  configuration: 'docs/conf.py'
+  fail_on_warning: true
+version: 2

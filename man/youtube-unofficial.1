@@ -1,0 +1,422 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "YOUTUBE-UNOFFICIAL" "1" "Apr 27, 2025" "0.2.0" "youtube-unofficial"
+.SH NAME
+youtube-unofficial \- youtube-unofficial v0.2.0
+.SH COMMANDS
+.SS youtube
+.sp
+Unofficial YouTube CLI.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+youtube [OPTIONS] COMMAND [ARGS]...
+.EE
+.UNINDENT
+.UNINDENT
+.SS clear\-watch\-history
+.sp
+Clear watch history.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+youtube clear\-watch\-history [OPTIONS]
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug output
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b, \-\-browser <browser>
+Browser to read cookies from.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-profile <profile>
+Browser profile.
+.UNINDENT
+.SS clear\-watch\-later
+.sp
+Clear watch later queue.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+youtube clear\-watch\-later [OPTIONS]
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug output
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b, \-\-browser <browser>
+Browser to read cookies from.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-profile <profile>
+Browser profile.
+.UNINDENT
+.SS print\-history
+.sp
+Print your watch history.
+.sp
+By default, this will print the video IDs of your watch history.
+.sp
+If \-j/\-\-json is specified, this will print a JSON object for each video in your watch
+history. The JSON object will have the following interface:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+{
+    channel_thumbnails: {
+        height: int
+        width: int
+        url: string
+    }[]
+    description: string
+    length: string
+    length_accessible: string
+    long_byline_text: string
+    moving_thumbnails: {
+        height: int
+        width: int
+        url: string
+    }[]
+    owner_text: string
+    short_byline_text: string
+    short_view_count_text: string
+    title: string
+    video_id: string
+    video_thumbnails: {
+        height: int
+        width: int
+        url: string
+    }[]
+ }
+.EE
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+youtube print\-history [OPTIONS]
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug output
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b, \-\-browser <browser>
+Browser to read cookies from.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-profile <profile>
+Browser profile.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-j, \-\-json
+Output in JSON format
+.UNINDENT
+.SS print\-playlist
+.sp
+Print a playlist.
+.sp
+By default, this will print the video IDs of the given playlist ID.
+.sp
+If \-j/\-\-json is specified, this will print a JSON object for each video in your Watch Later
+playlist. The JSON object will have the following interface:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+{
+    owner: string
+    title: string
+    video_id: string
+    watch_url: string
+}
+.EE
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+youtube print\-playlist [OPTIONS] PLAYLIST_ID
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug output
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b, \-\-browser <browser>
+Browser to read cookies from.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-profile <profile>
+Browser profile.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-j, \-\-json
+Output in JSON format
+.UNINDENT
+.sp
+Arguments
+.INDENT 0.0
+.TP
+.B PLAYLIST_ID
+Required argument
+.UNINDENT
+.SS print\-watch\-later
+.sp
+Print your Watch Later playlist.
+.sp
+By default, this will print the video IDs of your Watch Later playlist.
+.sp
+If \-j/\-\-json is specified, this will print a JSON object for each video in your Watch Later
+playlist. The JSON object will have the following interface:
+.nf
+{
+.in +2
+owner: string
+title: string
+video_id: string
+watch_url: string
+.in -2
+}
+.fi
+.sp
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+youtube print\-watch\-later [OPTIONS]
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug output
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b, \-\-browser <browser>
+Browser to read cookies from.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-profile <profile>
+Browser profile.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-j, \-\-json
+Output in JSON format
+.UNINDENT
+.SS remove\-history\-entries
+.sp
+Remove videos from Watch History.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+youtube remove\-history\-entries [OPTIONS] [VIDEO_IDS]...
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug output
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b, \-\-browser <browser>
+Browser to read cookies from.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-profile <profile>
+Browser profile.
+.UNINDENT
+.sp
+Arguments
+.INDENT 0.0
+.TP
+.B VIDEO_IDS
+Optional argument(s)
+.UNINDENT
+.SS remove\-video\-id
+.sp
+Remove videos from a playlist.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+youtube remove\-video\-id [OPTIONS] PLAYLIST_ID [VIDEO_IDS]...
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug output
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b, \-\-browser <browser>
+Browser to read cookies from.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-profile <profile>
+Browser profile.
+.UNINDENT
+.sp
+Arguments
+.INDENT 0.0
+.TP
+.B PLAYLIST_ID
+Required argument
+.UNINDENT
+.INDENT 0.0
+.TP
+.B VIDEO_IDS
+Optional argument(s)
+.UNINDENT
+.SS remove\-watch\-later\-video\-id
+.sp
+Remove videos from your Watch Later queue.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+youtube remove\-watch\-later\-video\-id [OPTIONS] [VIDEO_IDS]...
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug output
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b, \-\-browser <browser>
+Browser to read cookies from.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-profile <profile>
+Browser profile.
+.UNINDENT
+.sp
+Arguments
+.INDENT 0.0
+.TP
+.B VIDEO_IDS
+Optional argument(s)
+.UNINDENT
+.SS toggle\-watch\-history
+.sp
+Disable or enable watch history.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+youtube toggle\-watch\-history [OPTIONS]
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Options
+.INDENT 0.0
+.TP
+.B \-d, \-\-debug
+Enable debug output
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b, \-\-browser <browser>
+Browser to read cookies from.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p, \-\-profile <profile>
+Browser profile.
+.UNINDENT
+.SH AUTHOR
+Andrew Udvare <audvare@gmail.com>
+.SH COPYRIGHT
+2025
+.\" Generated by docutils manpage writer.
+.

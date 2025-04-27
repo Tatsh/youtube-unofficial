@@ -1,0 +1,8 @@
+authors:
+  - family-names: 'Udvare'
+    given-names: 'Andrew'
+cff-version: '1.2.0'
+date-released: '2025-04-26'
+message: 'If you use this software, please cite it as below.'
+title: 'youtube-unofficial'
+version: '0.2.0'

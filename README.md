@@ -1,24 +1,24 @@
 # Unofficial YouTube API client
 
-Use this library to do things the real YouTube API does not let you do. DO NOT USE THIS FOR ANY ACCOUNT OTHER THAN YOUR OWN!
+[![QA](https://github.com/Tatsh/youtube-unofficial/actions/workflows/qa.yml/badge.svg)](https://github.com/Tatsh/youtube-unofficial/actions/workflows/qa.yml)
+[![Tests](https://github.com/Tatsh/youtube-unofficial/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/youtube-unofficial/actions/workflows/tests.yml)
+[![Coverage Status](https://coveralls.io/repos/github/Tatsh/youtube-unofficial/badge.svg?branch=master)](https://coveralls.io/github/Tatsh/youtube-unofficial?branch=master)
+[![Documentation Status](https://readthedocs.org/projects/youtube-unofficial/badge/?version=latest)](https://youtube-unofficial.readthedocs.org/?badge=latest)
+[![PyPI - Version](https://img.shields.io/pypi/v/youtube-unofficial)](https://pypi.org/project/youtube-unofficial/)
+[![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/youtube-unofficial)](https://github.com/Tatsh/youtube-unofficial/tags)
+[![License](https://img.shields.io/github/license/Tatsh/youtube-unofficial)](https://github.com/Tatsh/youtube-unofficial/blob/master/LICENSE.txt)
+[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/youtube-unofficial/v0.2.0/master)](https://github.com/Tatsh/youtube-unofficial/compare/v0.2.0...master)
 
-This library supports Python 3.6+.
+[![@Tatsh](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fpublic.api.bsky.app%2Fxrpc%2Fapp.bsky.actor.getProfile%2F%3Factor%3Ddid%3Aplc%3Auq42idtvuccnmtl57nsucz72%26query%3D%24.followersCount%26style%3Dsocial%26logo%3Dbluesky%26label%3DFollow%2520%40Tatsh&query=%24.followersCount&style=social&logo=bluesky&label=Follow%20%40Tatsh)](https://bsky.app/profile/tatsh.bsky.social)
+[![Mastodon Follow](https://img.shields.io/mastodon/follow/109370961877277568?domain=hostux.social&style=social)](https://hostux.social/@tatsh)
 
-## Use a netrc file
-
-_Please note for the time being, logging in is not working. For more details, see this [youtube-dl issue](https://github.com/ytdl-org/youtube-dl/issues/24508#issuecomment-609362963)._
-
-Every command can take a `--username` and `--password` argument.
-
-You should consider using a netrc file for your login. Example at `~/.netrc`:
-
-```plain
-machine youtube login LOGIN password YOUR_PASSWORD
-```
-
-You can specify a custom netrc file with the `--netrc` argument.
+Access parts of your account unavailable through normal YouTube API access.
 
 ## Usage
+
+This uses a browser cookie storage to be able to access authorised endpoints. There is no feature to
+log in. You must be logged on in a supported browser. This supports any browser that yt-dlp
+supports.
 
 ### Command line
 
@@ -34,34 +34,17 @@ You can specify a custom netrc file with the `--netrc` argument.
 - `youtube-toggle-search-history` - Turn on/off _Search History_
 - `youtube-toggle-watch-history` - Turn on/off _Watch History_
 
-Every command takes a `--debug` argument.
+Every command takes a `--debug` or `-d` argument to show very verbose logs.
 
-You can use exported cookies in Netscape format with the `--cookies COOKIES_FILE` argument. By default, cookies are read from `~/.local/share/cookies/youtube.txt`.
-
-Some commands accept a `-j`/`--json` argument to print machine-readable output.
-
-### Download commands
-
-- `ytdl-history` - Use youtube-dl to download your history
-- `ytdl-liked` - Use youtube-dl to download your liked videos
-- `ytdl-playlist` - Use youtube-dl to download a playlist
-- `ytdl-watch-later` - Use youtube-dl to download your Watch Later playlist
-
-For downloads to work, `youtube-dl` must be in `PATH`. To pass arguments to `youtube-dl`, specify `--` before those arguments. Example with arguments to youtube-dl:
-
-```shell
-ytdl-history --output-dir ~/Downloads --delete-after -- --extract-audio --audio-format m4a --audio-quality 0
-```
-
-Each download command has a `-D`/`--delete-after` option, which makes the script delete the entry from the set of videos after a successful download.
+Some commands accept a `-j`/`--json` argument to print machine-readable output as JSON lines.
 
 ### In Python
 
 ```python
-from os.path import expanduser
-from youtube_unofficial import YouTube
+from youtube_unofficial import YouTubeClient
 
-yt = YouTube(cookies_path=expanduser('~/my-cookies-file.txt'), logged_in=True)
+# Arguments are the browser name and profile.
+yt = YouTubeClient('chrome', 'Default')
 
 # Clear watch history
 yt.clear_watch_history()
@@ -75,6 +58,8 @@ yt.clear_watch_later()
 
 ## Contributing
 
-For a new feature to be accepted, it must be something that _cannot_ be achieved with Google's official API.
+For a new feature to be accepted, it must be something that _cannot_ be achieved with Google's
+official API. It also has to be on the youtube.com/youtu.be website or app and not a place like
+_My Activity_.
 
-Code must run through `mypy` and `pylint` based on the project settings.
+Code must run through `yarn qa` and have zero issues.

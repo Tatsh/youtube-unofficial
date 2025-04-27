@@ -1,0 +1,39 @@
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: 'actions/checkout@v4'
+      - name: 'Install Poetry'
+        run: 'pipx install poetry'
+      - name: 'Set up Python ${{ matrix.python-version }}'
+        uses: 'actions/setup-python@v5'
+        with:
+          cache: 'poetry'
+          python-version: '${{ matrix.python-version }}'
+      - name: 'Install dependencies (Poetry)'
+        run: 'poetry install --with=dev,tests'
+      - name: 'Install dependencies (Yarn)'
+        run: 'yarn'
+      - name: 'Lint with mypy'
+        run: 'yarn mypy .'
+      - name: 'Lint with Ruff'
+        run: 'yarn ruff .'
+      - name: 'Check formatting'
+        run: 'yarn check-formatting'
+      - name: 'Check spelling'
+        run: 'yarn check-spelling'
+    strategy:
+      matrix:
+        python-version:
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+name: 'QA'
+'on':
+  pull_request:
+    branches:
+      - 'master'
+  push:
+    branches:
+      - 'master'

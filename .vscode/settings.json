@@ -1,77 +1,49 @@
 {
-  "[json]": {
-    "editor.tabSize": 2
+  "[python]": {
+    "editor.defaultFormatter": "eeyore.yapf",
+    "editor.formatOnSaveMode": "file",
+    "editor.tabSize": 4
   },
-  "[jsonc]": {
-    "editor.tabSize": 2
+  "[restructuredtext]": {
+    "editor.defaultFormatter": "lextudio.restructuredtext",
+    "editor.formatOnSaveMode": "file",
+    "editor.tabSize": 3
   },
-  "[yaml]": {
-    "editor.tabSize": 2
+  "[shellscript]": {
+    "editor.tabSize": 4
   },
-  "cSpell.ignoreWords": [
-    "abstractproperty",
-    "asdict",
-    "asyncio",
-    "audvare",
-    "br",
-    "br'authority",
-    "br'mac",
-    "builtins",
-    "check",
-    "classmethod",
-    "comparetozero",
-    "concat",
-    "ctoken",
-    "datetime",
-    "dl's",
-    "docparams",
-    "docstring",
-    "docstrings",
-    "docstyle",
-    "elif",
-    "emptystring",
-    "eval",
-    "glif",
-    "in",
-    "initialising",
-    "inlinevar",
-    "itct",
-    "khtml",
-    "mccabe",
-    "metaclass",
-    "mypy",
-    "nargs",
-    "netrc",
-    "newstyle",
-    "nonexistant",
-    "nonlocal",
-    "notimplemented",
-    "noval",
-    "numpy",
-    "optparse",
-    "overgeneral",
-    "pylint",
-    "referer",
-    "remove",
-    "sess",
-    "sign",
-    "staticmethod",
-    "tkinter",
-    "typecheck",
-    "udvare",
-    "web",
-    "xsrf",
-    "yapf",
-    "ytcfg",
-    "ytch"
-  ],
-  "editor.detectIndentation": false,
+  "cSpell.enabled": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnPaste": true,
   "editor.formatOnSave": true,
-  "editor.tabSize": 4,
+  "editor.formatOnType": true,
+  "editor.insertSpaces": true,
+  "editor.rulers": [100],
+  "editor.tabSize": 2,
+  "editor.wordWrapColumn": 100,
   "files.eol": "\n",
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
-  "python.formatting.provider": "yapf",
-  "python.linting.pylintEnabled": true
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.completeFunctionParens": true,
+  "python.analysis.importFormat": "relative",
+  "python.analysis.indexing": true,
+  "python.analysis.inlayHints.callArgumentNames": "all",
+  "python.analysis.inlayHints.functionReturnTypes": true,
+  "python.analysis.inlayHints.pytestParameters": true,
+  "python.analysis.inlayHints.variableTypes": true,
+  "python.analysis.packageIndexDepths": [
+    {
+      "depth": 100,
+      "name": ""
+    }
+  ],
+  "python.languageServer": "Pylance",
+  "python.testing.pytestArgs": ["tests"],
+  "python.testing.pytestEnabled": true,
+  "yaml.format.printWidth": 100
 }

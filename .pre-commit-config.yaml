@@ -1,0 +1,104 @@
+default_install_hook_types:
+  - 'pre-commit'
+  - 'pre-push'
+  - 'post-checkout'
+  - 'post-merge'
+repos:
+  - hooks:
+      - exclude: "yarn-\\d+.*\\.cjs$"
+        id: 'check-added-large-files'
+      - id: 'check-ast'
+      - id: 'check-builtin-literals'
+      - id: 'check-case-conflict'
+      - id: 'check-executables-have-shebangs'
+      - id: 'check-merge-conflict'
+      - id: 'check-shebang-scripts-are-executable'
+      - id: 'check-symlinks'
+      - id: 'check-toml'
+      - id: 'debug-statements'
+      - id: 'destroyed-symlinks'
+      - id: 'detect-aws-credentials'
+      - id: 'detect-private-key'
+      - id: 'end-of-file-fixer'
+      - files: "^(\\.(docker|eslint|prettier)ignore|CODEOWNERS|\\.gitattributes)$"
+        id: 'file-contents-sorter'
+      - id: 'fix-byte-order-marker'
+      - id: 'mixed-line-ending'
+    repo: 'https://github.com/pre-commit/pre-commit-hooks'
+    rev: 'v5.0.0'
+  - hooks:
+      - id: 'poetry-check'
+        stages:
+          - 'pre-push'
+      - id: 'poetry-lock'
+        stages:
+          - 'pre-push'
+      - args:
+          - '--all-groups'
+        id: 'poetry-install'
+    repo: 'https://github.com/python-poetry/poetry'
+    rev: '2.1.2'
+  - hooks:
+      - id: 'yapf'
+        name: 'check Python files are formatted'
+    repo: 'https://github.com/google/yapf'
+    rev: 'v0.43.0'
+  - hooks:
+      - id: 'check-github-actions'
+      - id: 'check-github-workflows'
+      - args:
+          - '--schemafile'
+          - 'https://json.schemastore.org/package.json'
+        files: "^package\\.json$"
+        id: 'check-jsonschema'
+        name: 'validate package.json'
+    repo: 'https://github.com/python-jsonschema/check-jsonschema'
+    rev: '0.31.3'
+  - hooks:
+      - id: 'validate-cff'
+    repo: 'https://github.com/citation-file-format/cffconvert'
+    rev: 'b6045d7'
+  - hooks:
+      - entry: 'yarn install --check-cache --immutable'
+        files: "^package\\.json$"
+        id: 'yarn-check-lock'
+        language: 'system'
+        name: 'check yarn.lock is up-to-date'
+        pass_filenames: false
+      - always_run: true
+        entry: 'yarn install'
+        id: 'yarn-install'
+        language: 'system'
+        name: 'ensure Node packages are installed for this branch'
+        pass_filenames: false
+        stages:
+          - 'post-checkout'
+          - 'post-merge'
+      - entry: 'yarn prettier -w'
+        exclude: '((requirements|robots).txt|Dockerfile.*|..*ignore|.(coveragerc|gitattributes)|.*.(csv|lock|resource|robot)|CODEOWNERS|py.typed)$'
+        exclude_types:
+          - 'binary'
+          - 'dockerfile'
+          - 'pyi'
+          - 'python'
+          - 'rst'
+          - 'plain-text'
+          - 'shell'
+        id: 'fix-formatting-prettier'
+        language: 'system'
+        name: 'check files are formatted with Prettier'
+      - entry: 'poetry run ruff check --fix --exit-non-zero-on-fix'
+        id: 'fix-ruff'
+        language: 'system'
+        name: 'check Python files have Ruff fixes applied'
+        require_serial: true
+        types_or:
+          - 'python'
+          - 'pyi'
+      - entry: "yarn markdownlint-cli2 --fix '#node_modules'"
+        id: 'fix-formatting-markdown'
+        language: 'system'
+        name: 'check Markdown files are formatted'
+        types_or:
+          - 'markdown'
+    repo: 'local'
