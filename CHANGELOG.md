@@ -27,7 +27,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Removed
 
 - Log in feature.
-- Download commands.
-- Command to clear search history.
+- 'Community' commands such as getting comments. These have moved to My Activity.
+- Download commands. All of these can be achieved with yt-dlp alone now.
+- Command to clear search history. Moved to My Activity.
 
 [unreleased]: https://github.com/Tatsh/youtube-unofficial/compare/v0.2.0...HEAD
