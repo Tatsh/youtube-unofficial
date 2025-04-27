@@ -22,17 +22,25 @@ supports.
 
 ### Command line
 
-- `youtube-clear-history` - Clear your _Watch History_
-- `youtube-clear-search-history` - Clear your _Search History_
-- `youtube-clear-watch-later` - Clear your _Watch Later_ queue
-- `youtube-print-history-ids` - Print _Watch History_ video IDs
-- `youtube-print-playlist-ids` - Print video IDs from a specific playlist
-- `youtube-print-watch-later-ids` - Print _Watch Later_ video IDs
-- `youtube-remove-history-entries` - Remove videos from your _Watch History_
-- `youtube-remove-videoid` - Remove a video from a playlist
-- `youtube-remove-watch-later-videoid` - Remove a video from your _Watch Later_ queue
-- `youtube-toggle-search-history` - Turn on/off _Search History_
-- `youtube-toggle-watch-history` - Turn on/off _Watch History_
+```plain
+Usage: youtube [OPTIONS] COMMAND [ARGS]...
+
+  Unofficial YouTube CLI.
+
+Options:
+  -h, --help  Show this message and exit.
+
+Commands:
+  clear-watch-history          Clear watch history.
+  clear-watch-later            Clear watch later queue.
+  print-history                Print your watch history.
+  print-playlist               Print a playlist.
+  print-watch-later            Print your Watch Later playlist.
+  remove-history-entries       Remove videos from Watch History.
+  remove-video-id              Remove videos from a playlist.
+  remove-watch-later-video-id  Remove videos from your Watch Later queue.
+  toggle-watch-history         Disable or enable watch history
+```
 
 Every command takes a `--debug` or `-d` argument to show very verbose logs.
 
