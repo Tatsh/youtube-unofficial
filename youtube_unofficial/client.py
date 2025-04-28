@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from operator import itemgetter
 from time import sleep
 from typing import TYPE_CHECKING, Any, Literal, cast
 import hashlib
@@ -14,16 +15,30 @@ from typing_extensions import overload
 import yt_dlp_utils
 
 from .constants import (
+    EXTRACTED_THUMBNAIL_KEYS,
+    HISTORY_ENTRY_KEYS_TO_SKIP,
+    SIMPLE_TEXT_KEYS,
+    TEXT_RUNS_KEYS,
+    THUMBNAILS_KEYS,
     USER_AGENT,
     WATCH_HISTORY_URL,
     WATCH_LATER_URL,
 )
 from .download import download_page
-from .utils import context_client_body, find_ytcfg, initial_data, ytcfg_headers
+from .typing.playlist import PlaylistVideoIDsEntry
+from .utils import (
+    context_client_body,
+    extract_keys,
+    find_ytcfg,
+    get_text_runs,
+    initial_data,
+    ytcfg_headers,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Mapping, Sequence
+    from collections.abc import Iterable, Iterator, Mapping, Sequence
 
+    from .typing.history import HistoryVideoIDsEntry, MetadataBadgeRendererTopDict
     from .typing.playlist import PlaylistInfo, PlaylistVideoListRenderer
     from .typing.ytcfg import YtcfgDict
 
@@ -44,12 +59,24 @@ class YouTubeClient:
     """
     Max retries for history API calls. Used in :py:meth:`get_history_info`.
 
-
     :meta hide-value:
     """
     def __init__(self, browser: str, profile: str) -> None:
-        self.session = yt_dlp_utils.setup_session(browser, profile, {'youtube.com', 'youtu.be'})
-        """Requests session instance."""
+        """
+        Initialise the client.
+
+        Parameters
+        ----------
+        browser : str
+            The browser to use.
+        profile : str
+            The profile to use.
+        """
+        self.session = yt_dlp_utils.setup_session(browser,
+                                                  profile,
+                                                  domains={'youtube.com'},
+                                                  setup_retry=True)
+        """Requests :py:class:`requests.Session` instance."""
         self.session.headers.update({'User-Agent': USER_AGENT})
         self._rsvi_cache: dict[str, Any] | None = None
 
@@ -58,7 +85,24 @@ class YouTubeClient:
                                       video_id: str,
                                       *,
                                       cache_values: bool | None = False) -> bool:
-        """Remove a video from a playlist."""
+        """
+        Remove a video from a playlist.
+
+        Parameters
+        ----------
+        playlist_id : str
+            The ID of the playlist.
+        video_id : str
+            The ID of the video to remove.
+        cache_values : bool | None
+            If ``True``, cache the values of the page and ytcfg. This is useful for performance
+            reasons, but may cause issues if updates are needed.
+
+        Returns
+        -------
+        bool
+            ``True`` if the operation was successful, ``False`` otherwise.
+        """
         if cache_values and self._rsvi_cache:
             soup = self._rsvi_cache['soup']
             ytcfg = self._rsvi_cache['ytcfg']
@@ -112,7 +156,24 @@ class YouTubeClient:
                                           set_video_id: str,
                                           *,
                                           cache_values: bool | None = False) -> bool:
-        """Remove a video from a playlist by its *setVideoId*."""
+        """
+        Remove a video from a playlist by its *setVideoId*.
+
+        Parameters
+        ----------
+        playlist_id : str
+            The ID of the playlist.
+        set_video_id : str
+            The *setVideoId* of the video to remove.
+        cache_values : bool | None
+            If ``True``, cache the values of the page and ytcfg. This is useful for performance
+            reasons, but may cause issues if updates are needed.
+
+        Returns
+        -------
+        bool
+            ``True`` if the operation was successful, ``False`` otherwise.
+        """
         if cache_values and self._rsvi_cache:
             soup = self._rsvi_cache['soup']
             ytcfg = self._rsvi_cache['ytcfg']
@@ -166,7 +227,14 @@ class YouTubeClient:
                     return_json=True))['status'] == 'STATUS_SUCCEEDED')
 
     def clear_watch_history(self) -> bool:
-        """Clear watch history."""
+        """
+        Clear watch history.
+
+        Returns
+        -------
+        bool
+            ``True`` if the operation was successful, ``False`` otherwise.
+        """
         content = self._download_page_soup(WATCH_HISTORY_URL)
         ytcfg = find_ytcfg(content)
         init_data = benedict(initial_data(content))
@@ -188,7 +256,19 @@ class YouTubeClient:
         return cast('bool', self._single_feedback_api_call(ytcfg, init_data[expected_path]))
 
     def get_playlist_info(self, playlist_id: str) -> Iterator[PlaylistInfo]:
-        """Get playlist information."""
+        """
+        Get playlist information.
+
+        Parameters
+        ----------
+        playlist_id : str
+            The ID of the playlist.
+
+        Yields
+        ------
+        PlaylistInfo
+            The playlist information.
+        """
         url = f'https://www.youtube.com/playlist?list={playlist_id}'
         content = self._download_page_soup(url)
         ytcfg = find_ytcfg(content)
@@ -246,11 +326,71 @@ class YouTubeClient:
                 if 'continuationItemRenderer' not in items[-1]:
                     break
 
+    @overload
+    def get_playlist_video_ids(
+            self, playlist_id: str, *,
+            return_dict: Literal[True]) -> Iterator[PlaylistVideoIDsEntry]:  # pragma: no cover
+        ...
+
+    @overload
+    def get_playlist_video_ids(self, playlist_id: str, *,
+                               return_dict: Literal[False]) -> Iterator[str]:  # pragma: no cover
+        ...
+
+    def get_playlist_video_ids(
+            self,
+            playlist_id: str,
+            *,
+            return_dict: bool = False) -> Iterator[str] | Iterator[PlaylistVideoIDsEntry]:
+        """
+        Get video IDs from a playlist.
+
+        Parameters
+        ----------
+        playlist_id : str
+            The ID of the playlist.
+        return_dict : bool
+            If ``True``, yield dictionaries.
+
+        Yields
+        ------
+        str | PlaylistVideoIDsEntry
+            The video IDs or dictionaries with video information.
+        """
+        for item in self.get_playlist_info(playlist_id):
+            renderer = item['playlistVideoRenderer']
+            if 'videoId' not in renderer:
+                continue
+            owner = title = None
+            if 'shortBylineText' in renderer:
+                if 'runs' in renderer['shortBylineText']:
+                    owner = ' - '.join(map(itemgetter('text'), renderer['shortBylineText']['runs']))
+                elif 'text' in renderer['shortBylineText']:
+                    owner = renderer['shortBylineText']['text']
+            if 'title' in renderer:
+                if 'simpleText' in renderer['title']:
+                    title = renderer['title']['simpleText']
+                elif 'runs' in renderer['title']:
+                    title = ' - '.join(map(itemgetter('text'), renderer['title']['runs']))
+            if return_dict:
+                yield PlaylistVideoIDsEntry(
+                    owner=owner,
+                    title=title,
+                    video_id=renderer['videoId'],
+                    watch_url=f'https://www.youtube.com/watch?v={renderer["videoId"]}')
+            else:
+                yield renderer['videoId']
+
     def clear_playlist(self, playlist_id: str) -> None:
         """
         Remove all videos from the specified playlist.
 
         Use `WL` for Watch Later.
+
+        Parameters
+        ----------
+        playlist_id : str
+            The ID of the playlist.
         """
         playlist_info = self.get_playlist_info(playlist_id)
         try:
@@ -267,7 +407,14 @@ class YouTubeClient:
         self.clear_playlist('WL')
 
     def get_history_info(self) -> Iterator[Mapping[str, Any]]:
-        """Get information about the History playlist."""
+        """
+        Get information about the History playlist.
+
+        Yields
+        ------
+        Mapping[str, Any]
+            The history information.
+        """
         content = self._download_page_soup(WATCH_HISTORY_URL)
         init_data = initial_data(content)
         ytcfg = find_ytcfg(content)
@@ -364,8 +511,93 @@ class YouTubeClient:
             params['ctoken'] = next_cont['continuation']
             params['continuation'] = next_cont['continuation']
 
+    @overload
+    def get_history_video_ids(
+            self, *,
+            return_dict: Literal[True]) -> Iterator[HistoryVideoIDsEntry]:  # pragma: no cover
+        ...
+
+    @overload
+    def get_history_video_ids(self, *,
+                              return_dict: Literal[False]) -> Iterator[str]:  # pragma: no cover
+        ...
+
+    def get_history_video_ids(self,
+                              *,
+                              return_dict: bool = False
+                              ) -> Iterator[str] | Iterator[HistoryVideoIDsEntry]:
+        """
+        Get video IDs from the History playlist.
+
+        Yields
+        ------
+        str
+            The video IDs.
+        """
+        def is_verified(owner_badges: Iterable[MetadataBadgeRendererTopDict]) -> bool:
+            for badge in (x['metadataBadgeRenderer'] for x in owner_badges):
+                if badge['style'] == 'BADGE_STYLE_TYPE_VERIFIED':
+                    return True
+            return False
+
+        for entry in self.get_history_info():
+            d = {}
+            if 'videoId' not in entry.get('videoRenderer', {}):
+                continue
+            if return_dict:
+                for k, v in sorted(entry.get('videoRenderer', {}).items()):
+                    if k in HISTORY_ENTRY_KEYS_TO_SKIP:
+                        continue
+                    if k == 'videoId':
+                        d['video_id'] = v
+                    elif isinstance(v, int | str | float | bool):
+                        d[k] = v
+                    elif k in TEXT_RUNS_KEYS:
+                        d[TEXT_RUNS_KEYS[k]] = get_text_runs(v)
+                    elif k in THUMBNAILS_KEYS:
+                        list_path = THUMBNAILS_KEYS[k][0]
+                        target_key = THUMBNAILS_KEYS[k][1]
+                        for thumb in benedict(v)[list_path]:
+                            try:
+                                d[target_key].append(extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb))
+                            except KeyError:  # noqa: PERF203
+                                d[target_key] = [extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb)]
+                    elif k in SIMPLE_TEXT_KEYS:
+                        d[SIMPLE_TEXT_KEYS[k]] = v['simpleText']
+                    elif k == 'lengthText':
+                        d['length_accessible'] = benedict(
+                            v)['accessibility.accessibilityData.label']
+                        d['length'] = v['simpleText']
+                    elif k == 'ownerBadges':
+                        d['verified'] = is_verified(v)
+                    elif k == 'thumbnail':
+                        for thumb in v['thumbnails']:
+                            try:
+                                d['video_thumbnails'].append(
+                                    extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb))
+                            except KeyError:  # noqa: PERF203
+                                d['video_thumbnails'] = [
+                                    extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb)
+                                ]
+                d['watch_url'] = f'https://www.youtube.com/watch?v={d["video_id"]}'
+                yield cast('HistoryVideoIDsEntry', d)
+            else:
+                yield entry['videoRenderer']['videoId']
+
     def remove_video_ids_from_history(self, video_ids: Sequence[str]) -> bool:
-        """Delete a history entry by video ID."""
+        """
+        Delete a history entry by video ID.
+
+        Parameters
+        ----------
+        video_ids : Sequence[str]
+            The video IDs to delete.
+
+        Returns
+        -------
+        bool
+            ``True`` if the operation was successful, ``False`` otherwise.
+        """
         if not video_ids:
             return False
         history_info = self.get_history_info()
@@ -471,7 +703,14 @@ class YouTubeClient:
                                            info['commandMetadata']['webCommandMetadata']['apiUrl']))
 
     def toggle_watch_history(self) -> bool:
-        """Pauses or resumes watch history depending on the current state."""
+        """
+        Pauses or resumes watch history depending on the current state.
+
+        Returns
+        -------
+        bool
+            ``True`` if the operation was successful, ``False`` otherwise.
+        """
         return self._toggle_history(WATCH_HISTORY_URL, 2)
 
     @overload
@@ -498,7 +737,6 @@ class YouTubeClient:
                        return_json: Literal[True]) -> dict[str, Any]:  # pragma: no cover
         ...
 
-    @overload
     def _download_page(self,
                        url: str,
                        data: Any = None,
@@ -508,14 +746,15 @@ class YouTubeClient:
                        json: Any = None,
                        *,
                        return_json: bool = False) -> str | dict[str, Any]:
-        return download_page(self.session,
-                             url,
-                             data,
-                             method,
-                             headers,
-                             params,
-                             json,
-                             return_json=return_json)
+        return download_page(  # type: ignore[call-overload,no-any-return]
+            self.session,
+            url,
+            data,
+            method,
+            headers,
+            params,
+            json,
+            return_json=return_json)
 
     def _download_page_soup(self, *args: Any, **kwargs: Any) -> Soup:
         return Soup(cast('str', self._download_page(*args, **kwargs)),

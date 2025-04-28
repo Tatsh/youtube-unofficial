@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, TypedDict
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-__all__ = ('PlaylistInfo', 'PlaylistVideoListRenderer')
+__all__ = ('PlaylistInfo', 'PlaylistVideoIDsEntry')
 
 
 class NextContinuationDict(TypedDict):
@@ -82,3 +82,15 @@ class PlaylistVideoListRenderer(TypedDict):
     """Inner contents."""
     continuations: Sequence[PlaylistVideoListRendererContinuationsDict]
     """Continuation data."""
+
+
+class PlaylistVideoIDsEntry(TypedDict):
+    """Playlist information."""
+    owner: str | None
+    """Playlist owner."""
+    title: str | None
+    """Playlist title."""
+    video_id: str
+    """Video ID."""
+    watch_url: str
+    """Watch URL."""

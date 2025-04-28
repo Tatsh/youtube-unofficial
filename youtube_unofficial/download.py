@@ -22,7 +22,7 @@ def download_page(sess: Session,
                   params: Mapping[str, str] | None = None,
                   json: Any = None,
                   *,
-                  return_json: Literal[False] = False) -> str:  # pragma: no cover
+                  return_json: Literal[False]) -> str:  # pragma: no cover
     ...
 
 
@@ -39,7 +39,6 @@ def download_page(sess: Session,
     ...
 
 
-@overload
 def download_page(sess: Session,
                   url: str,
                   data: Any = None,

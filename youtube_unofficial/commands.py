@@ -1,27 +1,15 @@
 from __future__ import annotations
 
-from operator import itemgetter
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 import json
 import logging
 
-from benedict import benedict
 import click
 
 from . import YouTubeClient
-from .constants import (
-    EXTRACTED_THUMBNAIL_KEYS,
-    HISTORY_ENTRY_KEYS_TO_SKIP,
-    SIMPLE_TEXT_KEYS,
-    TEXT_RUNS_KEYS,
-    THUMBNAILS_KEYS,
-)
-from .utils import extract_keys, get_text_runs
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-
-    from .typing.history import MetadataBadgeRendererTopDict
 
 __all__ = ('clear_watch_history', 'clear_watch_later', 'print_history', 'print_playlist',
            'print_watch_later', 'remove_history_entries', 'remove_video_id',
@@ -34,31 +22,12 @@ def print_playlist_ids_callback(browser: str,
                                 *,
                                 output_json: bool = False) -> None:
     yt = YouTubeClient(browser, profile)
-    for item in yt.get_playlist_info(playlist_id):
-        renderer = item['playlistVideoRenderer']
-        if 'videoId' not in renderer:
-            continue
-        owner = title = None
-        if 'shortBylineText' in renderer:
-            if 'runs' in renderer['shortBylineText']:
-                owner = ' - '.join(map(itemgetter('text'), renderer['shortBylineText']['runs']))
-            elif 'text' in renderer['shortBylineText']:
-                owner = renderer['shortBylineText']['text']
-        if 'title' in renderer:
-            if 'simpleText' in renderer['title']:
-                title = renderer['title']['simpleText']
-            elif 'runs' in renderer['title']:
-                title = ' - '.join(map(itemgetter('text'), renderer['title']['runs']))
+    for entry in yt.get_playlist_video_ids(playlist_id,
+                                           return_dict=output_json):  # type: ignore[call-overload]
         if output_json:
-            click.echo(
-                json.dumps({
-                    'owner': owner,
-                    'title': title,
-                    'video_id': renderer['videoId'],
-                    'watch_url': f'https://www.youtube.com/watch?v={renderer["videoId"]}'
-                }))
+            click.echo(json.dumps(entry, sort_keys=True))
         else:
-            click.echo(renderer['videoId'])
+            click.echo(entry)
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
@@ -140,7 +109,7 @@ def print_history(browser: str,
                   profile: str,
                   *,
                   debug: bool = False,
-                  output_json: bool = False) -> int:
+                  output_json: bool = False) -> None:
     """Print your watch history.
 
     By default, this will print the video IDs of your watch history.
@@ -182,55 +151,12 @@ def print_history(browser: str,
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO,
                         format='%(levelname)s:%(name)s:%(lineno)d:%(funcName)s:%(message)s')
 
-    def is_verified(owner_badges: Iterable[MetadataBadgeRendererTopDict]) -> bool:
-        for badge in (x['metadataBadgeRenderer'] for x in owner_badges):
-            if badge['style'] == 'BADGE_STYLE_TYPE_VERIFIED':
-                return True
-        return False
-
     yt = YouTubeClient(browser, profile)
-    if output_json:
-        for entry in yt.get_history_info():
-            d: dict[str, Any] = {}
-            if 'videoId' not in entry.get('videoRenderer', {}):
-                continue
-            for k, v in sorted(entry.get('videoRenderer', {}).items()):
-                if k in HISTORY_ENTRY_KEYS_TO_SKIP:
-                    continue
-                if k == 'videoId':
-                    d['video_id'] = v
-                elif isinstance(v, int | str | float | bool):
-                    d[k] = v
-                elif k in TEXT_RUNS_KEYS:
-                    d[TEXT_RUNS_KEYS[k]] = get_text_runs(v)
-                elif k in THUMBNAILS_KEYS:
-                    list_path = THUMBNAILS_KEYS[k][0]
-                    target_key = THUMBNAILS_KEYS[k][1]
-                    for thumb in benedict(v)[list_path]:
-                        try:
-                            d[target_key].append(extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb))
-                        except KeyError:  # noqa: PERF203
-                            d[target_key] = [extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb)]
-                elif k in SIMPLE_TEXT_KEYS:
-                    d[SIMPLE_TEXT_KEYS[k]] = v['simpleText']
-                elif k == 'lengthText':
-                    d['length_accessible'] = benedict(v)['accessibility.accessibilityData.label']
-                    d['length'] = v['simpleText']
-                elif k == 'ownerBadges':
-                    d['verified'] = is_verified(v)
-                elif k == 'thumbnail':
-                    for thumb in v['thumbnails']:
-                        try:
-                            d['video_thumbnails'].append(
-                                extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb))
-                        except KeyError:  # noqa: PERF203
-                            d['video_thumbnails'] = [extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb)]
-            d['watch_url'] = f'https://www.youtube.com/watch?v={d["video_id"]}'
-            click.echo(json.dumps(d, sort_keys=True))
-    else:
-        for entry in yt.get_history_info():
-            click.echo(entry['videoRenderer']['videoId'])
-    return 0
+    for entry in yt.get_history_video_ids(return_dict=output_json):  # type: ignore[call-overload]
+        if output_json:
+            click.echo(json.dumps(entry, sort_keys=True))
+        else:
+            click.echo(entry)
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})

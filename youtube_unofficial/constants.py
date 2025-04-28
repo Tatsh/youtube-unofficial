@@ -40,11 +40,6 @@ TEXT_RUNS_KEYS = {
     'title': 'title',
     'shortBylineText': 'short_byline_text',
 }
-"""
-Mapping of text runs keys to output keys.
-
-:meta hide-value:
-"""
 THUMBNAILS_KEYS = {
     'channelThumbnailSupportedRenderers': (
         'channelThumbnailWithLinkRenderer.thumbnail.thumbnails', 'channel_thumbnails'),
