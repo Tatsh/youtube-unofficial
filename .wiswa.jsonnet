@@ -19,7 +19,7 @@
         dependencies+: {
           'more-itertools': '^10.7.0',
           'python-benedict': '^0.34.1',
-          'yt-dlp-utils': '^0.0.1',
+          'yt-dlp-utils': '^0.0.3',
           beautifulsoup4: '^4.13.4',
           click: '^8.1.8',
           html5lib: '^1.1',

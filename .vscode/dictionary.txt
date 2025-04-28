@@ -68,7 +68,6 @@ testpaths
 toctree
 tryfirst
 udvare
-videoid
 virtualenv
 wiswa
 yapf

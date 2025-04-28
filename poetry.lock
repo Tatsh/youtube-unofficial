@@ -2327,14 +2327,14 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "79.0.1"
+version = "80.0.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.9"
 groups = ["docs"]
 files = [
-    {file = "setuptools-79.0.1-py3-none-any.whl", hash = "sha256:e147c0549f27767ba362f9da434eab9c5dc0045d5304feb602a0af001089fc51"},
-    {file = "setuptools-79.0.1.tar.gz", hash = "sha256:128ce7b8f33c3079fd1b067ecbb4051a66e8526e7b65f6cec075dfc650ddfa88"},
+    {file = "setuptools-80.0.0-py3-none-any.whl", hash = "sha256:a38f898dcd6e5380f4da4381a87ec90bd0a7eec23d204a5552e80ee3cab6bd27"},
+    {file = "setuptools-80.0.0.tar.gz", hash = "sha256:c40a5b3729d58dd749c0f08f1a07d134fb8a0a3d7f87dc33e7c5e1f762138650"},
 ]
 
 [package.extras]
@@ -3193,14 +3193,14 @@ test = ["pytest (>=8.1,<9.0)", "pytest-rerunfailures (>=14.0,<15.0)"]
 
 [[package]]
 name = "yt-dlp-utils"
-version = "0.0.1"
+version = "0.0.3"
 description = "Utilities for programmatic use of yt-dlp."
 optional = false
 python-versions = "<3.14,>=3.10"
 groups = ["main"]
 files = [
-    {file = "yt_dlp_utils-0.0.1-py3-none-any.whl", hash = "sha256:1c885df826c677a7f6d0544311bbc6ecb44131afb42e643ae56a4a25ba9b7d2f"},
-    {file = "yt_dlp_utils-0.0.1.tar.gz", hash = "sha256:7afbc00991f6f2a394cb52a0fb11c4f22988a922ae1514c92dd661dbde04463c"},
+    {file = "yt_dlp_utils-0.0.3-py3-none-any.whl", hash = "sha256:e6e7db835110645e6cc34a268971d73f460f0f1804b38e0a9a24a0ec684165f3"},
+    {file = "yt_dlp_utils-0.0.3.tar.gz", hash = "sha256:a59833f425062672ed9b70b069017051650e87bb9a9a683bc333078f66c70afc"},
 ]
 
 [package.dependencies]
@@ -3211,4 +3211,4 @@ yt-dlp = {version = ">=2025.3.31,<2026.0.0", extras = ["default"]}
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "f852191216bd4c82c54f1a35e19e9bb04dfdbff2e8c7a141115e3995734a5b28"
+content-hash = "13cdecbcd1cb911ab49e83035460aef2140a04b0e7ece53baa62d7fe4c18f958"

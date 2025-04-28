@@ -92,7 +92,7 @@ python = ">=3.10,<3.14"
 python-benedict = "^0.34.1"
 requests = "2.32.3"
 typing-extensions = "^4.13.1"
-yt-dlp-utils = "^0.0.1"
+yt-dlp-utils = "^0.0.3"
 
 [tool.poetry.group]
 
