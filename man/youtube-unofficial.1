@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "YOUTUBE-UNOFFICIAL" "1" "Apr 27, 2025" "0.2.0" "youtube-unofficial"
+.TH "YOUTUBE-UNOFFICIAL" "1" "Apr 28, 2025" "0.2.0" "youtube-unofficial"
 .SH NAME
 youtube-unofficial \- youtube-unofficial v0.2.0
 .SH COMMANDS
@@ -235,17 +235,19 @@ By default, this will print the video IDs of your Watch Later playlist.
 .sp
 If \-j/\-\-json is specified, this will print a JSON object for each video in your Watch Later
 playlist. The JSON object will have the following interface:
-.nf
-{
-.in +2
-owner: string
-title: string
-video_id: string
-watch_url: string
-.in -2
-}
-.fi
+.INDENT 0.0
+.INDENT 3.5
 .sp
+.EX
+{
+    owner: string
+    title: string
+    video_id: string
+    watch_url: string
+}
+.EE
+.UNINDENT
+.UNINDENT
 .INDENT 0.0
 .INDENT 3.5
 .sp
