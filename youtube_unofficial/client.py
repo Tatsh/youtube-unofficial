@@ -2,15 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from operator import itemgetter
-from time import sleep
 from typing import TYPE_CHECKING, Any, Literal, cast
 import hashlib
 import json
 import logging
 
-from benedict import benedict
 from bs4 import BeautifulSoup as Soup
-from requests import HTTPError
 from typing_extensions import overload
 import yt_dlp_utils
 
@@ -113,7 +110,6 @@ class YouTubeClient:
             headers = ytcfg_headers(ytcfg)
         if cache_values:
             self._rsvi_cache = {'soup': soup, 'ytcfg': ytcfg, 'headers': headers}
-
         action = {'removedVideoId': video_id, 'action': 'ACTION_REMOVE_VIDEO_BY_VIDEO_ID'}
         assert 'INNERTUBE_API_KEY' in ytcfg
         assert 'VISITOR_DATA' in ytcfg
@@ -189,42 +185,41 @@ class YouTubeClient:
         assert 'DELEGATED_SESSION_ID' in ytcfg or 'USER_SESSION_ID' in ytcfg
         return cast(
             'bool',
-            benedict(
-                self._download_page(
-                    'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
-                    method='post',
-                    params={'key': ytcfg['INNERTUBE_API_KEY']},
-                    headers={
-                        'Authorization': self._authorization_sapisidhash_header(),
-                        'x-goog-authuser': f'{ytcfg.get("SESSION_INDEX", 0)}',
-                        'x-origin': 'https://www.youtube.com',
-                        'x-goog-visitor-id': ytcfg['VISITOR_DATA'],
-                        'accept': '*/*',
-                        'origin': 'https://www.youtube.com',
-                        'referer': f'https://www.youtube.com/playlist?list={playlist_id}',
-                    } | ({
-                        'x-goog-pageid': ytcfg['DELEGATED_SESSION_ID']
-                    } if ytcfg.get('DELEGATED_SESSION_ID') else {}),
-                    json={
-                        'actions': [{
-                            'action': 'ACTION_REMOVE_VIDEO',
-                            'setVideoId': set_video_id,
-                        }],
-                        'playlistId': playlist_id,
-                        'params': 'CAFAAQ%3D%3D',
-                        'context': {
-                            'client': context_client_body(ytcfg),
-                            'request': {
-                                'consistencyTokenJars': [],
-                                'internalExperimentFlags': [],
-                                'useSsl': True
-                            },
-                            'user': {
-                                'lockedSafetyMode': False
-                            }
+            self._download_page(
+                'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
+                method='post',
+                params={'key': ytcfg['INNERTUBE_API_KEY']},
+                headers={
+                    'Authorization': self._authorization_sapisidhash_header(),
+                    'x-goog-authuser': f'{ytcfg.get("SESSION_INDEX", 0)}',
+                    'x-origin': 'https://www.youtube.com',
+                    'x-goog-visitor-id': ytcfg['VISITOR_DATA'],
+                    'accept': '*/*',
+                    'origin': 'https://www.youtube.com',
+                    'referer': f'https://www.youtube.com/playlist?list={playlist_id}',
+                } | ({
+                    'x-goog-pageid': ytcfg['DELEGATED_SESSION_ID']
+                } if ytcfg.get('DELEGATED_SESSION_ID') else {}),
+                json={
+                    'actions': [{
+                        'action': 'ACTION_REMOVE_VIDEO',
+                        'setVideoId': set_video_id,
+                    }],
+                    'playlistId': playlist_id,
+                    'params': 'CAFAAQ%3D%3D',
+                    'context': {
+                        'client': context_client_body(ytcfg),
+                        'request': {
+                            'consistencyTokenJars': [],
+                            'internalExperimentFlags': [],
+                            'useSsl': True
+                        },
+                        'user': {
+                            'lockedSafetyMode': False
                         }
-                    },
-                    return_json=True))['status'] == 'STATUS_SUCCEEDED')
+                    }
+                },
+                return_json=True)['status'] == 'STATUS_SUCCEEDED')
 
     def clear_watch_history(self) -> bool:
         """
@@ -237,23 +232,24 @@ class YouTubeClient:
         """
         content = self._download_page_soup(WATCH_HISTORY_URL)
         ytcfg = find_ytcfg(content)
-        init_data = benedict(initial_data(content))
+        init_data = initial_data(content)
         # If there are no videos, there is no search and index is 0.
-        path_prefix = ('contents.twoColumnBrowseResultsRenderer.secondaryContents.'
-                       'browseFeedActionsRenderer')
-        if init_data.get(f'{path_prefix}.contents[0].buttonRenderer.isDisabled'):
-            log.debug('Clear button is disabled.')
-            return False
-        feedback_endpoint_path = (
-            f'{path_prefix}.contents[1].buttonRenderer.navigationEndpoint.'
-            'confirmDialogEndpoint.content.confirmDialogRenderer.confirmEndpoint.'
-            'feedbackEndpoint')
-        expected_path = (f'{feedback_endpoint_path}.feedbackToken')
+        browse_feed_actions_renderer = (init_data['contents']['twoColumnBrowseResultsRenderer']
+                                        ['secondaryContents']['browseFeedActionsRenderer'])
         try:
-            init_data[expected_path]
-        except KeyError as e:
+            if browse_feed_actions_renderer['contents'][0]['buttonRenderer']['isDisabled']:
+                log.debug('Clear history button is disabled.')
+                return False
+        except (IndexError, KeyError):
+            pass
+        try:
+            feedback_token = (
+                browse_feed_actions_renderer['contents'][1]['buttonRenderer']['navigationEndpoint']
+                ['confirmDialogEndpoint']['content']['confirmDialogRenderer']['confirmEndpoint']
+                ['feedbackEndpoint']['feedbackToken'])
+        except (IndexError, KeyError) as e:
             raise NoFeedbackToken from e
-        return cast('bool', self._single_feedback_api_call(ytcfg, init_data[expected_path]))
+        return cast('bool', self._single_feedback_api_call(ytcfg, feedback_token))
 
     def get_playlist_info(self, playlist_id: str) -> Iterator[PlaylistInfo]:
         """
@@ -304,14 +300,14 @@ class YouTubeClient:
             pass
         if continuation and api_url:
             while True:
-                contents = benedict(
-                    self._single_feedback_api_call(ytcfg,
-                                                   api_url=api_url,
-                                                   merge_json={'continuation': continuation},
-                                                   return_is_processed=False))
+                contents = self._single_feedback_api_call(ytcfg,
+                                                          api_url=api_url,
+                                                          merge_json={'continuation': continuation},
+                                                          return_is_processed=False)
+                assert isinstance(contents, dict)
                 assert 'onResponseReceivedActions' in contents
-                items = contents['onResponseReceivedActions[0].appendContinuationItemsAction.'
-                                 'continuationItems']
+                items = contents['onResponseReceivedActions'][0]['appendContinuationItemsAction'][
+                    'continuationItems']
                 for item in items:
                     if 'playlistVideoRenderer' in item:
                         yield item
@@ -442,30 +438,12 @@ class YouTubeClient:
             'continuation': next_continuation['continuation'],
             'ctoken': next_continuation['continuation']
         }
-        resp = None
         while True:
-            tries = 0
-            time = 0
-            last_exception = None
-            while tries < self.HISTORY_MAX_RETRIES:
-                if time:
-                    sleep(time)
-                try:
-                    resp = self._single_feedback_api_call(
-                        ytcfg,
-                        api_url='/youtubei/v1/browse',
-                        merge_json={'continuation': params['continuation']},
-                        return_is_processed=False)
-                    break
-                except HTTPError as e:
-                    last_exception = e
-                    tries += 1
-                    time = 2 ** tries
-            if last_exception:
-                log.debug('Caught HTTP error: %s, text: %s', last_exception,
-                          last_exception.response.text)
-                break
-            assert resp is not None
+            resp = self._single_feedback_api_call(
+                ytcfg,
+                api_url='/youtubei/v1/browse',
+                merge_json={'continuation': params['continuation']},
+                return_is_processed=False)
             contents = cast('dict[str, Any]', resp)
             try:
                 section_list_renderer = (contents['onResponseReceivedActions'][0]
@@ -494,16 +472,15 @@ class YouTubeClient:
             if not continuations:
                 try:
                     continuations = section_list_renderer['continuations']
-                except KeyError as e:
+                except KeyError:
                     # Probably the end of the history
-                    log.debug('Caught KeyError: %s. Possible keys: %s', e,
-                              ', '.join(section_list_renderer.keys()))
+                    log.exception('Caught KeyError. Possible keys: %s',
+                                  ', '.join(section_list_renderer.keys()))
                     break
-                except TypeError as e:
+                except TypeError:
                     # Probably the end of the history
-                    log.debug(
-                        'Caught TypeError evaluating '
-                        '"section_list_renderer[\'continuations\']": %s', e)
+                    log.exception(
+                        'Caught TypeError evaluating "section_list_renderer[\'continuations\']".')
                     break
             assert continuations is not None
             next_cont = continuations[0]['nextContinuationData']
@@ -555,9 +532,11 @@ class YouTubeClient:
                     elif k in TEXT_RUNS_KEYS:
                         d[TEXT_RUNS_KEYS[k]] = get_text_runs(v)
                     elif k in THUMBNAILS_KEYS:
-                        list_path = THUMBNAILS_KEYS[k][0]
-                        target_key = THUMBNAILS_KEYS[k][1]
-                        for thumb in benedict(v)[list_path]:
+                        for target_key, thumb in (
+                            ('channel_thumbnails',
+                             v['channelThumbnailWithLinkRenderer']['thumbnail']['thumbnails']),
+                            ('moving_thumbnails',
+                             v['movingThumbnailRenderer']['movingThumbnailDetails']['thumbnails'])):
                             try:
                                 d[target_key].append(extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb))
                             except KeyError:  # noqa: PERF203
@@ -565,8 +544,7 @@ class YouTubeClient:
                     elif k in SIMPLE_TEXT_KEYS:
                         d[SIMPLE_TEXT_KEYS[k]] = v['simpleText']
                     elif k == 'lengthText':
-                        d['length_accessible'] = benedict(
-                            v)['accessibility.accessibilityData.label']
+                        d['length_accessible'] = v['accessibility']['accessibilityData']['label']
                         d['length'] = v['simpleText']
                     elif k == 'ownerBadges':
                         d['verified'] = is_verified(v)
@@ -606,15 +584,11 @@ class YouTubeClient:
         entries = [x for x in history_info if x['videoRenderer']['videoId'] in video_ids]
         if not entries:
             return False
-        codes = [
+        return all(
             self._single_feedback_api_call(
-                ytcfg,
-                benedict(entry)['videoRenderer.menu.menuRenderer.topLevelButtons[0].'
-                                'buttonRenderer.serviceEndpoint.feedbackEndpoint.'
-                                'feedbackToken'],
-            ) for entry in entries
-        ]
-        return all(codes)
+                ytcfg, entry['videoRenderer']['menu']['menuRenderer']['topLevelButtons'][0]
+                ['buttonRenderer']['serviceEndpoint']['feedbackEndpoint']['feedbackToken'])
+            for entry in entries)
 
     def _authorization_sapisidhash_header(self, ytcfg: YtcfgDict | None = None) -> str:
         now = int(datetime.now(timezone.utc).timestamp())
@@ -623,9 +597,10 @@ class YouTubeClient:
                    or self.session.cookies.get('__Secure-1PAPISID', domain='.youtube.com'))
         assert sapisid is not None
         if ytcfg:
+            session_id = ytcfg.get('DELEGATED_SESSION_ID', ytcfg.get('USER_SESSION_ID'))
+            assert session_id is not None
             m = hashlib.sha1(' '.join(  # noqa: S324
-                [ytcfg['USER_SESSION_ID'],
-                 str(now), sapisid, 'https://www.youtube.com']).encode())
+                [session_id, str(now), sapisid, 'https://www.youtube.com']).encode())
             a = '_'.join([str(now), m.hexdigest(), 'u'])
             return ' '.join(
                 f'{type_} {a}' for type_ in ('SAPISIDHASH', 'SAPISID1PHASH', 'SAPISID3PHASH'))
@@ -677,7 +652,8 @@ class YouTubeClient:
                                   json=json_data,
                                   return_json=True)
         log.debug('Response JSON: %s', json.dumps(ret, indent=2, sort_keys=True))
-        if benedict(ret).get('responseContext.mainAppWebResponseContext.loggedOut'):
+        if ret.get('responseContext', {}).get('mainAppWebResponseContext', {}).get(
+                'loggedOut', False):
             msg = ('Response indicates logged out. '
                    'Please check your cookies and try again.')
             raise RuntimeError(msg)
@@ -691,12 +667,10 @@ class YouTubeClient:
     def _toggle_history(self, page_url: str, contents_index: int) -> bool:
         content = self._download_page_soup(page_url)
         ytcfg = find_ytcfg(content)
-        info = benedict(
-            initial_data(content))['contents.twoColumnBrowseResultsRenderer.'
-                                   'secondaryContents.browseFeedActionsRenderer.contents'
-                                   f'[{contents_index}].buttonRenderer.navigationEndpoint.'
-                                   'confirmDialogEndpoint.content.confirmDialogRenderer.'
-                                   'confirmEndpoint']
+        info = (initial_data(content)['contents']['twoColumnBrowseResultsRenderer']
+                ['secondaryContents']['browseFeedActionsRenderer']['contents'][contents_index]
+                ['buttonRenderer']['navigationEndpoint']['confirmDialogEndpoint']['content']
+                ['confirmDialogRenderer']['confirmEndpoint'])
         return cast(
             'bool',
             self._single_feedback_api_call(ytcfg, info['feedbackEndpoint']['feedbackToken'],

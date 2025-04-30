@@ -24,7 +24,7 @@ URL for the Watch Later playlist.
 :meta hide-value:
 """
 # print-history-ids constants
-EXTRACTED_THUMBNAIL_KEYS = ('width', 'height', 'url')
+EXTRACTED_THUMBNAIL_KEYS = {'width', 'height', 'url'}
 HISTORY_ENTRY_KEYS_TO_SKIP = {
     'isWatched', 'menu', 'navigationEndpoint', 'showActionMenu', 'thumbnailOverlays',
     'trackingParams'
@@ -40,9 +40,4 @@ TEXT_RUNS_KEYS = {
     'title': 'title',
     'shortBylineText': 'short_byline_text',
 }
-THUMBNAILS_KEYS = {
-    'channelThumbnailSupportedRenderers': (
-        'channelThumbnailWithLinkRenderer.thumbnail.thumbnails', 'channel_thumbnails'),
-    'richThumbnail': (
-        'movingThumbnailRenderer.movingThumbnailDetails.thumbnails', 'moving_thumbnails'),
-}
+THUMBNAILS_KEYS = {'channelThumbnailSupportedRenderers', 'richThumbnail'}
