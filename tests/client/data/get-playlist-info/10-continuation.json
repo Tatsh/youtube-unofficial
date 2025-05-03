@@ -1,0 +1,48 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "content": {
+              "sectionListRenderer": {
+                "contents": [
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "playlistVideoListRenderer": {
+                            "contents": [
+                              {},
+                              {
+                                "playlistVideoRenderer": {}
+                              },
+                              {
+                                "continuationItemRenderer": {
+                                  "continuationEndpoint": {
+                                    "commandMetadata": {
+                                      "webCommandMetadata": {
+                                        "apiUrl": "/test_url"
+                                      }
+                                    },
+                                    "continuationCommand": {
+                                      "token": "test_token"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

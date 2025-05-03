@@ -3,6 +3,7 @@ autodoc
 automodule
 beautifulsoup
 cafaaq
+caplog
 checkmark
 codeowners
 commitizen
@@ -12,6 +13,7 @@ ctoken
 datatable
 datatables
 debugpy
+dialog
 djlint
 doctrees
 eeyore

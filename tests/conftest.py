@@ -1,6 +1,7 @@
 """Configuration for Pytest."""
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, NoReturn, cast
 import os
 
@@ -48,3 +49,8 @@ def client(mock_cookie_jar: MagicMock, mock_extract_cookies_from_browser: None) 
     client = YouTubeClient(browser='firefox', profile='default')
     client.session.cookies = mock_cookie_jar
     return client
+
+
+@pytest.fixture
+def data_path() -> Path:
+    return Path(__file__).parent / 'data'

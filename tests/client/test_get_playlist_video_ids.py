@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+import json
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from pytest_mock import MockerFixture
     from requests_mock import Mocker
     from youtube_unofficial.client import YouTubeClient
 
 
-def test_get_playlist_video_ids(mocker: MockerFixture, requests_mock: Mocker,
-                                client: YouTubeClient) -> None:
+def test_get_playlist_video_ids(mocker: MockerFixture, requests_mock: Mocker, client: YouTubeClient,
+                                data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -19,39 +22,14 @@ def test_get_playlist_video_ids(mocker: MockerFixture, requests_mock: Mocker,
                  })
     requests_mock.get('https://www.youtube.com/playlist?list=test_playlist', text='<html></html>')
     mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'tabs': [{
-                                 'tabRenderer': {
-                                     'content': {
-                                         'sectionListRenderer': {
-                                             'contents': [{
-                                                 'itemSectionRenderer': {
-                                                     'contents': [{
-                                                         'playlistVideoListRenderer': {
-                                                             'contents': [{
-                                                                 'playlistVideoRenderer': {
-                                                                     'videoId': 'test_video_id'
-                                                                 }
-                                                             }]
-                                                         }
-                                                     }]
-                                                 }
-                                             }]
-                                         }
-                                     }
-                                 }
-                             }]
-                         }
-                     }
-                 })
+                 return_value=json.loads(
+                     (data_path / 'get-playlist-video-ids/20-video-ids.json').read_text()))
     result = list(client.get_playlist_video_ids('test_playlist'))
     assert result == ['test_video_id']
 
 
 def test_get_playlist_video_ids_dict(mocker: MockerFixture, requests_mock: Mocker,
-                                     client: YouTubeClient) -> None:
+                                     client: YouTubeClient, data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -60,63 +38,9 @@ def test_get_playlist_video_ids_dict(mocker: MockerFixture, requests_mock: Mocke
                      'SESSION_INDEX': 0,
                  })
     requests_mock.get('https://www.youtube.com/playlist?list=test_playlist', text='<html></html>')
-    mocker.patch(
-        'youtube_unofficial.client.initial_data',
-        return_value={
-            'contents': {
-                'twoColumnBrowseResultsRenderer': {
-                    'tabs': [{
-                        'tabRenderer': {
-                            'content': {
-                                'sectionListRenderer': {
-                                    'contents': [{
-                                        'itemSectionRenderer': {
-                                            'contents': [{
-                                                'playlistVideoListRenderer': {
-                                                    'contents': [{
-                                                        'playlistVideoRenderer': {
-                                                            'videoId': 'test_video_id',
-                                                            'shortBylineText': {
-                                                                'runs': [{
-                                                                    'text': 'test_channel_name'
-                                                                }]
-                                                            },
-                                                            'title': {
-                                                                'simpleText': 'test_video_title'
-                                                            }
-                                                        }
-                                                    }, {
-                                                        'playlistVideoRenderer': {}
-                                                    }, {
-                                                        'playlistVideoRenderer': {
-                                                            'videoId': 'test_video_id',
-                                                            'shortBylineText': {
-                                                                'text': 'test_channel_name'
-                                                            },
-                                                            'title': {
-                                                                'runs': [{
-                                                                    'text': 'test_video_title'
-                                                                }]
-                                                            }
-                                                        }
-                                                    }, {
-                                                        'playlistVideoRenderer': {
-                                                            'videoId': 'test_video_id',
-                                                            'shortBylineText': {},
-                                                            'title': {}
-                                                        }
-                                                    }]
-                                                }
-                                            }]
-                                        }
-                                    }]
-                                }
-                            }
-                        }
-                    }]
-                }
-            }
-        })
+    mocker.patch('youtube_unofficial.client.initial_data',
+                 return_value=json.loads(
+                     (data_path / 'get-playlist-video-ids/20-video-ids-dict.json').read_text()))
     result = list(client.get_playlist_video_ids('test_playlist', return_dict=True))
     assert result == [{
         'owner': 'test_channel_name',

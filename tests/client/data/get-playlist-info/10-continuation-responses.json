@@ -1,0 +1,42 @@
+[
+  {
+    "json": {
+      "onResponseReceivedActions": [
+        {
+          "appendContinuationItemsAction": {
+            "continuationItems": [
+              {
+                "playlistVideoRenderer": {}
+              },
+              {
+                "continuationItemRenderer": {
+                  "continuationEndpoint": {
+                    "continuationCommand": {
+                      "token": "test_token"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "json": {
+      "onResponseReceivedActions": [
+        {
+          "appendContinuationItemsAction": {
+            "continuationItems": [
+              {},
+              {
+                "playlistVideoRenderer": {}
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

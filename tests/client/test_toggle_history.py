@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+import json
 
 from youtube_unofficial.constants import WATCH_HISTORY_URL
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from pytest_mock import MockerFixture
     from requests_mock import Mocker
     from youtube_unofficial.client import YouTubeClient
 
 
-def test_toggle_history(mocker: MockerFixture, client: YouTubeClient,
-                        requests_mock: Mocker) -> None:
+def test_toggle_history(mocker: MockerFixture, client: YouTubeClient, requests_mock: Mocker,
+                        data_path: Path) -> None:
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
     requests_mock.post('https://www.youtube.com/youtubei/v1/feedback',
                        json={'feedbackResponses': [{
@@ -26,38 +29,6 @@ def test_toggle_history(mocker: MockerFixture, client: YouTubeClient,
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0'
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'secondaryContents': {
-                                 'browseFeedActionsRenderer': {
-                                     'contents': [{}, {}, {
-                                         'buttonRenderer': {
-                                             'navigationEndpoint': {
-                                                 'confirmDialogEndpoint': {
-                                                     'content': {
-                                                         'confirmDialogRenderer': {
-                                                             'confirmEndpoint': {
-                                                                 'feedbackEndpoint': {
-                                                                     'feedbackToken': '',
-                                                                 },
-                                                                 'commandMetadata': {
-                                                                     'webCommandMetadata': {
-                                                                         'apiUrl':
-                                                                             '/youtubei/v1/feedback'
-                                                                     }
-                                                                 },
-                                                             }
-                                                         }
-                                                     }
-                                                 }
-                                             }
-                                         }
-                                     }]
-                                 }
-                             }
-                         }
-                     }
-                 })
+                 return_value=json.loads((data_path / 'toggle-history-00.json').read_text()))
     result = client.toggle_watch_history()
     assert result is True

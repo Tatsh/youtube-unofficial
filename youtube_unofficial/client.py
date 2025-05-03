@@ -316,6 +316,10 @@ class YouTubeClient:
                     break
 
     @overload
+    def get_playlist_video_ids(self, playlist_id: str) -> Iterator[str]:  # pragma: no cover
+        ...
+
+    @overload
     def get_playlist_video_ids(
             self, playlist_id: str, *,
             return_dict: Literal[True]) -> Iterator[PlaylistVideoIDsEntry]:  # pragma: no cover
