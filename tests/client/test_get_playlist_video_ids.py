@@ -46,7 +46,7 @@ def test_get_playlist_video_ids(mocker: MockerFixture, requests_mock: Mocker,
                          }
                      }
                  })
-    result = list(client.get_playlist_video_ids(playlist_id='test_playlist'))
+    result = list(client.get_playlist_video_ids('test_playlist'))
     assert result == ['test_video_id']
 
 
@@ -117,7 +117,7 @@ def test_get_playlist_video_ids_dict(mocker: MockerFixture, requests_mock: Mocke
                 }
             }
         })
-    result = list(client.get_playlist_video_ids(playlist_id='test_playlist', return_dict=True))
+    result = list(client.get_playlist_video_ids('test_playlist', return_dict=True))
     assert result == [{
         'owner': 'test_channel_name',
         'title': 'test_video_title',
