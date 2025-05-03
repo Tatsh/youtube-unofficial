@@ -9,6 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0]
+
 ### Added
 
 - Added man page.
@@ -31,4 +33,4 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Download commands. All of these can be achieved with yt-dlp alone now.
 - Command to clear search history. Moved to My Activity.
 
-[unreleased]: https://github.com/Tatsh/youtube-unofficial/compare/v0.2.0...HEAD
+[unreleased]: https://github.com/Tatsh/youtube-unofficial/compare/v0.3.0...HEAD
