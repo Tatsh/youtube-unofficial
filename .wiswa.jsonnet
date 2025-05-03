@@ -15,6 +15,22 @@
       },
     },
     tool+: {
+      local coverage_omit = [
+        '*/typing/*.py',
+        '__main__.py',
+        'conftest.py',
+        'tests.py',
+        'tests/client/test_*.py',
+        'tests/test_*.py',
+      ],
+      coverage+: {
+        report+: {
+          omit: coverage_omit,
+        },
+        run+: {
+          omit: coverage_omit,
+        },
+      },
       poetry+: {
         dependencies+: {
           'more-itertools': '^10.7.0',
