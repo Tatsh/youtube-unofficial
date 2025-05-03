@@ -1,36 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from youtube_unofficial.client import NoFeedbackToken, YouTubeClient
 from youtube_unofficial.constants import WATCH_HISTORY_URL, WATCH_LATER_URL
 import pytest
 
 if TYPE_CHECKING:
-    from unittest.mock import MagicMock
 
     from pytest_mock import MockerFixture
     from requests_mock import Mocker
-
-
-@pytest.fixture
-def mock_cookie_jar(mocker: MockerFixture) -> MagicMock:
-    mock_jar = mocker.MagicMock()
-    mock_jar.get.return_value = 'test_cookie'
-    return cast('MagicMock', mock_jar)
-
-
-@pytest.fixture
-def mock_extract_cookies_from_browser(mocker: MockerFixture) -> None:
-    mock_jar = mocker.MagicMock()
-    mocker.patch('yt_dlp_utils.lib.extract_cookies_from_browser', return_value=mock_jar)
-
-
-@pytest.fixture
-def client(mock_cookie_jar: MagicMock, mock_extract_cookies_from_browser: None) -> YouTubeClient:
-    client = YouTubeClient(browser='firefox', profile='default')
-    client.session.cookies = mock_cookie_jar
-    return client
 
 
 def test_remove_video_id_from_playlist(mocker: MockerFixture, requests_mock: Mocker,
@@ -128,7 +107,11 @@ def test_clear_watch_history(mocker: MockerFixture, requests_mock: Mocker,
                          'twoColumnBrowseResultsRenderer': {
                              'secondaryContents': {
                                  'browseFeedActionsRenderer': {
-                                     'contents': [{}, {
+                                     'contents': [{
+                                         'buttonRenderer': {
+                                             'isDisabled': False
+                                         }
+                                     }, {
                                          'buttonRenderer': {
                                              'navigationEndpoint': {
                                                  'confirmDialogEndpoint': {
@@ -263,7 +246,8 @@ def test_clear_watch_later(mocker: MockerFixture, client: YouTubeClient) -> None
     client.clear_playlist.assert_called_once_with('WL')  # type: ignore[attr-defined]
 
 
-def test_remove_video_ids_from_history(mocker: MockerFixture, client: YouTubeClient) -> None:
+def test_remove_video_ids_from_history_no_entries(mocker: MockerFixture,
+                                                  client: YouTubeClient) -> None:
     mock_session = mocker.MagicMock()
     mocker.patch('yt_dlp_utils.setup_session', return_value=mock_session)
     mocker.patch.object(client, 'get_history_info', return_value=iter([]))
@@ -271,6 +255,198 @@ def test_remove_video_ids_from_history(mocker: MockerFixture, client: YouTubeCli
     mocker.patch('youtube_unofficial.client.find_ytcfg', return_value={})
     result = client.remove_video_ids_from_history(video_ids=['test_video'])
     assert result is False
+
+
+def test_remove_video_ids_from_history_empty(mocker: MockerFixture, requests_mock: Mocker,
+                                             client: YouTubeClient) -> None:
+    result = client.remove_video_ids_from_history([])
+    assert result is False
+
+
+def test_remove_video_ids_from_history(mocker: MockerFixture, requests_mock: Mocker,
+                                       client: YouTubeClient) -> None:
+    mocker.patch('youtube_unofficial.client.find_ytcfg',
+                 return_value={
+                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'INNERTUBE_API_KEY': 'test_api_key',
+                     'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
+                     'SESSION_INDEX': 0,
+                     'VISITOR_DATA': 'test_visitor_data',
+                 })
+    mocker.patch(
+        'youtube_unofficial.client.initial_data',
+        return_value={
+            'contents': {
+                'twoColumnBrowseResultsRenderer': {
+                    'tabs': [{
+                        'tabRenderer': {
+                            'content': {
+                                'sectionListRenderer': {
+                                    'contents': [{
+                                        'itemSectionRenderer': {
+                                            'contents': [{
+                                                'videoRenderer': {
+                                                    'videoId': 'test_video',
+                                                    'menu': {
+                                                        'menuRenderer': {
+                                                            'topLevelButtons': [{
+                                                                'buttonRenderer': {
+                                                                    'serviceEndpoint': {
+                                                                        'feedbackEndpoint': {
+                                                                            'feedbackToken': ''
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }]
+                                                        }
+                                                    }
+                                                }
+                                            }, {
+                                                'videoRenderer': {
+                                                    'videoId': 'test_video2',
+                                                    'menu': {
+                                                        'menuRenderer': {
+                                                            'topLevelButtons': [{
+                                                                'buttonRenderer': {
+                                                                    'serviceEndpoint': {
+                                                                        'feedbackEndpoint': {
+                                                                            'feedbackToken': ''
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }]
+                                                        }
+                                                    }
+                                                }
+                                            }]
+                                        }
+                                    }]
+                                }
+                            }
+                        }
+                    }]
+                }
+            }
+        })
+    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    requests_mock.post('https://www.youtube.com/youtubei/v1/feedback',
+                       json={'feedbackResponses': [{
+                           'isProcessed': True
+                       }]})
+    result = client.remove_video_ids_from_history(['test_video', 'test_video2'])
+    assert result is True
+
+
+def test_response_indicates_logged_out(mocker: MockerFixture, requests_mock: Mocker,
+                                       client: YouTubeClient) -> None:
+    mocker.patch('youtube_unofficial.client.find_ytcfg',
+                 return_value={
+                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'INNERTUBE_API_KEY': 'test_api_key',
+                     'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
+                     'SESSION_INDEX': 0,
+                     'VISITOR_DATA': 'test_visitor_data',
+                 })
+    mocker.patch(
+        'youtube_unofficial.client.initial_data',
+        return_value={
+            'contents': {
+                'twoColumnBrowseResultsRenderer': {
+                    'tabs': [{
+                        'tabRenderer': {
+                            'content': {
+                                'sectionListRenderer': {
+                                    'contents': [{
+                                        'itemSectionRenderer': {
+                                            'contents': [{
+                                                'videoRenderer': {
+                                                    'videoId': 'test_video',
+                                                    'menu': {
+                                                        'menuRenderer': {
+                                                            'topLevelButtons': [{
+                                                                'buttonRenderer': {
+                                                                    'serviceEndpoint': {
+                                                                        'feedbackEndpoint': {
+                                                                            'feedbackToken': ''
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }]
+                                                        }
+                                                    }
+                                                }
+                                            }]
+                                        }
+                                    }]
+                                }
+                            }
+                        }
+                    }]
+                }
+            }
+        })
+    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    requests_mock.post('https://www.youtube.com/youtubei/v1/feedback',
+                       json={'responseContext': {
+                           'mainAppWebResponseContext': {
+                               'loggedOut': True
+                           }
+                       }})
+    with pytest.raises(RuntimeError, match=r'logged out'):
+        client.remove_video_ids_from_history(['test_video'])
+
+
+def test_response_no_feedback_responses_key(mocker: MockerFixture, requests_mock: Mocker,
+                                            client: YouTubeClient) -> None:
+    mocker.patch('youtube_unofficial.client.find_ytcfg',
+                 return_value={
+                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'INNERTUBE_API_KEY': 'test_api_key',
+                     'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
+                     'SESSION_INDEX': 0,
+                     'VISITOR_DATA': 'test_visitor_data',
+                 })
+    mocker.patch(
+        'youtube_unofficial.client.initial_data',
+        return_value={
+            'contents': {
+                'twoColumnBrowseResultsRenderer': {
+                    'tabs': [{
+                        'tabRenderer': {
+                            'content': {
+                                'sectionListRenderer': {
+                                    'contents': [{
+                                        'itemSectionRenderer': {
+                                            'contents': [{
+                                                'videoRenderer': {
+                                                    'videoId': 'test_video',
+                                                    'menu': {
+                                                        'menuRenderer': {
+                                                            'topLevelButtons': [{
+                                                                'buttonRenderer': {
+                                                                    'serviceEndpoint': {
+                                                                        'feedbackEndpoint': {
+                                                                            'feedbackToken': ''
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }]
+                                                        }
+                                                    }
+                                                }
+                                            }]
+                                        }
+                                    }]
+                                }
+                            }
+                        }
+                    }]
+                }
+            }
+        })
+    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    requests_mock.post('https://www.youtube.com/youtubei/v1/feedback', json={})
+    assert client.remove_video_ids_from_history(['test_video']) is False
 
 
 def test_toggle_history(mocker: MockerFixture, client: YouTubeClient,

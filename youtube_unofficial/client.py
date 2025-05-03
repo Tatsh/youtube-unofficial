@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from .typing.playlist import PlaylistInfo, PlaylistVideoListRenderer
     from .typing.ytcfg import YtcfgDict
 
-__all__ = ('YouTubeClient',)
+__all__ = ('NoFeedbackToken', 'YouTubeClient')
 
 log = logging.getLogger(__name__)
 
