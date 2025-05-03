@@ -31,10 +31,10 @@ def print_playlist_ids_callback(browser: str,
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
-@click.option('-d', '--debug', is_flag=True, help='Enable debug output')
+@click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
-@click.option('-j', '--json', 'output_json', is_flag=True, help='Output in JSON format')
+@click.option('-j', '--json', 'output_json', is_flag=True, help='Output in JSON format.')
 def print_watch_later(browser: str,
                       profile: str,
                       *,
@@ -65,10 +65,10 @@ def print_watch_later(browser: str,
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
-@click.option('-d', '--debug', is_flag=True, help='Enable debug output')
+@click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
-@click.option('-j', '--json', 'output_json', is_flag=True, help='Output in JSON format')
+@click.option('-j', '--json', 'output_json', is_flag=True, help='Output in JSON format.')
 @click.argument('playlist_id')
 def print_playlist(browser: str,
                    profile: str,
@@ -101,10 +101,10 @@ def print_playlist(browser: str,
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
-@click.option('-d', '--debug', is_flag=True, help='Enable debug output')
+@click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
-@click.option('-j', '--json', 'output_json', is_flag=True, help='Output in JSON format')
+@click.option('-j', '--json', 'output_json', is_flag=True, help='Output in JSON format.')
 def print_history(browser: str,
                   profile: str,
                   *,
@@ -160,7 +160,7 @@ def print_history(browser: str,
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
-@click.option('-d', '--debug', is_flag=True, help='Enable debug output')
+@click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
 @click.argument('video_ids', nargs=-1)
@@ -185,7 +185,7 @@ def remove_svi_callback(browser: str, profile: str, playlist_id: str,
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
-@click.option('-d', '--debug', is_flag=True, help='Enable debug output')
+@click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
 @click.argument('video_ids', nargs=-1)
@@ -201,7 +201,7 @@ def remove_watch_later_video_id(browser: str,
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
-@click.option('-d', '--debug', is_flag=True, help='Enable debug output')
+@click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
 @click.argument('playlist_id', nargs=1)
@@ -219,7 +219,7 @@ def remove_video_id(browser: str,
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
-@click.option('-d', '--debug', is_flag=True, help='Enable debug output')
+@click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
 def toggle_watch_history(browser: str, profile: str, *, debug: bool = False) -> None:
@@ -233,7 +233,7 @@ def toggle_watch_history(browser: str, profile: str, *, debug: bool = False) -> 
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
-@click.option('-d', '--debug', is_flag=True, help='Enable debug output')
+@click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
 def clear_watch_history(browser: str, profile: str, *, debug: bool = False) -> None:
@@ -246,7 +246,7 @@ def clear_watch_history(browser: str, profile: str, *, debug: bool = False) -> N
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
-@click.option('-d', '--debug', is_flag=True, help='Enable debug output')
+@click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
 def clear_watch_later(browser: str, profile: str, *, debug: bool = False) -> None:
