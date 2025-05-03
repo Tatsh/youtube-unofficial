@@ -101,5 +101,5 @@
     "test": "poetry run pytest",
     "test:cov": "yarn test --cov . --cov-report html --cov-report term-missing:skip-covered"
   },
-  "version": "0.2.0"
+  "version": "0.3.0"
 }

@@ -3,7 +3,7 @@
   description: 'Access parts of your account unavailable through normal YouTube API access.',
   keywords: ['command line', 'youtube'],
   project_name: 'youtube-unofficial',
-  version: '0.2.0',
+  version: '0.3.0',
   want_main: true,
   citation+: {
     'date-released': '2025-05-03',
