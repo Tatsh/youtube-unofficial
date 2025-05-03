@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from youtube_unofficial.constants import WATCH_HISTORY_URL
 
 if TYPE_CHECKING:
-
     from pytest_mock import MockerFixture
     from requests_mock import Mocker
     from youtube_unofficial.client import YouTubeClient
@@ -21,67 +20,171 @@ def test_get_history_video_ids(mocker: MockerFixture, requests_mock: Mocker,
                      'SESSION_INDEX': 0,
                  })
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'tabs': [{
-                                 'tabRenderer': {
-                                     'content': {
-                                         'sectionListRenderer': {
-                                             'contents': [{
-                                                 'itemSectionRenderer': {
-                                                     'contents': [{
-                                                         'videoRenderer': {
-                                                             'videoId': 'test_video_id',
-                                                             'title': {
-                                                                 'runs': [{
-                                                                     'text': 'Test Title'
-                                                                 }]
-                                                             },
-                                                             'shortBylineText': {
-                                                                 'runs': [{
-                                                                     'text': 'Test Channel'
-                                                                 }]
-                                                             },
-                                                             'lengthText': {
-                                                                 'simpleText': '5:00',
-                                                                 'accessibility': {
-                                                                     'accessibilityData': {
-                                                                         'label': '5 minutes'
-                                                                     }
-                                                                 }
-                                                             },
-                                                             'ownerText': {
-                                                                 'runs': [{
-                                                                     'text': 'Test Owner'
-                                                                 }]
-                                                             },
-                                                             'ownerBadges': [{
-                                                                 'metadataBadgeRenderer': {
-                                                                     'style':
-                                                                         'BADGE_STYLE_TYPE_VERIFIED'
-                                                                 }
-                                                             }],
-                                                             'thumbnail': {
-                                                                 'thumbnails': [{
-                                                                     'height': 320,
-                                                                     'width': 180,
-                                                                     'url': 'test_thumbnail_url'
-                                                                 }]
-                                                             }
-                                                         }
-                                                     }]
-                                                 }
-                                             }]
-                                         }
-                                     }
-                                 }
-                             }]
-                         }
-                     }
-                 })
-
+    mocker.patch(
+        'youtube_unofficial.client.initial_data',
+        return_value={
+            'contents': {
+                'twoColumnBrowseResultsRenderer': {
+                    'tabs': [{
+                        'tabRenderer': {
+                            'content': {
+                                'sectionListRenderer': {
+                                    'contents': [{
+                                        'itemSectionRenderer': {
+                                            'contents': [{
+                                                'videoRenderer': {
+                                                    'shortViewCountText': {
+                                                        'simpleText': '10 views'
+                                                    },
+                                                    'richThumbnail': {
+                                                        'movingThumbnailRenderer': {
+                                                            'movingThumbnailDetails': {
+                                                                'thumbnails': [{
+                                                                    'width':
+                                                                        100,
+                                                                    'height':
+                                                                        100,
+                                                                    'url':
+                                                                        'https://example.com/thumbnail.jpg'
+                                                                }]
+                                                            }
+                                                        }
+                                                    },
+                                                    'channelThumbnailSupportedRenderers': {
+                                                        'channelThumbnailWithLinkRenderer': {
+                                                            'thumbnail': {
+                                                                'thumbnails': [{
+                                                                    'width':
+                                                                        100,
+                                                                    'height':
+                                                                        100,
+                                                                    'url':
+                                                                        'https://example.com/thumbnail.jpg'
+                                                                }]
+                                                            }
+                                                        }
+                                                    },
+                                                    'isWatched': True,
+                                                    'random': 1,
+                                                    'videoId': 'test_video_id',
+                                                    'title': {
+                                                        'runs': [{
+                                                            'text': 'Test Title'
+                                                        }]
+                                                    },
+                                                    'shortBylineText': {
+                                                        'runs': [{
+                                                            'text': 'Test Channel'
+                                                        }]
+                                                    },
+                                                    'lengthText': {
+                                                        'simpleText': '5:00',
+                                                        'accessibility': {
+                                                            'accessibilityData': {
+                                                                'label': '5 minutes'
+                                                            }
+                                                        }
+                                                    },
+                                                    'ownerText': {
+                                                        'runs': [{
+                                                            'text': 'Test Owner'
+                                                        }]
+                                                    },
+                                                    'ownerBadges': [{
+                                                        'metadataBadgeRenderer': {
+                                                            'style': 'BADGE_STYLE_TYPE_VERIFIED'
+                                                        }
+                                                    }],
+                                                    'thumbnail': {
+                                                        'thumbnails': [{
+                                                            'height': 320,
+                                                            'width': 180,
+                                                            'url': 'test_thumbnail_url'
+                                                        }]
+                                                    }
+                                                }
+                                            }, {
+                                                'videoRenderer': {
+                                                    'shortViewCountText': {
+                                                        'simpleText': '10 views'
+                                                    },
+                                                    'richThumbnail': {
+                                                        'movingThumbnailRenderer': {
+                                                            'movingThumbnailDetails': {
+                                                                'thumbnails': [{
+                                                                    'width':
+                                                                        100,
+                                                                    'height':
+                                                                        100,
+                                                                    'url':
+                                                                        'https://example.com/thumbnail.jpg'
+                                                                }]
+                                                            }
+                                                        }
+                                                    },
+                                                    'channelThumbnailSupportedRenderers': {
+                                                        'channelThumbnailWithLinkRenderer': {
+                                                            'thumbnail': {
+                                                                'thumbnails': [{
+                                                                    'width':
+                                                                        100,
+                                                                    'height':
+                                                                        100,
+                                                                    'url':
+                                                                        'https://example.com/thumbnail.jpg'
+                                                                }]
+                                                            }
+                                                        }
+                                                    },
+                                                    'isWatched': True,
+                                                    'random': 1,
+                                                    'videoId': 'test_video_id',
+                                                    'title': {
+                                                        'runs': [{
+                                                            'text': 'Test Title'
+                                                        }]
+                                                    },
+                                                    'shortBylineText': {
+                                                        'runs': [{
+                                                            'text': 'Test Channel'
+                                                        }]
+                                                    },
+                                                    'lengthText': {
+                                                        'simpleText': '5:00',
+                                                        'accessibility': {
+                                                            'accessibilityData': {
+                                                                'label': '5 minutes'
+                                                            }
+                                                        }
+                                                    },
+                                                    'ownerText': {
+                                                        'runs': [{
+                                                            'text': 'Test Owner'
+                                                        }]
+                                                    },
+                                                    'ownerBadges': [{
+                                                        'metadataBadgeRenderer': {
+                                                            'style': 'fff'
+                                                        }
+                                                    }],
+                                                    'thumbnail': {
+                                                        'thumbnails': [{
+                                                            'height': 320,
+                                                            'width': 180,
+                                                            'url': 'test_thumbnail_url'
+                                                        }]
+                                                    }
+                                                }
+                                            }]
+                                        }
+                                    }]
+                                }
+                            }
+                        }
+                    }]
+                }
+            }
+        })
     result = list(client.get_history_video_ids(return_dict=True))
     assert result == [{
         'video_id': 'test_video_id',
@@ -91,13 +194,228 @@ def test_get_history_video_ids(mocker: MockerFixture, requests_mock: Mocker,
         'length': '5:00',
         'length_accessible': '5 minutes',
         'verified': True,
+        'short_view_count_text': '10 views',
+        'moving_thumbnails': [{
+            'height': 100,
+            'url': 'https://example.com/thumbnail.jpg',
+            'width': 100
+        }],
         'video_thumbnails': [{
+            'height': 100,
+            'url': 'https://example.com/thumbnail.jpg',
+            'width': 100
+        }, {
             'height': 320,
             'width': 180,
-            'url': 'test_thumbnail_url'
+            'url': 'test_thumbnail_url',
         }],
+        'random': 1,
+        'watch_url': 'https://www.youtube.com/watch?v=test_video_id',
+    }, {
+        'video_id': 'test_video_id',
+        'title': 'Test Title',
+        'owner_text': 'Test Owner',
+        'short_byline_text': 'Test Channel',
+        'length': '5:00',
+        'length_accessible': '5 minutes',
+        'verified': False,
+        'short_view_count_text': '10 views',
+        'moving_thumbnails': [{
+            'height': 100,
+            'url': 'https://example.com/thumbnail.jpg',
+            'width': 100
+        }],
+        'video_thumbnails': [{
+            'height': 100,
+            'url': 'https://example.com/thumbnail.jpg',
+            'width': 100
+        }, {
+            'height': 320,
+            'width': 180,
+            'url': 'test_thumbnail_url',
+        }],
+        'random': 1,
         'watch_url': 'https://www.youtube.com/watch?v=test_video_id',
     }]
+
+
+def test_get_history_video_ids_strings(mocker: MockerFixture, requests_mock: Mocker,
+                                       client: YouTubeClient) -> None:
+    mocker.patch('youtube_unofficial.client.find_ytcfg',
+                 return_value={
+                     'INNERTUBE_API_KEY': 'test_api_key',
+                     'VISITOR_DATA': 'test_visitor_data',
+                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'SESSION_INDEX': 0,
+                 })
+    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    mocker.patch(
+        'youtube_unofficial.client.initial_data',
+        return_value={
+            'contents': {
+                'twoColumnBrowseResultsRenderer': {
+                    'tabs': [{
+                        'tabRenderer': {
+                            'content': {
+                                'sectionListRenderer': {
+                                    'contents': [{
+                                        'itemSectionRenderer': {
+                                            'contents': [{
+                                                'videoRenderer': {
+                                                    'shortViewCountText': {
+                                                        'simpleText': '10 views'
+                                                    },
+                                                    'richThumbnail': {
+                                                        'movingThumbnailRenderer': {
+                                                            'movingThumbnailDetails': {
+                                                                'thumbnails': [{
+                                                                    'width':
+                                                                        100,
+                                                                    'height':
+                                                                        100,
+                                                                    'url':
+                                                                        'https://example.com/thumbnail.jpg'
+                                                                }]
+                                                            }
+                                                        }
+                                                    },
+                                                    'channelThumbnailSupportedRenderers': {
+                                                        'channelThumbnailWithLinkRenderer': {
+                                                            'thumbnail': {
+                                                                'thumbnails': [{
+                                                                    'width':
+                                                                        100,
+                                                                    'height':
+                                                                        100,
+                                                                    'url':
+                                                                        'https://example.com/thumbnail.jpg'
+                                                                }]
+                                                            }
+                                                        }
+                                                    },
+                                                    'isWatched': True,
+                                                    'random': 1,
+                                                    'videoId': 'test_video_id',
+                                                    'title': {
+                                                        'runs': [{
+                                                            'text': 'Test Title'
+                                                        }]
+                                                    },
+                                                    'shortBylineText': {
+                                                        'runs': [{
+                                                            'text': 'Test Channel'
+                                                        }]
+                                                    },
+                                                    'lengthText': {
+                                                        'simpleText': '5:00',
+                                                        'accessibility': {
+                                                            'accessibilityData': {
+                                                                'label': '5 minutes'
+                                                            }
+                                                        }
+                                                    },
+                                                    'ownerText': {
+                                                        'runs': [{
+                                                            'text': 'Test Owner'
+                                                        }]
+                                                    },
+                                                    'ownerBadges': [{
+                                                        'metadataBadgeRenderer': {
+                                                            'style': 'BADGE_STYLE_TYPE_VERIFIED'
+                                                        }
+                                                    }],
+                                                    'thumbnail': {
+                                                        'thumbnails': [{
+                                                            'height': 320,
+                                                            'width': 180,
+                                                            'url': 'test_thumbnail_url'
+                                                        }]
+                                                    }
+                                                }
+                                            }, {
+                                                'videoRenderer': {
+                                                    'shortViewCountText': {
+                                                        'simpleText': '10 views'
+                                                    },
+                                                    'richThumbnail': {
+                                                        'movingThumbnailRenderer': {
+                                                            'movingThumbnailDetails': {
+                                                                'thumbnails': [{
+                                                                    'width':
+                                                                        100,
+                                                                    'height':
+                                                                        100,
+                                                                    'url':
+                                                                        'https://example.com/thumbnail.jpg'
+                                                                }]
+                                                            }
+                                                        }
+                                                    },
+                                                    'channelThumbnailSupportedRenderers': {
+                                                        'channelThumbnailWithLinkRenderer': {
+                                                            'thumbnail': {
+                                                                'thumbnails': [{
+                                                                    'width':
+                                                                        100,
+                                                                    'height':
+                                                                        100,
+                                                                    'url':
+                                                                        'https://example.com/thumbnail.jpg'
+                                                                }]
+                                                            }
+                                                        }
+                                                    },
+                                                    'isWatched': True,
+                                                    'random': 1,
+                                                    'videoId': 'test_video_id',
+                                                    'title': {
+                                                        'runs': [{
+                                                            'text': 'Test Title'
+                                                        }]
+                                                    },
+                                                    'shortBylineText': {
+                                                        'runs': [{
+                                                            'text': 'Test Channel'
+                                                        }]
+                                                    },
+                                                    'lengthText': {
+                                                        'simpleText': '5:00',
+                                                        'accessibility': {
+                                                            'accessibilityData': {
+                                                                'label': '5 minutes'
+                                                            }
+                                                        }
+                                                    },
+                                                    'ownerText': {
+                                                        'runs': [{
+                                                            'text': 'Test Owner'
+                                                        }]
+                                                    },
+                                                    'ownerBadges': [{
+                                                        'metadataBadgeRenderer': {
+                                                            'style': 'fff'
+                                                        }
+                                                    }],
+                                                    'thumbnail': {
+                                                        'thumbnails': [{
+                                                            'height': 320,
+                                                            'width': 180,
+                                                            'url': 'test_thumbnail_url'
+                                                        }]
+                                                    }
+                                                }
+                                            }]
+                                        }
+                                    }]
+                                }
+                            }
+                        }
+                    }]
+                }
+            }
+        })
+    result = list(client.get_history_video_ids())
+    assert result == ['test_video_id', 'test_video_id']
 
 
 def test_get_history_video_ids_empty(mocker: MockerFixture, requests_mock: Mocker,

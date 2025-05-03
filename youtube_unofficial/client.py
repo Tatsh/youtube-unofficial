@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from datetime import datetime, timezone
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -16,7 +17,6 @@ from .constants import (
     HISTORY_ENTRY_KEYS_TO_SKIP,
     SIMPLE_TEXT_KEYS,
     TEXT_RUNS_KEYS,
-    THUMBNAILS_KEYS,
     USER_AGENT,
     WATCH_HISTORY_URL,
     WATCH_LATER_URL,
@@ -33,9 +33,13 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator, Mapping, Sequence
+    from collections.abc import Iterator, Sequence
 
-    from .typing.history import HistoryVideoIDsEntry, MetadataBadgeRendererTopDict
+    from .typing.history import (
+        DescriptionSnippetDict,
+        HistoryVideoIDsEntry,
+        MetadataBadgeRendererTopDict,
+    )
     from .typing.playlist import PlaylistInfo, PlaylistVideoListRenderer
     from .typing.ytcfg import YtcfgDict
 
@@ -71,7 +75,7 @@ class YouTubeClient:
         """
         self.session = yt_dlp_utils.setup_session(browser,
                                                   profile,
-                                                  domains={'youtube.com'},
+                                                  domains={'.youtube.com'},
                                                   setup_retry=True)
         """Requests :py:class:`requests.Session` instance."""
         self.session.headers.update({'User-Agent': USER_AGENT})
@@ -312,12 +316,8 @@ class YouTubeClient:
                     if 'playlistVideoRenderer' in item:
                         yield item
                     elif 'continuationItemRenderer' in item:
-                        try:
-                            endpoint = (video_list_renderer['contents'][-1]
-                                        ['continuationItemRenderer']['continuationEndpoint'])
-                            continuation = endpoint['continuationCommand']['token']
-                        except KeyError:
-                            pass
+                        endpoint = item['continuationItemRenderer']['continuationEndpoint']
+                        continuation = endpoint['continuationCommand']['token']
                         break
                 if 'continuationItemRenderer' not in items[-1]:
                     break
@@ -402,13 +402,13 @@ class YouTubeClient:
         """Remove all videos from the 'Watch Later' playlist."""
         self.clear_playlist('WL')
 
-    def get_history_info(self) -> Iterator[Mapping[str, Any]]:
+    def get_history_info(self) -> Iterator[dict[str, Any]]:
         """
         Get information about the History playlist.
 
         Yields
         ------
-        Mapping[str, Any]
+        dict[str, Any]
             The history information.
         """
         content = self._download_page_soup(WATCH_HISTORY_URL)
@@ -457,36 +457,20 @@ class YouTubeClient:
                     yield from section_list['itemSectionRenderer']['contents']
                 except KeyError:  # noqa: PERF203
                     if 'continuationItemRenderer' in section_list:
-                        continuations = [{
-                            'nextContinuationData': {
-                                'continuation': (
-                                    section_list['continuationItemRenderer']['continuationEndpoint']
-                                    ['continuationCommand']['token']),
-                                'clickTrackingParams': (
-                                    section_list['continuationItemRenderer']['continuationEndpoint']
-                                    ['clickTrackingParams'])
-                            }
-                        }]
-                        break
-                    raise
+                        continuations = {
+                            'continuation': (
+                                section_list['continuationItemRenderer']['continuationEndpoint']
+                                ['continuationCommand']['token']),
+                            'clickTrackingParams': (section_list['continuationItemRenderer']
+                                                    ['continuationEndpoint']['clickTrackingParams'])
+                        }
+                    break
             if not continuations:
-                try:
-                    continuations = section_list_renderer['continuations']
-                except KeyError:
-                    # Probably the end of the history
-                    log.exception('Caught KeyError. Possible keys: %s',
-                                  ', '.join(section_list_renderer.keys()))
-                    break
-                except TypeError:
-                    # Probably the end of the history
-                    log.exception(
-                        'Caught TypeError evaluating "section_list_renderer[\'continuations\']".')
-                    break
-            assert continuations is not None
-            next_cont = continuations[0]['nextContinuationData']
-            params['itct'] = next_cont['clickTrackingParams']
-            params['ctoken'] = next_cont['continuation']
-            params['continuation'] = next_cont['continuation']
+                log.info('Likely hit the end of watch history.')
+                break
+            params['itct'] = continuations['clickTrackingParams']
+            params['ctoken'] = continuations['continuation']
+            params['continuation'] = continuations['continuation']
 
     @overload
     def get_history_video_ids(
@@ -518,7 +502,7 @@ class YouTubeClient:
             return False
 
         for entry in self.get_history_info():
-            d = {}
+            d: dict[str, Any] = {}
             if 'videoId' not in entry.get('videoRenderer', {}):
                 continue
             if return_dict:
@@ -526,37 +510,39 @@ class YouTubeClient:
                     if k in HISTORY_ENTRY_KEYS_TO_SKIP:
                         continue
                     if k == 'videoId':
+                        assert isinstance(v, str)
                         d['video_id'] = v
                     elif isinstance(v, int | str | float | bool):
                         d[k] = v
-                    elif k in TEXT_RUNS_KEYS:
-                        d[TEXT_RUNS_KEYS[k]] = get_text_runs(v)
-                    elif k in THUMBNAILS_KEYS:
-                        for target_key, thumb in (
-                            ('channel_thumbnails',
-                             v['channelThumbnailWithLinkRenderer']['thumbnail']['thumbnails']),
-                            ('moving_thumbnails',
-                             v['movingThumbnailRenderer']['movingThumbnailDetails']['thumbnails'])):
-                            try:
-                                d[target_key].append(extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb))
-                            except KeyError:  # noqa: PERF203
-                                d[target_key] = [extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb)]
-                    elif k in SIMPLE_TEXT_KEYS:
+                    elif k in TEXT_RUNS_KEYS and isinstance(v, Mapping):
+                        d[TEXT_RUNS_KEYS[k]] = get_text_runs(cast('DescriptionSnippetDict', v))
+                    elif k == 'richThumbnail' and isinstance(v, Mapping):
+                        if 'moving_thumbnails' not in d:  # pragma: no cover
+                            d['moving_thumbnails'] = []
+                        d['moving_thumbnails'] += [
+                            extract_keys(EXTRACTED_THUMBNAIL_KEYS, t) for t in
+                            v['movingThumbnailRenderer']['movingThumbnailDetails']['thumbnails']
+                        ]
+                    elif k == 'channelThumbnailSupportedRenderers' and isinstance(v, Mapping):
+                        if 'video_thumbnails' not in d:  # pragma: no cover
+                            d['video_thumbnails'] = []
+                        d['video_thumbnails'] += [
+                            extract_keys(EXTRACTED_THUMBNAIL_KEYS, t) for t in
+                            v['channelThumbnailWithLinkRenderer']['thumbnail']['thumbnails']
+                        ]
+                    elif k in SIMPLE_TEXT_KEYS and isinstance(v, Mapping):
                         d[SIMPLE_TEXT_KEYS[k]] = v['simpleText']
-                    elif k == 'lengthText':
+                    elif k == 'lengthText' and isinstance(v, Mapping):
                         d['length_accessible'] = v['accessibility']['accessibilityData']['label']
                         d['length'] = v['simpleText']
-                    elif k == 'ownerBadges':
+                    elif k == 'ownerBadges' and isinstance(v, Iterable):
                         d['verified'] = is_verified(v)
-                    elif k == 'thumbnail':
-                        for thumb in v['thumbnails']:
-                            try:
-                                d['video_thumbnails'].append(
-                                    extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb))
-                            except KeyError:  # noqa: PERF203
-                                d['video_thumbnails'] = [
-                                    extract_keys(EXTRACTED_THUMBNAIL_KEYS, thumb)
-                                ]
+                    elif k == 'thumbnail' and isinstance(v, Mapping):
+                        if 'video_thumbnails' not in d:  # pragma: no cover
+                            d['video_thumbnails'] = []
+                        d['video_thumbnails'] += [
+                            extract_keys(EXTRACTED_THUMBNAIL_KEYS, t) for t in v['thumbnails']
+                        ]
                 d['watch_url'] = f'https://www.youtube.com/watch?v={d["video_id"]}'
                 yield cast('HistoryVideoIDsEntry', d)
             else:
@@ -592,16 +578,16 @@ class YouTubeClient:
 
     def _authorization_sapisidhash_header(self, ytcfg: YtcfgDict | None = None) -> str:
         now = int(datetime.now(timezone.utc).timestamp())
-        sapisid = (self.session.cookies.get('SAPISID', domain='.youtube.com')
-                   or self.session.cookies.get('__Secure-3PAPISID', domain='.youtube.com')
-                   or self.session.cookies.get('__Secure-1PAPISID', domain='.youtube.com'))
+        sapisid = self.session.cookies.get(
+            '__Secure-3PAPISID',
+            self.session.cookies.get('SAPISID', self.session.cookies.get('__Secure-1PAPISID')))
         assert sapisid is not None
         if ytcfg:
             session_id = ytcfg.get('DELEGATED_SESSION_ID', ytcfg.get('USER_SESSION_ID'))
             assert session_id is not None
             m = hashlib.sha1(' '.join(  # noqa: S324
-                [session_id, str(now), sapisid, 'https://www.youtube.com']).encode())
-            a = '_'.join([str(now), m.hexdigest(), 'u'])
+                (session_id, str(now), sapisid, 'https://www.youtube.com')).encode())
+            a = '_'.join((str(now), m.hexdigest(), 'u'))
             return ' '.join(
                 f'{type_} {a}' for type_ in ('SAPISIDHASH', 'SAPISID1PHASH', 'SAPISID3PHASH'))
         m = hashlib.sha1(f'{now} {sapisid} https://www.youtube.com'.encode())  # noqa: S324

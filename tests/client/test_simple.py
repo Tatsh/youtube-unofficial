@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 from youtube_unofficial.constants import WATCH_LATER_URL
 
 if TYPE_CHECKING:
-
     from pytest_mock import MockerFixture
     from requests_mock import Mocker
     from youtube_unofficial.client import YouTubeClient
