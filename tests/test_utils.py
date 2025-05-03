@@ -15,7 +15,7 @@ from youtube_unofficial.utils import (
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
-    from youtube_unofficial.typing.history import DescriptionSnippetDict
+    from youtube_unofficial.typing.history import DescriptionSnippet
     from youtube_unofficial.typing.ytcfg import YtcfgDict
 
 
@@ -27,7 +27,7 @@ def test_extract_keys() -> None:
 
 
 def test_get_text_runs() -> None:
-    desc: DescriptionSnippetDict = {'runs': [{'text': 'Hello'}, {'text': 'World'}]}
+    desc: DescriptionSnippet = {'runs': [{'text': 'Hello'}, {'text': 'World'}]}
     result = get_text_runs(desc)
     assert result == 'HelloWorld'
 

@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from bs4 import BeautifulSoup as Soup
 
-    from .typing.history import DescriptionSnippetDict
+    from .typing.history import DescriptionSnippet
     from .typing.ytcfg import YtcfgDict
 
 __all__ = ('context_client_body', 'extract_keys', 'find_ytcfg', 'get_text_runs', 'initial_data',
@@ -34,7 +34,7 @@ def extract_keys(keys: Iterable[_K], obj: Mapping[_K, _V]) -> dict[_K, _V]:
     return new
 
 
-def get_text_runs(desc: DescriptionSnippetDict) -> str:
+def get_text_runs(desc: DescriptionSnippet) -> str:
     return ''.join(x['text'] for x in desc['runs']).strip().replace('\n', ' - ')
 
 

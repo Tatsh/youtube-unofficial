@@ -3,84 +3,135 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, TypedDict
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Sequence
 
-__all__ = ('PlaylistInfo', 'PlaylistVideoIDsEntry')
+__all__ = (
+    'HasKeyText',
+    'Icon',
+    'NavigationEndpoint',
+    'NextContinuation',
+    'PlaylistInfo',
+    'PlaylistVideoIDsEntry',
+    'PlaylistVideoListRenderer',
+    'PlaylistVideoListRendererContinuations',
+    'PlaylistVideoRenderer',
+    'PlaylistVideoRendererMenu',
+    'PlaylistVideoRendererMenuRenderer',
+    'PlaylistVideoRendererMenuRendererItem',
+    'PlaylistVideoRendererMenuRendererItemMenuServiceItemRenderer',
+    'RunsOrSimpleText',
+    'RunsOrText',
+    'WatchEndpoint',
+)
 
 
-class NextContinuationDict(TypedDict):
+class NextContinuation(TypedDict):
+    """Continuation data."""
     clickTrackingParams: str
+    """Click tracking parameters."""
     continuation: str
+    """Continuation token."""
 
 
-class WatchEndpointDict(TypedDict):
+class WatchEndpoint(TypedDict):
+    """Watch endpoint data."""
     videoId: str
+    """Video ID."""
 
 
-class NavigationEndpointDict(TypedDict):
-    watchEndpoint: WatchEndpointDict
+class NavigationEndpoint(TypedDict):
+    """Navigation endpoint data."""
+    watchEndpoint: WatchEndpoint
+    """Watch endpoint data."""
 
 
 class HasKeyText(TypedDict):
+    """Inside :py:class:`RunsOrSimpleText` and :py:class:`RunsOrText`."""
     text: str
+    """Text content."""
 
 
-class RunsOrSimpleTextDict(TypedDict, total=False):
+class RunsOrSimpleText(TypedDict, total=False):
+    """Inside :py:class:`PlaylistVideoRenderer`."""
     runs: Sequence[HasKeyText]
+    """Text runs."""
     simpleText: str
+    """Text content."""
 
 
-class RunsOrTextDict(TypedDict, total=False):
+class RunsOrText(TypedDict, total=False):
+    """Inside :py:class:`PlaylistVideoRenderer`."""
     runs: Sequence[HasKeyText]
+    """Text runs."""
     text: str
+    """Text content."""
 
 
-class IconDict(TypedDict):
+class Icon(TypedDict):
+    """Icon data."""
     iconType: str
+    """Icon type."""
 
 
-class PlaylistVideoRendererMenuRendererItemMenuServiceItemRendererDict(TypedDict):
-    icon: IconDict
-    serviceEndpoint: Mapping[str, Any]
+class PlaylistVideoRendererMenuRendererItemMenuServiceItemRenderer(TypedDict):
+    """Menu renderer."""
+    icon: Icon
+    """Icon data."""
+    serviceEndpoint: dict[str, Any]
+    """Service endpoint data."""
 
 
-class PlaylistVideoRendererMenuRendererItemDict(TypedDict):
-    menuServiceItemRenderer: PlaylistVideoRendererMenuRendererItemMenuServiceItemRendererDict
+class PlaylistVideoRendererMenuRendererItem(TypedDict):
+    """Menu renderer item."""
+    menuServiceItemRenderer: PlaylistVideoRendererMenuRendererItemMenuServiceItemRenderer
+    """Menu service item renderer."""
 
 
-class PlaylistVideoRendererMenuRendererDict(TypedDict):
-    items: Sequence[PlaylistVideoRendererMenuRendererItemDict]
+class PlaylistVideoRendererMenuRenderer(TypedDict):
+    """Menu renderer."""
+    items: Sequence[PlaylistVideoRendererMenuRendererItem]
+    """Menu items."""
 
 
-class PlaylistVideoRendererMenuDict(TypedDict):
-    menuRenderer: PlaylistVideoRendererMenuRendererDict
+class PlaylistVideoRendererMenu(TypedDict):
+    """Menu data."""
+    menuRenderer: PlaylistVideoRendererMenuRenderer
+    """Menu renderer data."""
 
 
-class PlaylistVideoRendererDict(TypedDict, total=False):
-    menu: PlaylistVideoRendererMenuDict
-    navigationEndpoint: NavigationEndpointDict
-    shortBylineText: RunsOrTextDict
-    title: RunsOrSimpleTextDict
+class PlaylistVideoRenderer(TypedDict, total=False):
+    """Playlist video renderer dictionary."""
+    menu: PlaylistVideoRendererMenu
+    """Menu data."""
+    navigationEndpoint: NavigationEndpoint
+    """Navigation endpoint data."""
+    shortBylineText: RunsOrText
+    """Short byline text."""
+    title: RunsOrSimpleText
+    """Video title."""
     videoId: str
+    """Video ID."""
 
 
 class PlaylistInfo(TypedDict, total=False):
     """Playlist information."""
     continuationItemRenderer: dict[str, Any]
     """Continuation data."""
-    playlistVideoRenderer: PlaylistVideoRendererDict
+    playlistVideoRenderer: PlaylistVideoRenderer
     """Inner renderer data."""
 
 
-class PlaylistVideoListRendererContinuationsDict(TypedDict):
-    nextContinuationData: NextContinuationDict
+class PlaylistVideoListRendererContinuations(TypedDict):
+    """Continuation data."""
+    nextContinuationData: NextContinuation
+    """Continuation data."""
 
 
 class PlaylistVideoListRenderer(TypedDict):
     """Playlist video list renderer dictionary."""
     contents: Sequence[PlaylistInfo]
     """Inner contents."""
-    continuations: Sequence[PlaylistVideoListRendererContinuationsDict]
+    continuations: Sequence[PlaylistVideoListRendererContinuations]
     """Continuation data."""
 
 

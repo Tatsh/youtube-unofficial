@@ -36,9 +36,9 @@ if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
 
     from .typing.history import (
-        DescriptionSnippetDict,
+        DescriptionSnippet,
         HistoryVideoIDsEntry,
-        MetadataBadgeRendererTopDict,
+        MetadataBadgeRendererTop,
     )
     from .typing.playlist import PlaylistInfo, PlaylistVideoListRenderer
     from .typing.ytcfg import YtcfgDict
@@ -55,13 +55,6 @@ class NoFeedbackToken(Exception):
 
 class YouTubeClient:
     """YouTube client for managing playlists and history."""
-
-    HISTORY_MAX_RETRIES = 5
-    """
-    Max retries for history API calls. Used in :py:meth:`get_history_info`.
-
-    :meta hide-value:
-    """
     def __init__(self, browser: str, profile: str) -> None:
         """
         Initialise the client.
@@ -495,7 +488,7 @@ class YouTubeClient:
         str
             The video IDs.
         """
-        def is_verified(owner_badges: Iterable[MetadataBadgeRendererTopDict]) -> bool:
+        def is_verified(owner_badges: Iterable[MetadataBadgeRendererTop]) -> bool:
             for badge in (x['metadataBadgeRenderer'] for x in owner_badges):
                 if badge['style'] == 'BADGE_STYLE_TYPE_VERIFIED':
                     return True
@@ -515,7 +508,7 @@ class YouTubeClient:
                     elif isinstance(v, int | str | float | bool):
                         d[k] = v
                     elif k in TEXT_RUNS_KEYS and isinstance(v, Mapping):
-                        d[TEXT_RUNS_KEYS[k]] = get_text_runs(cast('DescriptionSnippetDict', v))
+                        d[TEXT_RUNS_KEYS[k]] = get_text_runs(cast('DescriptionSnippet', v))
                     elif k == 'richThumbnail' and isinstance(v, Mapping):
                         if 'moving_thumbnails' not in d:  # pragma: no cover
                             d['moving_thumbnails'] = []

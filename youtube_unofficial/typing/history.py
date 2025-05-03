@@ -10,27 +10,27 @@ if TYPE_CHECKING:
 __all__ = ('HistoryVideoIDsEntry',)
 
 
-class TextDict(TypedDict):
+class Text(TypedDict):
     """Text information."""
     text: str
     """Text content."""
 
 
-class DescriptionSnippetDict(TypedDict):
+class DescriptionSnippet(TypedDict):
     """Description snippet information."""
-    runs: Sequence[TextDict]
+    runs: Sequence[Text]
     """Text runs."""
 
 
-class MetadataBadgeRenderDict(TypedDict):
+class MetadataBadgeRender(TypedDict):
     """Child of :py:class:`MetadataBadgeRendererTopDict`."""
     style: str
     """Badge style."""
 
 
-class MetadataBadgeRendererTopDict(TypedDict):
+class MetadataBadgeRendererTop(TypedDict):
     """Information about the badge displayed for the user (e.g. checkmark meaning 'verified')."""
-    metadataBadgeRenderer: MetadataBadgeRenderDict
+    metadataBadgeRenderer: MetadataBadgeRender
     """Inner data."""
 
 
