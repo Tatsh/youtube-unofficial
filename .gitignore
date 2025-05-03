@@ -2,6 +2,7 @@
 *~
 .*_cache/
 .coverage
+.cspellcache
 .directory
 .pnp.*
 /.yarn/install-state.gz

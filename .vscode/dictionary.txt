@@ -59,6 +59,7 @@ pytest
 referer
 regen
 resp
+rstcheck
 rsvi
 sapisid
 sapisidhash

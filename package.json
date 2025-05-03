@@ -1,47 +1,28 @@
 {
   "contributors": ["Andrew Udvare <audvare@gmail.com>"],
   "cspell": {
+    "cache": {
+      "useCache": true
+    },
     "dictionaryDefinitions": [
       {
         "name": "main",
         "path": ".vscode/dictionary.txt"
       }
     ],
+    "enableFileTypes": {
+      "*": true
+    },
     "enableGlobDot": true,
-    "enabledLanguageIds": [
-      "git-commit",
-      "ignore",
-      "jinja",
-      "json",
-      "jsonc",
-      "markdown",
-      "plaintext",
-      "python",
-      "restructuredtext",
-      "text",
-      "toml",
-      "yaml",
-      "yml"
-    ],
+    "files": ["*"],
     "ignorePaths": [
       "*.1",
       "*.har",
-      "*.log",
-      ".*_cache/**",
-      ".coverage",
-      ".directory",
-      ".doctrees",
-      ".git",
-      ".vscode/extensions.json",
+      "*.lock",
+      ".git/**",
       ".yarn/**/*.cjs",
-      "__pycache__",
-      "_build/**",
-      "build/**",
-      "dist/**",
-      "docs/_build/**",
-      "htmlcov/**",
-      "man/**",
-      "node_modules/**"
+      ".vscode/extensions.json",
+      "man/**"
     ],
     "language": "en-GB",
     "languageSettings": [
@@ -49,7 +30,8 @@
         "dictionaries": ["main"],
         "languageId": "*"
       }
-    ]
+    ],
+    "useGitignore": true
   },
   "devDependencies": {
     "@prettier/plugin-xml": "^3.4.1",

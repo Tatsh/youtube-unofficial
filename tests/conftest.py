@@ -53,4 +53,4 @@ def client(mock_cookie_jar: MagicMock, mock_extract_cookies_from_browser: None) 
 
 @pytest.fixture
 def data_path() -> Path:
-    return Path(__file__).parent / 'data'
+    return Path(__file__).parent / 'client/data'

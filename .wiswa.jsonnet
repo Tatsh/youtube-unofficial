@@ -6,7 +6,7 @@
   version: '0.2.0',
   want_main: true,
   citation+: {
-    'date-released': '2025-04-26',
+    'date-released': '2025-05-03',
   },
   pyproject+: {
     project+: {
@@ -34,7 +34,6 @@
       poetry+: {
         dependencies+: {
           'more-itertools': '^10.7.0',
-          'python-benedict': '^0.34.1',
           'yt-dlp-utils': '^0.0.3',
           beautifulsoup4: '^4.13.4',
           click: '^8.1.8',
