@@ -466,14 +466,22 @@ class YouTubeClient:
             params['continuation'] = continuations['continuation']
 
     @overload
-    def get_history_video_ids(
-            self, *,
-            return_dict: Literal[True]) -> Iterator[HistoryVideoIDsEntry]:  # pragma: no cover
+    def get_history_video_ids(self) -> Iterator[str]:  # pragma: no cover
         ...
 
     @overload
-    def get_history_video_ids(self, *,
-                              return_dict: Literal[False]) -> Iterator[str]:  # pragma: no cover
+    def get_history_video_ids(
+            self,
+            *,
+            return_dict: Literal[True] = True
+    ) -> Iterator[HistoryVideoIDsEntry]:  # pragma: no cover
+        ...
+
+    @overload
+    def get_history_video_ids(self,
+                              *,
+                              return_dict: Literal[False] = False
+                              ) -> Iterator[str]:  # pragma: no cover
         ...
 
     def get_history_video_ids(self,
