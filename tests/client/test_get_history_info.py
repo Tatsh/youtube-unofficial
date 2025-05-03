@@ -15,7 +15,7 @@ def test_get_history_info_no_continuation(mocker: MockerFixture, requests_mock: 
                                           client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
                      'VISITOR_DATA': 'test_visitor_data',
@@ -53,7 +53,7 @@ def test_get_history_info_with_continuation(mocker: MockerFixture, requests_mock
                                             client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
@@ -124,7 +124,7 @@ def test_get_history_info_alt_continuation(mocker: MockerFixture, requests_mock:
                                            client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
@@ -194,7 +194,7 @@ def test_get_history_info_no_continuation_on_2nd_req(mocker: MockerFixture, requ
                                                      caplog: LogCaptureFixture) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
@@ -271,7 +271,7 @@ def test_get_history_info_bad_continuation(mocker: MockerFixture, requests_mock:
                                            client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
@@ -322,7 +322,7 @@ def test_get_history_info_no_videos(mocker: MockerFixture, requests_mock: Mocker
                                     client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
                      'VISITOR_DATA': 'test_visitor_data',

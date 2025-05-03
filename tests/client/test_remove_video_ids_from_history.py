@@ -14,7 +14,7 @@ def test_remove_video_ids_from_history(mocker: MockerFixture, requests_mock: Moc
                                        client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'SESSION_INDEX': 0,

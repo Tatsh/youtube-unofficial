@@ -16,7 +16,7 @@ def test_clear_playlist_empty(mocker: MockerFixture, requests_mock: Mocker, clie
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
@@ -51,7 +51,7 @@ def test_clear_playlist_empty_iter(mocker: MockerFixture, requests_mock: Mocker,
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
@@ -88,7 +88,7 @@ def test_clear_playlist(mocker: MockerFixture, requests_mock: Mocker,
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     mocker.patch('youtube_unofficial.client.initial_data',

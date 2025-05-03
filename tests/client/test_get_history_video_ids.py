@@ -16,7 +16,7 @@ def test_get_history_video_ids(mocker: MockerFixture, requests_mock: Mocker,
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
@@ -245,7 +245,7 @@ def test_get_history_video_ids_strings(mocker: MockerFixture, requests_mock: Moc
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
@@ -424,7 +424,7 @@ def test_get_history_video_ids_empty(mocker: MockerFixture, requests_mock: Mocke
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
@@ -454,7 +454,7 @@ def test_get_history_video_ids_missing_video_id(mocker: MockerFixture, requests_
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')

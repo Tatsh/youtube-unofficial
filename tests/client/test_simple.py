@@ -16,7 +16,7 @@ def test_remove_video_id_from_playlist(mocker: MockerFixture, requests_mock: Moc
     ytcfg_mock = {
         'INNERTUBE_API_KEY': 'test_api_key',
         'VISITOR_DATA': 'test_visitor_data',
-        'DELEGATED_SESSION_ID': 'test_session_id',
+        'USER_SESSION_ID': 'test_session_id',
         'SESSION_INDEX': 0,
     }
     mocker.patch('youtube_unofficial.client.find_ytcfg', return_value=ytcfg_mock)
@@ -70,7 +70,7 @@ def test_remove_video_from_playlist_cached(mocker: MockerFixture, requests_mock:
                                            client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
                      'VISITOR_DATA': 'test_visitor_data',
@@ -95,7 +95,7 @@ def test_remove_set_video_id_from_playlist(mocker: MockerFixture, requests_mock:
                                            client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
                      'VISITOR_DATA': 'test_visitor_data',
@@ -117,7 +117,7 @@ def test_remove_set_video_id_from_playlist_cached(mocker: MockerFixture, request
                                                   client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
                      'VISITOR_DATA': 'test_visitor_data',

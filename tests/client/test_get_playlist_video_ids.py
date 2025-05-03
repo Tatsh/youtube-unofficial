@@ -14,7 +14,7 @@ def test_get_playlist_video_ids(mocker: MockerFixture, requests_mock: Mocker,
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     requests_mock.get('https://www.youtube.com/playlist?list=test_playlist', text='<html></html>')
@@ -56,7 +56,7 @@ def test_get_playlist_video_ids_dict(mocker: MockerFixture, requests_mock: Mocke
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     requests_mock.get('https://www.youtube.com/playlist?list=test_playlist', text='<html></html>')

@@ -16,7 +16,7 @@ def test_get_playlist_info(mocker: MockerFixture, requests_mock: Mocker,
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
@@ -59,7 +59,7 @@ def test_get_playlist_info_continuation(mocker: MockerFixture, requests_mock: Mo
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
@@ -153,7 +153,7 @@ def test_get_playlist_info_empty(mocker: MockerFixture, requests_mock: Mocker,
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
@@ -187,7 +187,7 @@ def test_get_playlist_info_empty_alt(mocker: MockerFixture, requests_mock: Mocke
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
-                     'DELEGATED_SESSION_ID': 'test_session_id',
+                     'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
     mocker.patch('youtube_unofficial.client.initial_data', return_value={'contents': {}})
