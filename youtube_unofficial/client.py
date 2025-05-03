@@ -583,8 +583,9 @@ class YouTubeClient:
             self.session.cookies.get('SAPISID', self.session.cookies.get('__Secure-1PAPISID')))
         assert sapisid is not None
         if ytcfg:
-            session_id = ytcfg.get('DELEGATED_SESSION_ID', ytcfg.get('USER_SESSION_ID'))
-            assert session_id is not None
+            session_id = ytcfg['USER_SESSION_ID']
+            # session_id = ytcfg.get('DELEGATED_SESSION_ID', ytcfg.get('USER_SESSION_ID'))  # noqa: E501, ERA001
+            # assert session_id is not None
             m = hashlib.sha1(' '.join(  # noqa: S324
                 (session_id, str(now), sapisid, 'https://www.youtube.com')).encode())
             a = '_'.join((str(now), m.hexdigest(), 'u'))
