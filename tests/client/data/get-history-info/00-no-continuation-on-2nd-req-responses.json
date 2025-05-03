@@ -1,0 +1,36 @@
+[
+  {
+    "json": {
+      "onResponseReceivedActions": [
+        {
+          "appendContinuationItemsAction": {
+            "continuationItems": [
+              {
+                "continuationItemRenderer": {
+                  "continuationEndpoint": {
+                    "clickTrackingParams": "test_tracking_params",
+                    "continuationCommand": {
+                      "token": "test_token"
+                    }
+                  }
+                },
+                "itemSectionRenderer": {}
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "json": {
+      "onResponseReceivedActions": [
+        {
+          "appendContinuationItemsAction": {
+            "continuationItems": [{}]
+          }
+        }
+      ]
+    }
+  }
+]

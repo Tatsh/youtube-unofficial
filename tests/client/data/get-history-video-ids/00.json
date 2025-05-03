@@ -1,0 +1,186 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "content": {
+              "sectionListRenderer": {
+                "contents": [
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "videoRenderer": {
+                            "channelThumbnailSupportedRenderers": {
+                              "channelThumbnailWithLinkRenderer": {
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "height": 100,
+                                      "url": "https://example.com/thumbnail.jpg",
+                                      "width": 100
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "isWatched": true,
+                            "lengthText": {
+                              "accessibility": {
+                                "accessibilityData": {
+                                  "label": "5 minutes"
+                                }
+                              },
+                              "simpleText": "5:00"
+                            },
+                            "ownerBadges": [
+                              {
+                                "metadataBadgeRenderer": {
+                                  "style": "BADGE_STYLE_TYPE_VERIFIED"
+                                }
+                              }
+                            ],
+                            "ownerText": {
+                              "runs": [
+                                {
+                                  "text": "Test Owner"
+                                }
+                              ]
+                            },
+                            "random": 1,
+                            "richThumbnail": {
+                              "movingThumbnailRenderer": {
+                                "movingThumbnailDetails": {
+                                  "thumbnails": [
+                                    {
+                                      "height": 100,
+                                      "url": "https://example.com/thumbnail.jpg",
+                                      "width": 100
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "shortBylineText": {
+                              "runs": [
+                                {
+                                  "text": "Test Channel"
+                                }
+                              ]
+                            },
+                            "shortViewCountText": {
+                              "simpleText": "10 views"
+                            },
+                            "thumbnail": {
+                              "thumbnails": [
+                                {
+                                  "height": 320,
+                                  "url": "test_thumbnail_url",
+                                  "width": 180
+                                }
+                              ]
+                            },
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Test Title"
+                                }
+                              ]
+                            },
+                            "videoId": "test_video_id"
+                          }
+                        },
+                        {
+                          "videoRenderer": {
+                            "channelThumbnailSupportedRenderers": {
+                              "channelThumbnailWithLinkRenderer": {
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "height": 100,
+                                      "url": "https://example.com/thumbnail.jpg",
+                                      "width": 100
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "isWatched": true,
+                            "lengthText": {
+                              "accessibility": {
+                                "accessibilityData": {
+                                  "label": "5 minutes"
+                                }
+                              },
+                              "simpleText": "5:00"
+                            },
+                            "ownerBadges": [
+                              {
+                                "metadataBadgeRenderer": {
+                                  "style": "fff"
+                                }
+                              }
+                            ],
+                            "ownerText": {
+                              "runs": [
+                                {
+                                  "text": "Test Owner"
+                                }
+                              ]
+                            },
+                            "random": 1,
+                            "richThumbnail": {
+                              "movingThumbnailRenderer": {
+                                "movingThumbnailDetails": {
+                                  "thumbnails": [
+                                    {
+                                      "height": 100,
+                                      "url": "https://example.com/thumbnail.jpg",
+                                      "width": 100
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "shortBylineText": {
+                              "runs": [
+                                {
+                                  "text": "Test Channel"
+                                }
+                              ]
+                            },
+                            "shortViewCountText": {
+                              "simpleText": "10 views"
+                            },
+                            "thumbnail": {
+                              "thumbnails": [
+                                {
+                                  "height": 320,
+                                  "url": "test_thumbnail_url",
+                                  "width": 180
+                                }
+                              ]
+                            },
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Test Title"
+                                }
+                              ]
+                            },
+                            "videoId": "test_video_id"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

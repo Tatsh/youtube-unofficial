@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+import json
 
 from youtube_unofficial.constants import WATCH_HISTORY_URL
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from pytest_mock import MockerFixture
     from requests_mock import Mocker
     from youtube_unofficial.client import YouTubeClient
 
 
-def test_get_history_video_ids(mocker: MockerFixture, requests_mock: Mocker,
-                               client: YouTubeClient) -> None:
+def test_get_history_video_ids(mocker: MockerFixture, requests_mock: Mocker, client: YouTubeClient,
+                               data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -20,171 +23,8 @@ def test_get_history_video_ids(mocker: MockerFixture, requests_mock: Mocker,
                      'SESSION_INDEX': 0,
                  })
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    mocker.patch(
-        'youtube_unofficial.client.initial_data',
-        return_value={
-            'contents': {
-                'twoColumnBrowseResultsRenderer': {
-                    'tabs': [{
-                        'tabRenderer': {
-                            'content': {
-                                'sectionListRenderer': {
-                                    'contents': [{
-                                        'itemSectionRenderer': {
-                                            'contents': [{
-                                                'videoRenderer': {
-                                                    'shortViewCountText': {
-                                                        'simpleText': '10 views'
-                                                    },
-                                                    'richThumbnail': {
-                                                        'movingThumbnailRenderer': {
-                                                            'movingThumbnailDetails': {
-                                                                'thumbnails': [{
-                                                                    'width':
-                                                                        100,
-                                                                    'height':
-                                                                        100,
-                                                                    'url':
-                                                                        'https://example.com/thumbnail.jpg'
-                                                                }]
-                                                            }
-                                                        }
-                                                    },
-                                                    'channelThumbnailSupportedRenderers': {
-                                                        'channelThumbnailWithLinkRenderer': {
-                                                            'thumbnail': {
-                                                                'thumbnails': [{
-                                                                    'width':
-                                                                        100,
-                                                                    'height':
-                                                                        100,
-                                                                    'url':
-                                                                        'https://example.com/thumbnail.jpg'
-                                                                }]
-                                                            }
-                                                        }
-                                                    },
-                                                    'isWatched': True,
-                                                    'random': 1,
-                                                    'videoId': 'test_video_id',
-                                                    'title': {
-                                                        'runs': [{
-                                                            'text': 'Test Title'
-                                                        }]
-                                                    },
-                                                    'shortBylineText': {
-                                                        'runs': [{
-                                                            'text': 'Test Channel'
-                                                        }]
-                                                    },
-                                                    'lengthText': {
-                                                        'simpleText': '5:00',
-                                                        'accessibility': {
-                                                            'accessibilityData': {
-                                                                'label': '5 minutes'
-                                                            }
-                                                        }
-                                                    },
-                                                    'ownerText': {
-                                                        'runs': [{
-                                                            'text': 'Test Owner'
-                                                        }]
-                                                    },
-                                                    'ownerBadges': [{
-                                                        'metadataBadgeRenderer': {
-                                                            'style': 'BADGE_STYLE_TYPE_VERIFIED'
-                                                        }
-                                                    }],
-                                                    'thumbnail': {
-                                                        'thumbnails': [{
-                                                            'height': 320,
-                                                            'width': 180,
-                                                            'url': 'test_thumbnail_url'
-                                                        }]
-                                                    }
-                                                }
-                                            }, {
-                                                'videoRenderer': {
-                                                    'shortViewCountText': {
-                                                        'simpleText': '10 views'
-                                                    },
-                                                    'richThumbnail': {
-                                                        'movingThumbnailRenderer': {
-                                                            'movingThumbnailDetails': {
-                                                                'thumbnails': [{
-                                                                    'width':
-                                                                        100,
-                                                                    'height':
-                                                                        100,
-                                                                    'url':
-                                                                        'https://example.com/thumbnail.jpg'
-                                                                }]
-                                                            }
-                                                        }
-                                                    },
-                                                    'channelThumbnailSupportedRenderers': {
-                                                        'channelThumbnailWithLinkRenderer': {
-                                                            'thumbnail': {
-                                                                'thumbnails': [{
-                                                                    'width':
-                                                                        100,
-                                                                    'height':
-                                                                        100,
-                                                                    'url':
-                                                                        'https://example.com/thumbnail.jpg'
-                                                                }]
-                                                            }
-                                                        }
-                                                    },
-                                                    'isWatched': True,
-                                                    'random': 1,
-                                                    'videoId': 'test_video_id',
-                                                    'title': {
-                                                        'runs': [{
-                                                            'text': 'Test Title'
-                                                        }]
-                                                    },
-                                                    'shortBylineText': {
-                                                        'runs': [{
-                                                            'text': 'Test Channel'
-                                                        }]
-                                                    },
-                                                    'lengthText': {
-                                                        'simpleText': '5:00',
-                                                        'accessibility': {
-                                                            'accessibilityData': {
-                                                                'label': '5 minutes'
-                                                            }
-                                                        }
-                                                    },
-                                                    'ownerText': {
-                                                        'runs': [{
-                                                            'text': 'Test Owner'
-                                                        }]
-                                                    },
-                                                    'ownerBadges': [{
-                                                        'metadataBadgeRenderer': {
-                                                            'style': 'fff'
-                                                        }
-                                                    }],
-                                                    'thumbnail': {
-                                                        'thumbnails': [{
-                                                            'height': 320,
-                                                            'width': 180,
-                                                            'url': 'test_thumbnail_url'
-                                                        }]
-                                                    }
-                                                }
-                                            }]
-                                        }
-                                    }]
-                                }
-                            }
-                        }
-                    }]
-                }
-            }
-        })
+    mocker.patch('youtube_unofficial.client.initial_data',
+                 return_value=json.loads((data_path / 'get-history-video-ids/00.json').read_text()))
     result = list(client.get_history_video_ids(return_dict=True))
     assert result == [{
         'video_id': 'test_video_id',
@@ -240,7 +80,7 @@ def test_get_history_video_ids(mocker: MockerFixture, requests_mock: Mocker,
 
 
 def test_get_history_video_ids_strings(mocker: MockerFixture, requests_mock: Mocker,
-                                       client: YouTubeClient) -> None:
+                                       client: YouTubeClient, data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -249,177 +89,15 @@ def test_get_history_video_ids_strings(mocker: MockerFixture, requests_mock: Moc
                      'SESSION_INDEX': 0,
                  })
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    mocker.patch(
-        'youtube_unofficial.client.initial_data',
-        return_value={
-            'contents': {
-                'twoColumnBrowseResultsRenderer': {
-                    'tabs': [{
-                        'tabRenderer': {
-                            'content': {
-                                'sectionListRenderer': {
-                                    'contents': [{
-                                        'itemSectionRenderer': {
-                                            'contents': [{
-                                                'videoRenderer': {
-                                                    'shortViewCountText': {
-                                                        'simpleText': '10 views'
-                                                    },
-                                                    'richThumbnail': {
-                                                        'movingThumbnailRenderer': {
-                                                            'movingThumbnailDetails': {
-                                                                'thumbnails': [{
-                                                                    'width':
-                                                                        100,
-                                                                    'height':
-                                                                        100,
-                                                                    'url':
-                                                                        'https://example.com/thumbnail.jpg'
-                                                                }]
-                                                            }
-                                                        }
-                                                    },
-                                                    'channelThumbnailSupportedRenderers': {
-                                                        'channelThumbnailWithLinkRenderer': {
-                                                            'thumbnail': {
-                                                                'thumbnails': [{
-                                                                    'width':
-                                                                        100,
-                                                                    'height':
-                                                                        100,
-                                                                    'url':
-                                                                        'https://example.com/thumbnail.jpg'
-                                                                }]
-                                                            }
-                                                        }
-                                                    },
-                                                    'isWatched': True,
-                                                    'random': 1,
-                                                    'videoId': 'test_video_id',
-                                                    'title': {
-                                                        'runs': [{
-                                                            'text': 'Test Title'
-                                                        }]
-                                                    },
-                                                    'shortBylineText': {
-                                                        'runs': [{
-                                                            'text': 'Test Channel'
-                                                        }]
-                                                    },
-                                                    'lengthText': {
-                                                        'simpleText': '5:00',
-                                                        'accessibility': {
-                                                            'accessibilityData': {
-                                                                'label': '5 minutes'
-                                                            }
-                                                        }
-                                                    },
-                                                    'ownerText': {
-                                                        'runs': [{
-                                                            'text': 'Test Owner'
-                                                        }]
-                                                    },
-                                                    'ownerBadges': [{
-                                                        'metadataBadgeRenderer': {
-                                                            'style': 'BADGE_STYLE_TYPE_VERIFIED'
-                                                        }
-                                                    }],
-                                                    'thumbnail': {
-                                                        'thumbnails': [{
-                                                            'height': 320,
-                                                            'width': 180,
-                                                            'url': 'test_thumbnail_url'
-                                                        }]
-                                                    }
-                                                }
-                                            }, {
-                                                'videoRenderer': {
-                                                    'shortViewCountText': {
-                                                        'simpleText': '10 views'
-                                                    },
-                                                    'richThumbnail': {
-                                                        'movingThumbnailRenderer': {
-                                                            'movingThumbnailDetails': {
-                                                                'thumbnails': [{
-                                                                    'width':
-                                                                        100,
-                                                                    'height':
-                                                                        100,
-                                                                    'url':
-                                                                        'https://example.com/thumbnail.jpg'
-                                                                }]
-                                                            }
-                                                        }
-                                                    },
-                                                    'channelThumbnailSupportedRenderers': {
-                                                        'channelThumbnailWithLinkRenderer': {
-                                                            'thumbnail': {
-                                                                'thumbnails': [{
-                                                                    'width':
-                                                                        100,
-                                                                    'height':
-                                                                        100,
-                                                                    'url':
-                                                                        'https://example.com/thumbnail.jpg'
-                                                                }]
-                                                            }
-                                                        }
-                                                    },
-                                                    'isWatched': True,
-                                                    'random': 1,
-                                                    'videoId': 'test_video_id',
-                                                    'title': {
-                                                        'runs': [{
-                                                            'text': 'Test Title'
-                                                        }]
-                                                    },
-                                                    'shortBylineText': {
-                                                        'runs': [{
-                                                            'text': 'Test Channel'
-                                                        }]
-                                                    },
-                                                    'lengthText': {
-                                                        'simpleText': '5:00',
-                                                        'accessibility': {
-                                                            'accessibilityData': {
-                                                                'label': '5 minutes'
-                                                            }
-                                                        }
-                                                    },
-                                                    'ownerText': {
-                                                        'runs': [{
-                                                            'text': 'Test Owner'
-                                                        }]
-                                                    },
-                                                    'ownerBadges': [{
-                                                        'metadataBadgeRenderer': {
-                                                            'style': 'fff'
-                                                        }
-                                                    }],
-                                                    'thumbnail': {
-                                                        'thumbnails': [{
-                                                            'height': 320,
-                                                            'width': 180,
-                                                            'url': 'test_thumbnail_url'
-                                                        }]
-                                                    }
-                                                }
-                                            }]
-                                        }
-                                    }]
-                                }
-                            }
-                        }
-                    }]
-                }
-            }
-        })
+    mocker.patch('youtube_unofficial.client.initial_data',
+                 return_value=json.loads(
+                     (data_path / 'get-history-video-ids/00-strings.json').read_text()))
     result = list(client.get_history_video_ids())
     assert result == ['test_video_id', 'test_video_id']
 
 
 def test_get_history_video_ids_empty(mocker: MockerFixture, requests_mock: Mocker,
-                                     client: YouTubeClient) -> None:
+                                     client: YouTubeClient, data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -429,27 +107,14 @@ def test_get_history_video_ids_empty(mocker: MockerFixture, requests_mock: Mocke
                  })
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
     mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'tabs': [{
-                                 'tabRenderer': {
-                                     'content': {
-                                         'sectionListRenderer': {
-                                             'contents': []
-                                         }
-                                     }
-                                 }
-                             }]
-                         }
-                     }
-                 })
+                 return_value=json.loads(
+                     (data_path / 'get-history-video-ids/00-empty.json').read_text()))
     result = list(client.get_history_video_ids(return_dict=False))
     assert result == []
 
 
 def test_get_history_video_ids_missing_video_id(mocker: MockerFixture, requests_mock: Mocker,
-                                                client: YouTubeClient) -> None:
+                                                client: YouTubeClient, data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -459,26 +124,7 @@ def test_get_history_video_ids_missing_video_id(mocker: MockerFixture, requests_
                  })
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
     mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'tabs': [{
-                                 'tabRenderer': {
-                                     'content': {
-                                         'sectionListRenderer': {
-                                             'contents': [{
-                                                 'itemSectionRenderer': {
-                                                     'contents': [{
-                                                         'videoRenderer': {}
-                                                     }]
-                                                 }
-                                             }]
-                                         }
-                                     }
-                                 }
-                             }]
-                         }
-                     }
-                 })
+                 return_value=json.loads(
+                     (data_path / 'get-history-video-ids/00-missing-video-id.json').read_text()))
     result = list(client.get_history_video_ids(return_dict=False))
     assert result == []

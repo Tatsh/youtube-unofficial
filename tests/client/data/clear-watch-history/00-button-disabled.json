@@ -1,0 +1,17 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "secondaryContents": {
+        "browseFeedActionsRenderer": {
+          "contents": [
+            {
+              "buttonRenderer": {
+                "isDisabled": true
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "secondaryContents": {
+        "browseFeedActionsRenderer": {
+          "contents": [
+            {
+              "buttonRenderer": {
+                "isDisabled": false
+              }
+            },
+            {
+              "buttonRenderer": {
+                "navigationEndpoint": {
+                  "confirmDialogEndpoint": {
+                    "content": {
+                      "confirmDialogRenderer": {
+                        "confirmEndpoint": {
+                          "commandMetadata": {
+                            "webCommandMetadata": {
+                              "apiUrl": "/youtubei/v1/feedback"
+                            }
+                          },
+                          "feedbackEndpoint": {
+                            "feedbackToken": ""
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

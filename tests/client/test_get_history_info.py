@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+import json
 
 from youtube_unofficial.constants import WATCH_HISTORY_URL
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from _pytest.logging import LogCaptureFixture
     from pytest_mock import MockerFixture
     from requests_mock import Mocker
@@ -12,7 +15,7 @@ if TYPE_CHECKING:
 
 
 def test_get_history_info_no_continuation(mocker: MockerFixture, requests_mock: Mocker,
-                                          client: YouTubeClient) -> None:
+                                          client: YouTubeClient, data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -21,36 +24,15 @@ def test_get_history_info_no_continuation(mocker: MockerFixture, requests_mock: 
                      'VISITOR_DATA': 'test_visitor_data',
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'tabs': [{
-                                 'tabRenderer': {
-                                     'content': {
-                                         'sectionListRenderer': {
-                                             'contents': [{
-                                                 'itemSectionRenderer': {
-                                                     'contents': [{
-                                                         'videoRenderer': {
-                                                             'videoId': 'test_video'
-                                                         }
-                                                     }]
-                                                 }
-                                             }]
-                                         }
-                                     }
-                                 }
-                             }]
-                         }
-                     }
-                 })
+                 return_value=json.loads(
+                     (data_path / 'get-history-info/00-no-continuation.json').read_text()))
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
     result = list(client.get_history_info())
     assert result == [{'videoRenderer': {'videoId': 'test_video'}}]
 
 
 def test_get_history_info_with_continuation(mocker: MockerFixture, requests_mock: Mocker,
-                                            client: YouTubeClient) -> None:
+                                            client: YouTubeClient, data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -60,54 +42,13 @@ def test_get_history_info_with_continuation(mocker: MockerFixture, requests_mock
                      'VISITOR_DATA': 'test_visitor_data',
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'tabs': [{
-                                 'tabRenderer': {
-                                     'content': {
-                                         'sectionListRenderer': {
-                                             'contents': [{}, {
-                                                 'itemSectionRenderer': {
-                                                     'contents': [{
-                                                         'videoRenderer': {
-                                                             'videoId': 'test_video'
-                                                         }
-                                                     }]
-                                                 }
-                                             }, {
-                                                 'continuationItemRenderer': {
-                                                     'continuationEndpoint': {
-                                                         'continuationCommand': {
-                                                             'token': 'test_token'
-                                                         }
-                                                     }
-                                                 }
-                                             }]
-                                         }
-                                     }
-                                 }
-                             }]
-                         }
-                     }
-                 })
+                 return_value=json.loads(
+                     (data_path / 'get-history-info/00-with-continuation.json').read_text()))
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    requests_mock.post('https://www.youtube.com/youtubei/v1/browse',
-                       json={
-                           'onResponseReceivedActions': [{
-                               'appendContinuationItemsAction': {
-                                   'continuationItems': [{
-                                       'itemSectionRenderer': {
-                                           'contents': [{
-                                               'videoRenderer': {
-                                                   'videoId': 'test_video_2'
-                                               }
-                                           }]
-                                       }
-                                   }]
-                               }
-                           }]
-                       })
+    requests_mock.post(
+        'https://www.youtube.com/youtubei/v1/browse',
+        json=json.loads(
+            (data_path / 'get-history-info/00-with-continuation-response.json').read_text()))
     result = list(client.get_history_info())
     assert result == [{
         'videoRenderer': {
@@ -121,7 +62,7 @@ def test_get_history_info_with_continuation(mocker: MockerFixture, requests_mock
 
 
 def test_get_history_info_alt_continuation(mocker: MockerFixture, requests_mock: Mocker,
-                                           client: YouTubeClient) -> None:
+                                           client: YouTubeClient, data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -131,67 +72,21 @@ def test_get_history_info_alt_continuation(mocker: MockerFixture, requests_mock:
                      'VISITOR_DATA': 'test_visitor_data',
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'tabs': [{
-                                 'tabRenderer': {
-                                     'content': {
-                                         'sectionListRenderer': {
-                                             'contents': [{}, {
-                                                 'itemSectionRenderer': {
-                                                     'contents': [{
-                                                         'videoRenderer': {
-                                                             'videoId': 'test_video'
-                                                         }
-                                                     }]
-                                                 }
-                                             }, {
-                                                 'continuationItemRenderer': {
-                                                     'continuationEndpoint': {
-                                                         'continuationCommand': {
-                                                             'token': 'test_token'
-                                                         }
-                                                     }
-                                                 }
-                                             }]
-                                         }
-                                     }
-                                 }
-                             }]
-                         }
-                     }
-                 })
+                 return_value=json.loads(
+                     (data_path / 'get-history-info/00-alt-continuation.json').read_text()))
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    requests_mock.post('https://www.youtube.com/youtubei/v1/browse',
-                       response_list=[{
-                           'json': {
-                               'onResponseReceivedActions': [{
-                                   'appendContinuationItemsAction': {
-                                       'continuationItems': [{
-                                           'itemSectionRenderer': {},
-                                           'continuationItemRenderer': {
-                                               'continuationEndpoint': {
-                                                   'clickTrackingParams': 'test_tracking_params',
-                                                   'continuationCommand': {
-                                                       'token': 'test_token'
-                                                   }
-                                               }
-                                           }
-                                       }]
-                                   }
-                               }]
-                           }
-                       }, {
-                           'json': {}
-                       }])
+    requests_mock.post(
+        'https://www.youtube.com/youtubei/v1/browse',
+        response_list=json.loads(
+            (data_path / 'get-history-info/00-alt-continuation-response.json').read_text()))
     result = list(client.get_history_info())
     assert result == [{'videoRenderer': {'videoId': 'test_video'}}]
 
 
 def test_get_history_info_no_continuation_on_2nd_req(mocker: MockerFixture, requests_mock: Mocker,
                                                      client: YouTubeClient,
-                                                     caplog: LogCaptureFixture) -> None:
+                                                     caplog: LogCaptureFixture,
+                                                     data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -200,67 +95,16 @@ def test_get_history_info_no_continuation_on_2nd_req(mocker: MockerFixture, requ
                      'SESSION_INDEX': 0,
                      'VISITOR_DATA': 'test_visitor_data',
                  })
-    mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'tabs': [{
-                                 'tabRenderer': {
-                                     'content': {
-                                         'sectionListRenderer': {
-                                             'contents': [{}, {
-                                                 'itemSectionRenderer': {
-                                                     'contents': [{
-                                                         'videoRenderer': {
-                                                             'videoId': 'test_video'
-                                                         }
-                                                     }]
-                                                 }
-                                             }, {
-                                                 'continuationItemRenderer': {
-                                                     'continuationEndpoint': {
-                                                         'continuationCommand': {
-                                                             'token': 'test_token'
-                                                         }
-                                                     }
-                                                 }
-                                             }]
-                                         }
-                                     }
-                                 }
-                             }]
-                         }
-                     }
-                 })
+    mocker.patch(
+        'youtube_unofficial.client.initial_data',
+        return_value=json.loads(
+            (data_path / 'get-history-info/00-no-continuation-on-2nd-req.json').read_text()))
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    requests_mock.post('https://www.youtube.com/youtubei/v1/browse',
-                       response_list=[{
-                           'json': {
-                               'onResponseReceivedActions': [{
-                                   'appendContinuationItemsAction': {
-                                       'continuationItems': [{
-                                           'itemSectionRenderer': {},
-                                           'continuationItemRenderer': {
-                                               'continuationEndpoint': {
-                                                   'clickTrackingParams': 'test_tracking_params',
-                                                   'continuationCommand': {
-                                                       'token': 'test_token'
-                                                   }
-                                               }
-                                           }
-                                       }]
-                                   }
-                               }]
-                           }
-                       }, {
-                           'json': {
-                               'onResponseReceivedActions': [{
-                                   'appendContinuationItemsAction': {
-                                       'continuationItems': [{}]
-                                   }
-                               }]
-                           }
-                       }])
+    requests_mock.post(
+        'https://www.youtube.com/youtubei/v1/browse',
+        response_list=json.loads(
+            (data_path /
+             'get-history-info/00-no-continuation-on-2nd-req-responses.json').read_text()))
     with caplog.at_level('INFO'):
         result = list(client.get_history_info())
         assert result == [{'videoRenderer': {'videoId': 'test_video'}}]
@@ -268,7 +112,7 @@ def test_get_history_info_no_continuation_on_2nd_req(mocker: MockerFixture, requ
 
 
 def test_get_history_info_bad_continuation(mocker: MockerFixture, requests_mock: Mocker,
-                                           client: YouTubeClient) -> None:
+                                           client: YouTubeClient, data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -278,37 +122,8 @@ def test_get_history_info_bad_continuation(mocker: MockerFixture, requests_mock:
                      'VISITOR_DATA': 'test_visitor_data',
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'tabs': [{
-                                 'tabRenderer': {
-                                     'content': {
-                                         'sectionListRenderer': {
-                                             'contents': [{}, {
-                                                 'itemSectionRenderer': {
-                                                     'contents': [{
-                                                         'videoRenderer': {
-                                                             'videoId': 'test_video'
-                                                         }
-                                                     }]
-                                                 }
-                                             }, {
-                                                 'continuationItemRenderer': {
-                                                     'continuationEndpoint': {
-                                                         'continuationCommand': {
-                                                             'token': 'test_token'
-                                                         }
-                                                     }
-                                                 }
-                                             }]
-                                         }
-                                     }
-                                 }
-                             }]
-                         }
-                     }
-                 })
+                 return_value=json.loads(
+                     (data_path / 'get-history-info/00-bad-continuation.json').read_text()))
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
     requests_mock.post('https://www.youtube.com/youtubei/v1/browse',
                        json={'onResponseReceivedActions': [{
@@ -319,7 +134,7 @@ def test_get_history_info_bad_continuation(mocker: MockerFixture, requests_mock:
 
 
 def test_get_history_info_no_videos(mocker: MockerFixture, requests_mock: Mocker,
-                                    client: YouTubeClient) -> None:
+                                    client: YouTubeClient, data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -328,21 +143,8 @@ def test_get_history_info_no_videos(mocker: MockerFixture, requests_mock: Mocker
                      'VISITOR_DATA': 'test_visitor_data',
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
-                 return_value={
-                     'contents': {
-                         'twoColumnBrowseResultsRenderer': {
-                             'tabs': [{
-                                 'tabRenderer': {
-                                     'content': {
-                                         'sectionListRenderer': {
-                                             'contents': []
-                                         }
-                                     }
-                                 }
-                             }]
-                         }
-                     }
-                 })
+                 return_value=json.loads(
+                     (data_path / 'get-history-info/00-no-videos.json').read_text()))
     requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
     result = list(client.get_history_info())
     assert result == []
