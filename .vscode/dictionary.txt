@@ -2,6 +2,7 @@ authuser
 autodoc
 automodule
 beautifulsoup
+bsky
 cafaaq
 caplog
 checkmark
