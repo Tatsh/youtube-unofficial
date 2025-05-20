@@ -116,7 +116,7 @@ optional = true
 commitizen = "^4.7.0"
 djlint = "^1.36.4"
 mypy = ">=1.12,<1.16"
-ruff = "^0.11.9"
+ruff = "^0.11.10"
 types-beautifulsoup4 = ">=4.12.0.20250204"
 types-requests = "^2.32.0.20250515"
 yapf = "^0.43.0"
