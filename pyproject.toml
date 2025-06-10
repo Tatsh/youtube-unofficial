@@ -113,7 +113,7 @@ yt-dlp-utils = "^0.0.4"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-commitizen = "^4.8.2"
+commitizen = "^4.8.3"
 djlint = "^1.36.4"
 mypy = ">=1.12,<1.17"
 ruff = "^0.11.13"
