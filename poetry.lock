@@ -3247,19 +3247,19 @@ test = ["pytest (>=8.1,<9.0)", "pytest-rerunfailures (>=14.0,<15.0)"]
 
 [[package]]
 name = "yt-dlp-utils"
-version = "0.0.4"
+version = "0.0.5"
 description = "Utilities for programmatic use of yt-dlp."
 optional = false
 python-versions = "<3.14,>=3.10"
 groups = ["main"]
 files = [
-    {file = "yt_dlp_utils-0.0.4-py3-none-any.whl", hash = "sha256:2be7c4bed5e9d3f651a4f75f01a9e37eef1fb9294dde4500b99b796db2948b84"},
-    {file = "yt_dlp_utils-0.0.4.tar.gz", hash = "sha256:bdc9c15aedb1c6db88b25291ccf4105272578a4f3de261c5a5533d69e1489e5f"},
+    {file = "yt_dlp_utils-0.0.5-py3-none-any.whl", hash = "sha256:cfcc6920d1d684042ea7dbf2e9db8c5cc4af44cea50825f2c02f9d55d940a119"},
+    {file = "yt_dlp_utils-0.0.5.tar.gz", hash = "sha256:2b248842bdc54560caceea0cfcab19591cc53061267043aaa402bd649f2c614f"},
 ]
 
 [package.dependencies]
 requests = ">=2.32.3,<3.0.0"
-typing-extensions = ">=4.13.2,<5.0.0"
+typing-extensions = ">=4.14.0,<5.0.0"
 yt-dlp = {version = ">=2025.5.22,<2026.0.0", extras = ["default"]}
 
 [[package]]
@@ -3285,4 +3285,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "39cfbaa37a9343c8166cad5ec049997b8909c39c9239a946ea6e792e7b4c1a37"
+content-hash = "fd2e75752613cd31398407f910a5fbf9cd152a47d02fcfa1961538e2faff4e36"
