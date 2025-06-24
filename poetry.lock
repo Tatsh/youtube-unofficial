@@ -2566,22 +2566,24 @@ sphinx = ">=4.0"
 
 [[package]]
 name = "sphinx-datatables"
-version = "0.2.1"
+version = "0.3.0"
 description = "Searchable and sortable tables in Sphinx documentation"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["docs"]
 files = [
-    {file = "sphinx-datatables-0.2.1.tar.gz", hash = "sha256:3d727237a16f4dbed1164419da6e8ab15bb9eb459217613b079f9f4de3b350d3"},
-    {file = "sphinx_datatables-0.2.1-py3-none-any.whl", hash = "sha256:9d4381307710c4609e494a1de300a434d70368e0223454fcf1c8d9523de8fa70"},
+    {file = "sphinx_datatables-0.3.0-py3-none-any.whl", hash = "sha256:d1fda265c164625380b8b276b34d3cca56d146fb3522e7b2df34030d8e8cb2b0"},
+    {file = "sphinx_datatables-0.3.0.tar.gz", hash = "sha256:08d40ce8a5192192b877133bb31d8282038566bcb16a369c8786f3326f248fdc"},
 ]
 
 [package.dependencies]
+packaging = "*"
 sphinx = ">4"
-sphinxcontrib-jquery = ">=4.1"
+sphinxcontrib_jquery = ">=4.1"
 
 [package.extras]
-docs = ["sphinx-copybutton", "sphinx-toolbox", "sphinxcontrib-jquery"]
+dev = ["pytest"]
+docs = ["sphinx-copybutton", "sphinx-toolbox"]
 
 [[package]]
 name = "sphinx-hoverxref"
@@ -3285,4 +3287,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "fd2e75752613cd31398407f910a5fbf9cd152a47d02fcfa1961538e2faff4e36"
+content-hash = "34ff7767941b1957c12ee2ba6d7a8a3b5e700523fd94d459d0bf8403fb638a94"
