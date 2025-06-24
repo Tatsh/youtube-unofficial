@@ -134,7 +134,7 @@ restructuredtext-lint = "^1.4.0"
 rstcheck = "^6.2.5"
 sphinx = "<8.2.0"
 sphinx-click = "^6.0.0"
-sphinx-datatables = "^0.2.1"
+sphinx-datatables = "^0.3.0"
 sphinx-hoverxref = "^1.4.2"
 sphinx-immaterial = "^0.13.4"
 
