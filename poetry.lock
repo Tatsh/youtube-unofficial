@@ -1507,25 +1507,19 @@ icu = ["PyICU (>=1.0.0)"]
 
 [[package]]
 name = "numpydoc"
-version = "1.8.0"
+version = "1.9.0"
 description = "Sphinx extension to support docstrings in Numpy format"
 optional = false
 python-versions = ">=3.9"
 groups = ["docs"]
 files = [
-    {file = "numpydoc-1.8.0-py3-none-any.whl", hash = "sha256:72024c7fd5e17375dec3608a27c03303e8ad00c81292667955c6fea7a3ccf541"},
-    {file = "numpydoc-1.8.0.tar.gz", hash = "sha256:022390ab7464a44f8737f79f8b31ce1d3cfa4b4af79ccaa1aac5e8368db587fb"},
+    {file = "numpydoc-1.9.0-py3-none-any.whl", hash = "sha256:8a2983b2d62bfd0a8c470c7caa25e7e0c3d163875cdec12a8a1034020a9d1135"},
+    {file = "numpydoc-1.9.0.tar.gz", hash = "sha256:5fec64908fe041acc4b3afc2a32c49aab1540cf581876f5563d68bb129e27c5b"},
 ]
 
 [package.dependencies]
 sphinx = ">=6"
-tabulate = ">=0.8.10"
 tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
-
-[package.extras]
-developer = ["pre-commit (>=3.3)", "tomli ; python_version < \"3.11\""]
-doc = ["intersphinx-registry", "matplotlib (>=3.5)", "numpy (>=1.22)", "pydata-sphinx-theme (>=0.13.3)", "sphinx (>=7)"]
-test = ["matplotlib", "pytest", "pytest-cov"]
 
 [[package]]
 name = "packaging"
@@ -3287,4 +3281,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "9d17a17d53f3dbd6a89928a6e54a3cad590f35fb3f0061439cfbdc6059e305a5"
+content-hash = "7175f29571da10d0dcd47c650e8a0725bc0298f634bd423027e7f6ad3a252b94"
