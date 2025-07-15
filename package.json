@@ -41,7 +41,7 @@
     "prettier-plugin-ini": "^1.3.0",
     "prettier-plugin-sort-json": "^4.1.1",
     "prettier-plugin-toml": "^2.0.5",
-    "pyright": "^1.1.402",
+    "pyright": "^1.1.403",
     "yarn-audit-fix": "^10.1.1"
   },
   "homepage": "https://tatsh.github.io/youtube-unofficial/",
