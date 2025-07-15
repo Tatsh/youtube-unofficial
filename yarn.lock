@@ -635,14 +635,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prettier/plugin-xml@npm:^3.4.1":
-  version: 3.4.1
-  resolution: "@prettier/plugin-xml@npm:3.4.1"
+"@prettier/plugin-xml@npm:^3.4.2":
+  version: 3.4.2
+  resolution: "@prettier/plugin-xml@npm:3.4.2"
   dependencies:
     "@xml-tools/parser": "npm:^1.0.11"
   peerDependencies:
     prettier: ^3.0.0
-  checksum: 10c0/39bdc3d6e475ed4f804ea4dad8ad66c1e36743935eefde87bf9a68c44434695e74e52c8c6d70239de12dae141153f8979cce0b1c5c8f820693ff1f62bbe66044
+  checksum: 10c0/e5343e71b3c2850d879bb4390d9918dab1238eb79adefb1357a4e4c7207a19a1ac8192a967112325e1280f0d6bda397014fd83df6f8844e0afac5e2d747a814b
   languageName: node
   linkType: hard
 
@@ -2914,7 +2914,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "youtube-unofficial@workspace:."
   dependencies:
-    "@prettier/plugin-xml": "npm:^3.4.1"
+    "@prettier/plugin-xml": "npm:^3.4.2"
     cspell: "npm:^9.1.3"
     markdownlint-cli2: "npm:^0.18.1"
     prettier: "npm:^3.6.2"
