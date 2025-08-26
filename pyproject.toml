@@ -98,7 +98,7 @@ warn_unreachable = true
 include = ["man"]
 
 [tool.poetry.dependencies]
-beautifulsoup4 = "^4.13.4"
+beautifulsoup4 = "^4.13.5"
 click = "^8.2.1"
 html5lib = "^1.1"
 more-itertools = "^10.7.0"
