@@ -6,8 +6,16 @@
   version: '0.3.0',
   want_main: true,
   citation+: {
-    'date-released': '2025-05-03',
+    'date-released': '2025-08-27',
   },
+  docs_conf+: {
+    config+: {
+      intersphinx_mapping+: {
+        requests: ['https://requests.readthedocs.io/en/latest/', null],
+      },
+    },
+  },
+  security_policy_supported_versions: { '0.3.x': ':white_check_mark:' },
   pyproject+: {
     project+: {
       scripts: {
@@ -34,9 +42,8 @@
       poetry+: {
         dependencies+: {
           'more-itertools': '^10.7.0',
-          'yt-dlp-utils': '^0.0.3',
+          'yt-dlp-utils': '^0.0.5',
           beautifulsoup4: '^4.13.4',
-          click: '^8.1.8',
           html5lib: '^1.1',
           requests: '2.32.3',
         },
@@ -56,6 +63,9 @@
       },
     },
   },
+  copilot: {
+    intro: 'youtube-unofficial is a command line tool to access parts of your YouTube account that are not available through the normal YouTube API. It allows a user to manage subscriptions, playlists, and liked videos directly from the command line.',
+  },
   // Common
   authors: [
     {
@@ -65,6 +75,9 @@
       name: '%s %s' % [self['given-names'], self['family-names']],
     },
   ],
+  social+: {
+    mastodon+: { id: '109370961877277568' },
+  },
   local funding_name = '%s2' % std.asciiLower(self.github_username),
   github_username: 'Tatsh',
   github+: {

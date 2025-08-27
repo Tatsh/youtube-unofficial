@@ -1,6 +1,8 @@
+asyncio
 authuser
 autodoc
 automodule
+bascom
 beautifulsoup
 bsky
 cafaaq
@@ -11,14 +13,15 @@ commitizen
 conftest
 coveragerc
 ctoken
+dataclasses
 datatable
 datatables
 debugpy
 dialog
 djlint
+docstrings
 doctrees
 eeyore
-erdantic
 esbenp
 esbonio
 excinfo
@@ -40,10 +43,10 @@ khtml
 levelname
 lextudio
 libjsonnet
+linters
 modindex
-multiline
 mypy
-noninfringement
+namedtuples
 norecursedirs
 numpy
 numpydoc
@@ -56,6 +59,7 @@ pycache
 pydantic
 pydocstyle
 pylance
+pylint
 pyproject
 pyright
 pytest
@@ -67,9 +71,9 @@ rsvi
 sapisid
 sapisidhash
 schemafile
+sdist
 sess
 sphinxcontrib
-sublicense
 tatsh
 testpaths
 toctree

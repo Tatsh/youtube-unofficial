@@ -22,6 +22,7 @@
       ".git/**",
       ".yarn/**/*.cjs",
       ".vscode/extensions.json",
+      "dist/**",
       "man/**"
     ],
     "language": "en-GB",
@@ -33,6 +34,7 @@
     ],
     "useGitignore": true
   },
+  "description": "Access parts of your account unavailable through normal YouTube API access.",
   "devDependencies": {
     "@prettier/plugin-xml": "^3.4.2",
     "cspell": "^9.2.0",
@@ -44,6 +46,7 @@
     "pyright": "^1.1.404",
     "yarn-audit-fix": "^10.1.1"
   },
+  "files": ["LICENSE.txt", "README.md", "man/youtube-unofficial.1"],
   "homepage": "https://tatsh.github.io/youtube-unofficial/",
   "keywords": ["command line", "youtube"],
   "license": "MIT",
@@ -55,12 +58,13 @@
       "default": true,
       "line-length": {
         "code_blocks": false,
-        "line_length": 100
+        "line_length": 100,
+        "tables": false
       }
     }
   },
   "name": "youtube-unofficial",
-  "packageManager": "yarn@4.9.1",
+  "packageManager": "yarn@4.9.4",
   "prettier": {
     "endOfLine": "lf",
     "iniSpaceAroundEquals": true,

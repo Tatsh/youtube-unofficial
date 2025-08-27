@@ -1,4 +1,5 @@
 build:
+  apt_packages: []
   jobs:
     post_install:
       - 'pip install poetry'
