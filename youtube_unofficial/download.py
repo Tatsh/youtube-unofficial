@@ -1,3 +1,4 @@
+"""Download utility function."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -39,15 +40,17 @@ def download_page(sess: Session,
     ...
 
 
-def download_page(sess: Session,
-                  url: str,
-                  data: Any = None,
-                  method: Literal['get', 'post'] = 'get',
-                  headers: Mapping[str, str] | None = None,
-                  params: Mapping[str, str] | None = None,
-                  json: Any = None,
-                  *,
-                  return_json: bool = False) -> str | dict[str, Any]:
+def download_page(  # noqa: PLR0913, PLR0917
+        sess: Session,
+        url: str,
+        data: Any = None,
+        method: Literal['get', 'post'] = 'get',
+        headers: Mapping[str, str] | None = None,
+        params: Mapping[str, str] | None = None,
+        json: Any = None,
+        *,
+        return_json: bool = False) -> str | dict[str, Any]:
+    """Download a page using the provided session."""
     if headers:
         sess.headers.update(headers)
     req = Request(method, url, data=data, params=params, json=json)

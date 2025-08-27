@@ -1,3 +1,4 @@
+"""Utility functions."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, TypeVar, cast
@@ -28,6 +29,7 @@ def extract_script_content(soup: Soup) -> Iterator[str]:
 
 
 def extract_keys(keys: Iterable[_K], obj: Mapping[_K, _V]) -> dict[_K, _V]:
+    """Extract only the specified keys from a dictionary."""
     new = {}
     for key in keys:
         new[key] = obj[key]
@@ -35,10 +37,12 @@ def extract_keys(keys: Iterable[_K], obj: Mapping[_K, _V]) -> dict[_K, _V]:
 
 
 def get_text_runs(desc: DescriptionSnippet) -> str:
+    """Extract text from a description snippet."""
     return ''.join(x['text'] for x in desc['runs']).strip().replace('\n', ' - ')
 
 
 def context_client_body(ytcfg: YtcfgDict) -> dict[str, str]:
+    """Get the context client body for API requests."""
     assert 'INNERTUBE_CONTEXT_CLIENT_VERSION' in ytcfg
     return {
         'clientName': 'WEB',
@@ -50,6 +54,7 @@ _YT_INITIAL_DATA_RE = r'^var ytInitialData(?:\s+)?='
 
 
 def initial_data(content: Soup) -> dict[str, Any]:
+    """Extract ytInitialData from a BeautifulSoup object."""
     return cast(
         'dict[str, Any]',
         json.loads(
@@ -61,6 +66,7 @@ def initial_data(content: Soup) -> dict[str, Any]:
 
 
 def find_ytcfg(soup: Soup) -> YtcfgDict:
+    """Extract ytcfg from a BeautifulSoup object."""
     return cast(
         'YtcfgDict',
         first(json.JSONDecoder().raw_decode(
@@ -72,6 +78,7 @@ def find_ytcfg(soup: Soup) -> YtcfgDict:
 
 
 def ytcfg_headers(ytcfg: YtcfgDict) -> dict[str, str]:
+    """Get headers required for API requests."""
     assert 'DELEGATED_SESSION_ID' in ytcfg or 'USER_SESSION_ID' in ytcfg
     return {
         'x-goog-authuser': '0',

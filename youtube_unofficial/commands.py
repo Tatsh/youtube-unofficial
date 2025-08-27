@@ -1,9 +1,11 @@
+"""Commands."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 import json
 import logging
 
+from bascom import setup_logging
 import click
 
 from . import YouTubeClient
@@ -59,8 +61,14 @@ def print_watch_later(browser: str,
            watch_url: string
        }
     """  # noqa: D301
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO,
-                        format='%(levelname)s:%(name)s:%(lineno)d:%(funcName)s:%(message)s')
+    setup_logging(debug=debug,
+                  loggers={
+                      'youtube_unofficial': {
+                          'handlers': ('console',),
+                          'level': logging.DEBUG if debug else logging.INFO,
+                          'propagate': False,
+                      }
+                  })
     print_playlist_ids_callback(browser, profile, 'WL', output_json=output_json)
 
 
@@ -148,9 +156,14 @@ def print_history(browser: str,
            }[]
         }
     """  # noqa: D301
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO,
-                        format='%(levelname)s:%(name)s:%(lineno)d:%(funcName)s:%(message)s')
-
+    setup_logging(debug=debug,
+                  loggers={
+                      'youtube_unofficial': {
+                          'handlers': ('console',),
+                          'level': logging.DEBUG if debug else logging.INFO,
+                          'propagate': False,
+                      }
+                  })
     yt = YouTubeClient(browser, profile)
     for entry in yt.get_history_video_ids(return_dict=output_json):  # type: ignore[call-overload]
         if output_json:
@@ -170,8 +183,14 @@ def remove_history_entries(browser: str,
                            *,
                            debug: bool = False) -> None:
     """Remove videos from Watch History."""
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO,
-                        format='%(levelname)s:%(name)s:%(lineno)d:%(funcName)s:%(message)s')
+    setup_logging(debug=debug,
+                  loggers={
+                      'youtube_unofficial': {
+                          'handlers': ('console',),
+                          'level': logging.DEBUG if debug else logging.INFO,
+                          'propagate': False,
+                      }
+                  })
     yt = YouTubeClient(browser, profile)
     for video_id in video_ids:
         yt.remove_video_ids_from_history(video_id)
@@ -195,8 +214,14 @@ def remove_watch_later_video_id(browser: str,
                                 *,
                                 debug: bool = False) -> None:
     """Remove videos from your Watch Later queue."""
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO,
-                        format='%(levelname)s:%(name)s:%(lineno)d:%(funcName)s:%(message)s')
+    setup_logging(debug=debug,
+                  loggers={
+                      'youtube_unofficial': {
+                          'handlers': ('console',),
+                          'level': logging.DEBUG if debug else logging.INFO,
+                          'propagate': False,
+                      }
+                  })
     remove_svi_callback(browser, profile, 'WL', video_ids)
 
 
@@ -213,8 +238,14 @@ def remove_video_id(browser: str,
                     *,
                     debug: bool = False) -> None:
     """Remove videos from a playlist."""
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO,
-                        format='%(levelname)s:%(name)s:%(lineno)d:%(funcName)s:%(message)s')
+    setup_logging(debug=debug,
+                  loggers={
+                      'youtube_unofficial': {
+                          'handlers': ('console',),
+                          'level': logging.DEBUG if debug else logging.INFO,
+                          'propagate': False,
+                      }
+                  })
     remove_svi_callback(browser, profile, playlist_id, video_ids)
 
 
@@ -223,9 +254,15 @@ def remove_video_id(browser: str,
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
 def toggle_watch_history(browser: str, profile: str, *, debug: bool = False) -> None:
-    """Disable or enable watch history."""
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO,
-                        format='%(levelname)s:%(name)s:%(lineno)d:%(funcName)s:%(message)s')
+    """Disable or enable watch history."""  # noqa: DOC501
+    setup_logging(debug=debug,
+                  loggers={
+                      'youtube_unofficial': {
+                          'handlers': ('console',),
+                          'level': logging.DEBUG if debug else logging.INFO,
+                          'propagate': False,
+                      }
+                  })
     if not YouTubeClient(browser=browser, profile=profile).toggle_watch_history():
         click.echo('Failed to toggle watch history.', err=True)
         raise click.Abort
@@ -238,8 +275,14 @@ def toggle_watch_history(browser: str, profile: str, *, debug: bool = False) -> 
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
 def clear_watch_history(browser: str, profile: str, *, debug: bool = False) -> None:
     """Clear watch history."""
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO,
-                        format='%(levelname)s:%(name)s:%(lineno)d:%(funcName)s:%(message)s')
+    setup_logging(debug=debug,
+                  loggers={
+                      'youtube_unofficial': {
+                          'handlers': ('console',),
+                          'level': logging.DEBUG if debug else logging.INFO,
+                          'propagate': False,
+                      }
+                  })
     yt = YouTubeClient(browser, profile)
     yt.clear_watch_history()
     click.echo('Watch history cleared.')
@@ -251,8 +294,14 @@ def clear_watch_history(browser: str, profile: str, *, debug: bool = False) -> N
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
 def clear_watch_later(browser: str, profile: str, *, debug: bool = False) -> None:
     """Clear watch later queue."""
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO,
-                        format='%(levelname)s:%(name)s:%(lineno)d:%(funcName)s:%(message)s')
+    setup_logging(debug=debug,
+                  loggers={
+                      'youtube_unofficial': {
+                          'handlers': ('console',),
+                          'level': logging.DEBUG if debug else logging.INFO,
+                          'propagate': False,
+                      }
+                  })
     yt = YouTubeClient(browser, profile)
     yt.clear_watch_later()
     click.echo('Watch later queue cleared.')

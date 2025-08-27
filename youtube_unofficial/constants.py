@@ -1,3 +1,4 @@
+"""Constants."""
 from __future__ import annotations
 
 __all__ = ('EXTRACTED_THUMBNAIL_KEYS', 'HISTORY_ENTRY_KEYS_TO_SKIP', 'SIMPLE_TEXT_KEYS',
@@ -29,10 +30,20 @@ HISTORY_ENTRY_KEYS_TO_SKIP = {
     'isWatched', 'menu', 'navigationEndpoint', 'showActionMenu', 'thumbnailOverlays',
     'trackingParams'
 }
+"""
+Keys to skip when extracting history entry data.
+
+:meta hide-value:
+"""
 SIMPLE_TEXT_KEYS = {
     'shortViewCountText': 'short_view_count_text',
     'viewCountText': 'view_count_text'
 }
+"""
+Keys for simple text fields.
+
+:meta hide-value:
+"""
 TEXT_RUNS_KEYS = {
     'descriptionSnippet': 'description',
     'longBylineText': 'long_byline_text',
@@ -40,4 +51,14 @@ TEXT_RUNS_KEYS = {
     'title': 'title',
     'shortBylineText': 'short_byline_text',
 }
+"""
+Keys for text runs fields.
+
+:meta hide-value:
+"""
 THUMBNAILS_KEYS = {'channelThumbnailSupportedRenderers', 'richThumbnail'}
+"""
+Keys for thumbnail fields.
+
+:meta hide-value:
+"""
