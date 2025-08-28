@@ -5,6 +5,7 @@
 [![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/youtube-unofficial)](https://github.com/Tatsh/youtube-unofficial/tags)
 [![License](https://img.shields.io/github/license/Tatsh/youtube-unofficial)](https://github.com/Tatsh/youtube-unofficial/blob/master/LICENSE.txt)
 [![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/youtube-unofficial/v0.3.0/master)](https://github.com/Tatsh/youtube-unofficial/compare/v0.3.0...master)
+[![CodeQL](https://github.com/Tatsh/youtube-unofficial/actions/workflows/codeql.yml/badge.svg)](https://github.com/Tatsh/youtube-unofficial/actions/workflows/codeql.yml)
 [![QA](https://github.com/Tatsh/youtube-unofficial/actions/workflows/qa.yml/badge.svg)](https://github.com/Tatsh/youtube-unofficial/actions/workflows/qa.yml)
 [![Tests](https://github.com/Tatsh/youtube-unofficial/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/youtube-unofficial/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/Tatsh/youtube-unofficial/badge.svg?branch=master)](https://coveralls.io/github/Tatsh/youtube-unofficial?branch=master)
