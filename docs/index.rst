@@ -23,6 +23,10 @@ youtube-unofficial
       :target: https://github.com/Tatsh/youtube-unofficial/compare/v0.3.0...master
       :alt: GitHub commits since latest release
 
+   .. image:: https://github.com/Tatsh/youtube-unofficial/actions/workflows/codeql.yml/badge.svg
+      :target: https://github.com/Tatsh/youtube-unofficial/actions/workflows/codeql.yml
+      :alt: CodeQL
+
    .. image:: https://github.com/Tatsh/youtube-unofficial/actions/workflows/qa.yml/badge.svg
       :target: https://github.com/Tatsh/youtube-unofficial/actions/workflows/qa.yml
       :alt: QA
