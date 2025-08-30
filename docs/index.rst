@@ -9,11 +9,11 @@ youtube-unofficial
 
    .. image:: https://img.shields.io/pypi/v/youtube-unofficial
       :target: https://pypi.org/project/youtube-unofficial/
-      :alt: PyPI - Version
+      :alt: PyPI Version
 
    .. image:: https://img.shields.io/github/v/tag/Tatsh/youtube-unofficial
       :target: https://github.com/Tatsh/youtube-unofficial/tags
-      :alt: GitHub tag
+      :alt: GitHub tag (with filter)
 
    .. image:: https://img.shields.io/github/license/Tatsh/youtube-unofficial
       :target: https://github.com/Tatsh/youtube-unofficial/blob/master/LICENSE.txt
@@ -21,7 +21,7 @@ youtube-unofficial
 
    .. image:: https://img.shields.io/github/commits-since/Tatsh/youtube-unofficial/v0.3.0/master
       :target: https://github.com/Tatsh/youtube-unofficial/compare/v0.3.0...master
-      :alt: GitHub commits since latest release
+      :alt: GitHub commits since latest release (by SemVer including pre-releases)
 
    .. image:: https://github.com/Tatsh/youtube-unofficial/actions/workflows/codeql.yml/badge.svg
       :target: https://github.com/Tatsh/youtube-unofficial/actions/workflows/codeql.yml

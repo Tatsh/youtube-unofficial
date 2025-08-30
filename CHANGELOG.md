@@ -34,3 +34,4 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Command to clear search history. Moved to My Activity.
 
 [unreleased]: https://github.com/Tatsh/youtube-unofficial/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Tatsh/youtube-unofficial/compare/v0.2.0...v0.3.0
