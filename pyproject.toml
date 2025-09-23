@@ -35,6 +35,8 @@ homepage = "https://tatsh.github.io/youtube-unofficial/"
 repository = "https://github.com/Tatsh/youtube-unofficial"
 
 [tool.commitizen]
+name = "cz_path"
+remove_path_prefixes = ["include", "src", "youtube_unofficial"]
 tag_format = "v$version"
 version_files = [
   ".wiswa.jsonnet",
@@ -97,11 +99,11 @@ include = ["man", { format = "sdist", path = "tests" }]
 [tool.poetry.dependencies]
 bascom = "^0.0.1"
 beautifulsoup4 = "^4.13.5"
-click = "^8.2.1"
+click = "^8.3.0"
 html5lib = "^1.1"
-more-itertools = "^10.7.0"
+more-itertools = "^10.8.0"
 python = ">=3.10,<3.14"
-requests = "2.32.4"
+requests = "^2.32.5"
 typing-extensions = "^4.15.0"
 yt-dlp-utils = "^0.0.5"
 
@@ -109,13 +111,13 @@ yt-dlp-utils = "^0.0.5"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-commitizen = "^4.8.3"
+commitizen = "^4.9.1"
 cz-path = "^0.0.1"
 djlint = "^1.36.4"
-mypy = "^1.17.1"
-ruff = "^0.12.10"
-types-beautifulsoup4 = ">=4.12.0.20250516"
-types-requests = "^2.32.4.20250809"
+mypy = "^1.18.2"
+ruff = "^0.13.1"
+types-beautifulsoup4 = "^4.12.0.20250516"
+types-requests = "^2.32.4.20250913"
 yapf = "^0.43.0"
 
 [tool.poetry.group.docs]
@@ -128,7 +130,7 @@ docutils = "<0.22"
 esbonio = "^0.16.5"
 numpydoc = "^1.9.0"
 restructuredtext-lint = "^1.4.0"
-sphinx-click = "^6.0.0"
+sphinx-click = "^6.1.0"
 sphinx-datatables = "^0.3.0"
 sphinx-hoverxref = "^1.4.2"
 sphinx-immaterial = "^0.13.6"
@@ -150,9 +152,9 @@ optional = true
 
 [tool.poetry.group.tests.dependencies]
 mock = "^5.2.0"
-pytest = "^8.4.1"
-pytest-cov = "^6.2.1"
-pytest-mock = "^3.14.1"
+pytest = "^8.4.2"
+pytest-cov = "^7.0.0"
+pytest-mock = "^3.15.1"
 requests-mock = "^1.12.1"
 
 [tool.poetry.group.tests.dependencies.coveralls]
@@ -275,7 +277,7 @@ ignore = [
 preview = true
 
 [tool.ruff.lint.flake8-builtins]
-allowed-modules = ["typing", "types"]
+allowed-modules = ["types", "typing"]
 
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"
@@ -301,7 +303,13 @@ extend-ignore-names = ["test_*"]
 convention = "numpy"
 
 [tool.ruff.lint.pylint]
+max-args = 20
 max-branches = 20
+max-locals = 20
+max-positional-args = 15
+max-public-methods = 30
+max-returns = 10
+max-statements = 100
 
 [tool.yapf]
 align_closing_bracket_with_visual_indent = true

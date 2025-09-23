@@ -607,15 +607,14 @@ class YouTubeClient:
         m = hashlib.sha1(f'{now} {sapisid} https://www.youtube.com'.encode())  # noqa: S324
         return f'SAPISIDHASH {now}_{m.hexdigest()}'
 
-    def _single_feedback_api_call(  # noqa: PLR0913
-            self,
-            ytcfg: YtcfgDict,
-            feedback_token: str = '',
-            api_url: str = '/youtubei/v1/feedback',
-            merge_json: dict[str, Any] | None = None,
-            click_tracking_params: str | None = None,
-            *,
-            return_is_processed: bool = True) -> dict[str, Any] | bool:
+    def _single_feedback_api_call(self,
+                                  ytcfg: YtcfgDict,
+                                  feedback_token: str = '',
+                                  api_url: str = '/youtubei/v1/feedback',
+                                  merge_json: dict[str, Any] | None = None,
+                                  click_tracking_params: str | None = None,
+                                  *,
+                                  return_is_processed: bool = True) -> dict[str, Any] | bool:
         if not merge_json:
             merge_json = {}
         feedback_token_part = {
@@ -712,16 +711,15 @@ class YouTubeClient:
                        return_json: Literal[True]) -> dict[str, Any]:  # pragma: no cover
         ...
 
-    def _download_page(  # noqa: PLR0913, PLR0917
-            self,
-            url: str,
-            data: Any = None,
-            method: Literal['get', 'post'] = 'get',
-            headers: Mapping[str, str] | None = None,
-            params: Mapping[str, str] | None = None,
-            json: Any = None,
-            *,
-            return_json: bool = False) -> str | dict[str, Any]:
+    def _download_page(self,
+                       url: str,
+                       data: Any = None,
+                       method: Literal['get', 'post'] = 'get',
+                       headers: Mapping[str, str] | None = None,
+                       params: Mapping[str, str] | None = None,
+                       json: Any = None,
+                       *,
+                       return_json: bool = False) -> str | dict[str, Any]:
         return download_page(  # type: ignore[call-overload,no-any-return]
             self.session,
             url,

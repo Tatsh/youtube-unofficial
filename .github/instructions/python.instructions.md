@@ -56,10 +56,10 @@ applyTo: '**/*.py, **/*.pyi'
 - All test function names must start with `test_`.
 - Test files must be named `test_*.py`.
 - Use `pytest` for testing.
-- Use `pytest.mark.parametrize` for parameterized tests.
-- Use `pytest.mark.asyncio` for asynchronous tests.
+- Use `@pytest.mark.parametrize` for parameterized tests.
+- Use `@pytest.mark.asyncio` for asynchronous tests.
 - Use `pytest.raises` for testing exceptions.
-- Use `pytest.fixture` decorator for fixtures.
+- Use `@pytest.fixture` decorator for fixtures.
 - Do not create new fixtures inside test files. All fixtures must be defined in the `conftest.py`
   file.
 - Ruff rules do not apply to files inside a `migrations` directory.
