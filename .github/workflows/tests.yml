@@ -4,7 +4,7 @@ jobs:
       GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'actions/checkout@v5'
+      - uses: 'actions/checkout@v6'
       - name: 'Install Poetry'
         run: 'pipx install poetry'
       - name: 'Set up Python ${{ matrix.python-version }}'
