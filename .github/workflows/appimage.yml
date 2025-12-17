@@ -1,0 +1,135 @@
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 'actions/checkout@v6'
+      - name: 'Install Poetry'
+        run: 'pipx install poetry yq'
+      - name: 'Set up Python'
+        uses: 'actions/setup-python@v6'
+        with:
+          cache: 'poetry'
+          python-version: '3.13'
+      - name: 'Install dependencies (Poetry)'
+        run: |
+          poetry install
+          poetry run -- pip install python-appimage
+          wget -O generic.svg 'https://raw.githubusercontent.com/KDE/breeze-icons/refs/heads/master/icons/preferences/32/preferences-other.svg'
+        shell: 'bash'
+      - name: 'Build with python-appimage'
+        run: |
+          project_name=$(tomlq -r '.project.urls.repository|split("/")[-1]' pyproject.toml)
+          version=$(tomlq -r .project.version pyproject.toml)
+          rm -fR dist
+          mkdir dist
+          while IFS=$' ' read -r script_name python_path func_name; do
+              rm -fR recipe
+              mkdir recipe
+              func_name="${func_name#"${func_name%%[![:space:]]*}"}"
+              func_name="${func_name%"${func_name##*[![:space:]]}"}"
+              cat > recipe/entrypoint.sh <<EOF
+          {{ python-executable }} \${APPDIR}/opt/python{{ python-version }}/bin/${script_name} "\$@"
+          EOF
+              chmod +x recipe/entrypoint.sh
+              if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
+                  cat recipe/entrypoint.sh
+              fi
+              cat > "recipe/${script_name}.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=${script_name}
+          Icon=${script_name}
+          Categories=Utility;
+          Terminal=true
+          X-AppImage-Version=${version}
+          EOF
+              if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
+                  cat "recipe/${script_name}.desktop"
+              fi
+              cat > recipe/requirements.txt <<EOF
+          $(pwd -P)
+          EOF
+              if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
+                  cat recipe/requirements.txt
+              fi
+              cat > "recipe/${script_name}.appinfo.xml" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <component type="desktop-application">
+            <id>${script_name}</id>
+            <metadata_license>GFDL-1.3</metadata_license>
+            <project_license>MIT</project_license>
+            <name>${script_name}</name>
+            <summary>${script_name} from ${project_name}</summary>
+            <description>
+              <p>${script_name} from ${project_name}. - ${{ github.server_url }}/${{ github.repository }}</p>
+            </description>
+            <launchable type="desktop-id">${script_name}.desktop</launchable>
+            <url type="homepage">${{ github.server_url }}/${{ github.repository }}</url>
+            <screenshots>
+              <screenshot type="default">
+                <image></image>
+              </screenshot>
+            </screenshots>
+            <provides>
+              <id>${script_name}.desktop</id>
+            </provides>
+          </component>
+          EOF
+              if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
+                  cat "recipe/${script_name}.appinfo.xml"
+              fi
+              cp generic.svg "recipe/${script_name}.svg"
+              echo "Building executable for '${script_name}'..."
+              poetry run python -m python_appimage -v build app -p 3.13 recipe
+              mv "${script_name}-x86_64.AppImage" "dist/${script_name}-${version}-x86_64.AppImage"
+          done < <(tomlq -r '.project.scripts|to_entries[]|"\(.key) \(.value|split(":")|join(" "))"' pyproject.toml)
+        shell: 'bash'
+      - name: 'Test binary'
+        run: |
+          dist_files=(dist/*)
+          echo "Found ${#dist_files[@]} files in dist/: ${dist_files[*]##*/}"
+          for file in "${dist_files[@]}"; do
+              if [[ "${file}" == dist/index.*js ]]; then
+                  echo "Skipping index.js."
+                  continue
+              fi
+              echo "Testing '${file}'."
+              "./${file}" --help
+          done
+      - name: 'Upload Artifacts'
+        uses: 'actions/upload-artifact@v6'
+        with:
+          if-no-files-found: error
+          name: youtube-unofficial-binaries-linux-x86_64
+          path: |
+            dist/*
+      - name: 'Attest'
+        uses: 'actions/attest-build-provenance@v3'
+        with:
+          subject-path: 'dist/*'
+      - if: github.ref_type == 'tag'
+        name: 'Attest'
+        uses: 'actions/attest-build-provenance@v3'
+        with:
+          subject-path: 'dist/*.AppImage'
+      - if: github.ref_type == 'tag'
+        name: Upload package
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.AppImage
+name: 'AppImage'
+'on':
+  pull_request:
+    branches:
+      - 'master'
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*.*.*'
+permissions:
+  attestations: 'write'
+  contents: 'write'
+  id-token: 'write'

@@ -11,6 +11,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Typing :: Typed",
 ]
 description = "Access parts of your account unavailable through normal YouTube API access."
@@ -97,25 +98,25 @@ warn_unreachable = true
 include = ["man", { format = "sdist", path = "tests" }]
 
 [tool.poetry.dependencies]
-bascom = "^0.0.1"
-beautifulsoup4 = "^4.13.5"
-click = "^8.3.0"
+bascom = "^0.1.0"
+beautifulsoup4 = "^4.14.3"
+click = "^8.3.1"
 html5lib = "^1.1"
 more-itertools = "^10.8.0"
-python = ">=3.10,<3.14"
+python = ">=3.10,<4.0"
 requests = "^2.32.5"
 typing-extensions = "^4.15.0"
-yt-dlp-utils = "^0.0.5"
+yt-dlp-utils = "^0.0.6"
 
 [tool.poetry.group.dev]
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-commitizen = "^4.9.1"
-cz-path = "^0.0.1"
+commitizen = "^4.10.1"
+cz-path = "^0.0.4"
 djlint = "^1.36.4"
-mypy = "^1.18.2"
-ruff = "^0.13.1"
+mypy = "^1.19.1"
+ruff = "^0.14.9"
 types-beautifulsoup4 = "^4.12.0.20250516"
 types-requests = "^2.32.4.20250913"
 yapf = "^0.43.0"
@@ -127,13 +128,13 @@ optional = true
 autodoc-pydantic = "^2.2.0"
 doc8 = "^2.0.0"
 docutils = "<0.22"
-esbonio = "^0.16.5"
-numpydoc = "^1.9.0"
-restructuredtext-lint = "^1.4.0"
-sphinx-click = "^6.1.0"
-sphinx-datatables = "^0.3.0"
-sphinx-hoverxref = "^1.4.2"
-sphinx-immaterial = "^0.13.6"
+esbonio = "^1.0.0"
+numpydoc = "^1.10.0"
+restructuredtext-lint = "^2.0.2"
+sphinx-click = "^6.2.0"
+sphinx-datatables = "^0.4.0"
+sphinx-immaterial = "^0.13.8"
+tomlkit = "^0.13.3"
 
 [tool.poetry.group.docs.dependencies.enum-tools]
 extras = ["sphinx"]
@@ -141,7 +142,7 @@ version = "^0.13.0"
 
 [[tool.poetry.group.docs.dependencies.sphinx]]
 python = ">=3.11"
-version = "^8.2.3"
+version = "<9.0.0"
 
 [[tool.poetry.group.docs.dependencies.sphinx]]
 python = "<3.11"
@@ -152,7 +153,7 @@ optional = true
 
 [tool.poetry.group.tests.dependencies]
 mock = "^5.2.0"
-pytest = "^8.4.2"
+pytest = "^9.0.2"
 pytest-cov = "^7.0.0"
 pytest-mock = "^3.15.1"
 requests-mock = "^1.12.1"
@@ -175,7 +176,6 @@ reportImplicitOverride = "warning"
 reportImportCycles = "error"
 reportMissingModuleSource = "error"
 reportPropertyTypeMismatch = "error"
-reportShadowedImports = "error"
 reportUnnecessaryTypeIgnoreComment = "none"
 typeCheckingMode = "off"
 useLibraryCodeForTypes = false
@@ -194,69 +194,14 @@ namespace-packages = ["docs", "tests"]
 target-version = "py310"
 unsafe-fixes = true
 
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+preview = true
+quote-style = "single"
+
 [tool.ruff.lint]
-extend-select = [
-  "A",
-  "AIR",
-  "ANN",
-  "ARG",
-  "ASYNC",
-  "B",
-  "BLE",
-  "C4",
-  "C90",
-  "COM",
-  "CPY",
-  "D",
-  "DJ",
-  "DOC",
-  "DTZ",
-  "E",
-  "EM",
-  "ERA",
-  "EXE",
-  "F",
-  "FA",
-  "FAST",
-  "FBT",
-  "FIX",
-  "FLY",
-  "FURB",
-  "G",
-  "I",
-  "ICN",
-  "INP",
-  "INT",
-  "ISC",
-  "LOG",
-  "N",
-  "NPY",
-  "PD",
-  "PERF",
-  "PGH",
-  "PIE",
-  "PL",
-  "PT",
-  "PTH",
-  "PYI",
-  "Q",
-  "RET",
-  "RSE",
-  "RUF",
-  "S",
-  "SIM",
-  "SLF",
-  "SLOT",
-  "T10",
-  "T20",
-  "TC",
-  "TD",
-  "TID",
-  "TRY",
-  "UP",
-  "W",
-  "YTT",
-]
+extend-select = ["ALL"]
 ignore = [
   "ANN401",
   "COM812",
@@ -358,4 +303,4 @@ split_penalty_logical_operator = 300
 use_tabs = false
 
 [tool.yapfignore]
-ignore_patterns = ["node_modules/**"]
+ignore_patterns = [".venv/**", "node_modules/**"]

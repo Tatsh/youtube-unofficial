@@ -1,0 +1,161 @@
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: 'actions/checkout@v6'
+      - name: 'Install Poetry'
+        run: 'pipx install poetry yq'
+      - name: 'Set up Python'
+        uses: 'actions/setup-python@v6'
+        with:
+          cache: 'poetry'
+          python-version: '3.13'
+      - name: 'Install dependencies (Poetry)'
+        run: |
+          poetry install
+          poetry run -- pip install pyinstaller
+        shell: 'bash'
+      - name: 'Build with PyInstaller'
+        run: |
+          project_name=$(tomlq -r '.project.urls.repository|split("/")[-1]' pyproject.toml)
+          vers=$(echo "$(tomlq -r '.project.version|split(".")|map(tonumber)|@csv' pyproject.toml),0")
+          version=$(tomlq -r .project.version pyproject.toml)
+          while IFS=$' ' read -r script_name python_path func_name; do
+              func_name="${func_name#"${func_name%%[![:space:]]*}"}"
+              func_name="${func_name%"${func_name##*[![:space:]]}"}"
+              cat > temp_script.py <<EOF
+          from ${python_path} import ${func_name}
+          if __name__ == '__main__':
+              ${func_name}()
+          EOF
+              if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
+                  cat temp_script.py
+              fi
+              cat > version-info.txt <<EOF
+          VSVersionInfo(
+              ffi=FixedFileInfo(date=(0, 0),
+                                filevers=(${vers}),
+                                fileType=0x1,
+                                flags=0x0,
+                                mask=0x3f,
+                                OS=0x4,
+                                prodvers=(${vers}),
+                                subtype=0x0),
+              kids=[
+                  StringFileInfo([
+                      StringTable('040904B0', [
+                          StringStruct('CompanyName', 'Tatsh'),
+                          StringStruct(
+                              'FileDescription',
+                              '${script_name} from ${project_name}. - ${{ github.server_url }}/${{ github.repository }}'
+                          ),
+                          StringStruct('FileVersion', '${version}'),
+                          StringStruct('InternalName', '${script_name}.exe'),
+                          StringStruct('LegalCopyright', 'Copyright (c) ${project_name} authors.'),
+                          StringStruct('OriginalFilename', '${script_name}.exe'),
+                          StringStruct('ProductName', '${project_name}'),
+                          StringStruct('ProductVersion', '${version}')
+                      ])
+                  ]),
+                  VarFileInfo([VarStruct('Translation', [0x409, 1200, 0x809, 1252])])
+              ])
+          EOF
+              if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
+                  cat version-info.txt
+              fi
+              echo "Building executable for '${script_name}'..."
+              poetry run -- pyinstaller --log-level ERROR --onefile -n "${script_name}" --optimize 1 \
+                --hidden-import colorlog -y --version-file version-info.txt \
+                temp_script.py
+              if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
+                  cat "${script_name}.spec"
+              fi
+          done < <(tomlq -r '.project.scripts|to_entries[]|"\(.key) \(.value|split(":")|join(" "))"' pyproject.toml)
+        shell: 'bash'
+      - if: matrix.os == 'windows-latest' || matrix.os == 'windows-11-arm'
+        name: 'Test binary'
+        run: |
+          $distFiles = Get-ChildItem -Path dist\*.exe
+          Write-Host "Found $($distFiles.Count) files in dist/: $(( $distFiles | ForEach-Object { $_.Name } ) -join ', ')"
+          foreach ($file in $distFiles) {
+            Write-Host "Testing '$($file.FullName)'."
+            & $file.FullName --help
+          }
+      - if: matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
+        name: 'Test binary'
+        run: |
+          dist_files=(dist/*)
+          echo "Found ${#dist_files[@]} files in dist/: ${dist_files[*]##*/}"
+          for file in "${dist_files[@]}"; do
+              if [[ "${file}" == dist/index.*js ]]; then
+                  echo "Skipping index.js."
+                  continue
+              fi
+              echo "Testing '${file}'."
+              "./${file}" --help
+          done
+      - name: 'Upload Artifacts'
+        uses: 'actions/upload-artifact@v6'
+        with:
+          if-no-files-found: error
+          name: youtube-unofficial-binaries-${{ matrix.suffix }}
+          path: |
+            ${{ matrix.dist_path }}
+      - name: 'Attest'
+        uses: 'actions/attest-build-provenance@v3'
+        with:
+          subject-path: '${{ matrix.dist_path }}'
+      - if: (matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel') && github.ref_type == 'tag'
+        name: 'Zip files'
+        run: |
+          rm -fR _out
+          mkdir _out
+          zip -j _out/youtube-unofficial-${{ github.ref_name }}-${{ matrix.suffix }}.zip ${{ matrix.dist_path }}
+      - if: (matrix.os == 'windows-latest' || matrix.os == 'windows-11-arm') && github.ref_type == 'tag'
+        name: 'Zip files'
+        run: |
+          Remove-Item -Force _out -ErrorAction Continue
+          New-Item -ItemType Directory -Name _out
+          Compress-Archive -Path ${{ matrix.dist_path }} -DestinationPath _out/youtube-unofficial-${{ github.ref_name }}-${{ matrix.suffix }}.zip
+        shell: pwsh
+      - if: github.ref_type == 'tag'
+        name: 'Attest'
+        uses: 'actions/attest-build-provenance@v3'
+        with:
+          subject-path: '_out/*.zip'
+      - if: github.ref_type == 'tag'
+        name: Upload package
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            _out/*.zip
+    strategy:
+      matrix:
+        include:
+          - os: 'macos-15-intel'
+            dist_path: 'dist/*'
+            suffix: 'mac-x86_64'
+          - os: 'macos-latest'
+            dist_path: 'dist/*'
+            suffix: 'mac-arm64'
+          - os: 'windows-latest'
+            dist_path: 'dist/*.exe'
+            suffix: 'win-x86_64'
+          - os: 'windows-11-arm'
+            dist_path: 'dist/*.exe'
+            suffix: 'win-arm64'
+name: 'PyInstaller'
+'on':
+  pull_request:
+    branches:
+      - 'master'
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*.*.*'
+permissions:
+  attestations: 'write'
+  contents: 'write'
+  id-token: 'write'

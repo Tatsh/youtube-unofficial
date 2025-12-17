@@ -100,3 +100,21 @@ applyTo: '**/*.py, **/*.pyi'
 - By default, sort collections alphabetically.
 - If a function accepts a collection of items and returns it, prefer to return a modified copy of
   the collection instead of modifying it in place.
+- All public facing functions, methods, objects, class attributes, and classes must have docstrings.
+- Never add an "Attributes" section in class docstrings. Document class attributes using docstrings:
+
+  ```python
+  class MyClass:
+      """Class for doing some useful work."""
+
+      attr1 = 42
+      """The attr1 attribute."""
+      attr2 = 'default'
+      """The attr2 attribute."""
+  ```
+
+- Never place a newline after class attribute docstrings.
+- In docstrings, for optional parameters, do not add `, optional` to the parameter
+  description.
+- Do not make useless string interpolations. Example: Use `var_name` instead of `f'{var_name}'`. If
+  `var_name` is not a string, use `str(var_name)`.

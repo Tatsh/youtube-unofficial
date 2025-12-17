@@ -14,13 +14,24 @@ jobs:
           python-version: '${{ matrix.python-version }}'
       - name: 'Install dependencies (Poetry)'
         run: 'poetry install --with=tests'
+      - name: 'Install pytest-action dependencies'
+        run: 'poetry run pip install pytest-md pytest-emoji'
       - name: 'Install dependencies (Yarn)'
         run: 'yarn'
       - name: 'Run tests'
-        run: 'yarn test --cov=. --cov-branch'
-      - if: 'matrix.python-version == 3.12'
-        name: 'Coveralls'
-        run: 'poetry run coveralls --service=github'
+        uses: 'pavelzw/pytest-action@v2'
+        with:
+          click-to-expand: true
+          custom-arguments: '--cov . --cov-branch --cov-report term-missing:skip-covered --cov-report xml'
+          custom-pytest: 'yarn test'
+          emoji: true
+          job-summary: true
+          report-title: 'Test Report'
+          verbose: true
+      - name: 'Coverage'
+        uses: 'coverallsapp/github-action@v2'
+        with:
+          file: 'coverage.xml'
     strategy:
       matrix:
         python-version:
@@ -28,6 +39,7 @@ jobs:
           - '3.11'
           - '3.12'
           - '3.13'
+          - '3.14'
 name: 'Tests'
 'on':
   pull_request:

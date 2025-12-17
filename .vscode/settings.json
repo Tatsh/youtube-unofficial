@@ -13,6 +13,7 @@
     "editor.tabSize": 3
   },
   "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format",
     "editor.tabSize": 4
   },
   "cSpell.enabled": true,
@@ -50,5 +51,9 @@
   "python.testing.pytestEnabled": true,
   "restructuredtext.experimental": true,
   "restructuredtext.linter.disabledLinters": ["rstcheck"],
-  "yaml.format.printWidth": 100
+  "restructuredtext.linter.doc8.extraArgs": ["--config", "${workspaceFolder}/pyproject.toml"],
+  "restructuredtext.linter.run": "onSave",
+  "shellformat.flag": "i 2 -ci -sr",
+  "sortJSON.excludedFiles": [],
+  "sortJSON.excludedPaths": []
 }
