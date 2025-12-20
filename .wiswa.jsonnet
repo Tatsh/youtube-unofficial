@@ -4,7 +4,7 @@ local utils = import 'utils.libjsonnet';
   description: 'Access parts of your account unavailable through normal YouTube API access.',
   keywords: ['command line', 'youtube'],
   project_name: 'youtube-unofficial',
-  version: '0.3.0',
+  version: '0.3.1',
   want_main: true,
   docs_conf+: {
     config+: {

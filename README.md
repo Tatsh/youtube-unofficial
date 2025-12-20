@@ -4,7 +4,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/youtube-unofficial)](https://pypi.org/project/youtube-unofficial/)
 [![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Tatsh/youtube-unofficial)](https://github.com/Tatsh/youtube-unofficial/tags)
 [![License](https://img.shields.io/github/license/Tatsh/youtube-unofficial)](https://github.com/Tatsh/youtube-unofficial/blob/master/LICENSE.txt)
-[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/youtube-unofficial/v0.3.0/master)](https://github.com/Tatsh/youtube-unofficial/compare/v0.3.0...master)
+[![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/Tatsh/youtube-unofficial/v0.3.1/master)](https://github.com/Tatsh/youtube-unofficial/compare/v0.3.1...master)
 [![CodeQL](https://github.com/Tatsh/youtube-unofficial/actions/workflows/codeql.yml/badge.svg)](https://github.com/Tatsh/youtube-unofficial/actions/workflows/codeql.yml)
 [![QA](https://github.com/Tatsh/youtube-unofficial/actions/workflows/qa.yml/badge.svg)](https://github.com/Tatsh/youtube-unofficial/actions/workflows/qa.yml)
 [![Tests](https://github.com/Tatsh/youtube-unofficial/actions/workflows/tests.yml/badge.svg)](https://github.com/Tatsh/youtube-unofficial/actions/workflows/tests.yml)

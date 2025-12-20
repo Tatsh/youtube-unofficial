@@ -20,7 +20,7 @@ keywords = ["command line", "youtube"]
 license = "MIT"
 name = "youtube-unofficial"
 readme = "README.md"
-version = "0.3.0"
+version = "0.3.1"
 
 [[project.authors]]
 email = "audvare@gmail.com"
