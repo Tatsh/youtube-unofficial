@@ -2,7 +2,7 @@ authors:
   - family-names: 'Udvare'
     given-names: 'Andrew'
 cff-version: '1.2.0'
-date-released: '2025-12-17'
+date-released: '2026-01-01'
 message: 'If you use this software, please cite it as below.'
 title: 'youtube-unofficial'
 version: '0.3.1'

@@ -147,9 +147,6 @@ jobs:
             suffix: 'win-arm64'
 name: 'PyInstaller'
 'on':
-  pull_request:
-    branches:
-      - 'master'
   push:
     branches:
       - 'master'

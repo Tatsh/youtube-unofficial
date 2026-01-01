@@ -98,7 +98,7 @@ warn_unreachable = true
 include = ["man", { format = "sdist", path = "tests" }]
 
 [tool.poetry.dependencies]
-bascom = "^0.1.0"
+bascom = "^0.1.2"
 beautifulsoup4 = "^4.14.3"
 click = "^8.3.1"
 html5lib = "^1.1"
@@ -112,11 +112,11 @@ yt-dlp-utils = "^0.0.6"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-commitizen = "^4.10.1"
+commitizen = "^4.11.0"
 cz-path = "^0.0.4"
 djlint = "^1.36.4"
 mypy = "^1.19.1"
-ruff = "^0.14.9"
+ruff = "^0.14.10"
 types-beautifulsoup4 = "^4.12.0.20250516"
 types-requests = "^2.32.4.20250913"
 yapf = "^0.43.0"
@@ -132,7 +132,7 @@ esbonio = "^1.0.0"
 numpydoc = "^1.10.0"
 restructuredtext-lint = "^2.0.2"
 sphinx-click = "^6.2.0"
-sphinx-datatables = "^0.4.0"
+sphinx-datatables = "^0.5.0"
 sphinx-immaterial = "^0.13.8"
 tomlkit = "^0.13.3"
 
