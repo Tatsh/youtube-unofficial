@@ -43,7 +43,7 @@
     "prettier-plugin-ini": "^1.3.0",
     "prettier-plugin-sort-json": "^4.1.1",
     "prettier-plugin-toml": "^2.0.6",
-    "pyright": "^1.1.407"
+    "pyright": "^1.1.408"
   },
   "files": ["LICENSE.txt", "README.md", "man/youtube-unofficial.1"],
   "homepage": "https://tatsh.github.io/youtube-unofficial/",
