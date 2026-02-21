@@ -1,0 +1,9 @@
+---
+description: TOML and INI-like file guidelines
+globs: '**/*.cfg, **/*.conf, **/*.ini, **/*.toml'
+alwaysApply: false
+---
+
+# TOML and INI-like file guidelines
+
+- `=` must be surrounded by a single space on both sides.

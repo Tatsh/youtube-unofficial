@@ -1,0 +1,24 @@
+apps:
+  youtube-unofficial:
+    command: 'bin/youtube-unofficial'
+    plugs:
+      - 'home'
+      - 'network'
+      - 'network-bind'
+base: 'core24'
+confinement: 'strict'
+description: 'Access parts of your account unavailable through normal YouTube API access.'
+grade: 'stable'
+name: 'youtube-unofficial'
+parts:
+  youtube-unofficial:
+    plugin: 'poetry'
+    source: '.'
+    stage-packages: []
+platforms:
+  amd64:
+    build-on: 'amd64'
+  arm64:
+    build-on: 'arm64'
+summary: 'Access parts of your account unavailable through normal YouTube API access.'
+version: '0.3.1'

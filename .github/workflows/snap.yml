@@ -1,0 +1,74 @@
+jobs:
+  build:
+    runs-on: '${{ matrix.system.image }}'
+    steps:
+      - uses: 'actions/checkout@v6'
+      - name: 'Fix pyproject.toml for older Poetry'
+        run: |
+          pipx install yq
+          name=$(tomlq -r '.project.name' pyproject.toml)
+          version=$(tomlq -r '.project.version' pyproject.toml)
+          description=$(tomlq -r '.project.description' pyproject.toml)
+          author_name=$(tomlq -r '.project.authors[0].name' pyproject.toml)
+          author_email=$(tomlq -r '.project.authors[0].email' pyproject.toml)
+          # Create temporary file with the new fields
+          cat > /tmp/poetry_fields.toml << EOF
+          authors = ["$author_name <$author_email>"]
+          description = "$description"
+          name = "$name"
+          version = "$version"
+          EOF
+          # Insert the fields after [tool.poetry] line
+          awk '
+            /^\[tool\.poetry\]$/ {
+              print
+              while ((getline line < "/tmp/poetry_fields.toml") > 0) {
+                print line
+              }
+              close("/tmp/poetry_fields.toml")
+              next
+            }
+            { print }
+          ' pyproject.toml > /tmp/pyproject.toml.new
+          mv /tmp/pyproject.toml.new pyproject.toml
+      - id: 'build'
+        name: 'Build Snap package'
+        uses: 'snapcore/action-build@v1'
+        with:
+          snapcraft-args: 'pack'
+          snapcraft-channel: 'latest/stable'
+      - name: 'Upload Artifacts'
+        uses: 'actions/upload-artifact@v6'
+        with:
+          if-no-files-found: 'error'
+          name: 'youtube-unofficial-snap-${{ matrix.system.arch }}'
+          path: '*.snap'
+      - name: 'Attest'
+        uses: 'actions/attest-build-provenance@v3'
+        with:
+          subject-path: '*.snap'
+      - if: "github.ref_type == 'tag'"
+        name: 'Upload package'
+        uses: 'softprops/action-gh-release@v2'
+        with:
+          fail_on_unmatched_files: true
+          files: '*.snap'
+    strategy:
+      matrix:
+        system:
+          - arch: 'amd64'
+            image: 'ubuntu-24.04'
+          - arch: 'arm64'
+            image: 'ubuntu-24.04-arm'
+name: 'Snap'
+'on':
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch: null
+permissions:
+  attestations: 'write'
+  contents: 'write'
+  id-token: 'write'

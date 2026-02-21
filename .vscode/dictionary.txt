@@ -11,7 +11,6 @@ bsky
 cafaaq
 caplog
 checkmark
-codeowners
 colorlog
 commitizen
 conftest
@@ -34,6 +33,7 @@ filevers
 fontawesome
 foxundermoon
 genindex
+getline
 globaltoc
 htmlcov
 innertube
@@ -85,6 +85,8 @@ schemafile
 sdist
 sess
 shellformat
+snapcore
+snapcraft
 softprops
 sphinxcontrib
 tatsh

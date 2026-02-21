@@ -63,7 +63,11 @@
         "line_length": 100,
         "tables": false
       }
-    }
+    },
+    "gitignore": true,
+    "globs": ["**/*.md", "**/*.mdc"],
+    "noBanner": true,
+    "showFound": true
   },
   "name": "youtube-unofficial",
   "packageManager": "yarn@4.12.0",
@@ -94,9 +98,9 @@
     "url": "git@github.com:Tatsh/youtube-unofficial.git"
   },
   "scripts": {
-    "check-formatting": "yarn prettier -c . && poetry run yapf -prd . && yarn markdownlint-cli2 '**/*.md' '#node_modules'",
+    "check-formatting": "yarn prettier -c . && poetry run yapf -prd . && yarn markdownlint-cli2",
     "check-spelling": "yarn cspell --no-progress './**/*'  './**/.*'",
-    "format": "prettier -w . && poetry run yapf -ri . && yarn markdownlint-cli2 --fix '**/*.md' '#node_modules'",
+    "format": "prettier -w . && poetry run yapf -ri . && yarn markdownlint-cli2 --fix",
     "gen-docs": "poetry run sphinx-build -T -E -b html -d docs/_build/doctrees -D language=en docs docs/_build/html",
     "gen-manpage": "poetry run sphinx-build -T -E -b man -d docs/_build/doctrees -D language=en docs man",
     "mypy": "poetry run mypy",
