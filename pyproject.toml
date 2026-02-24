@@ -106,7 +106,7 @@ more-itertools = "^10.8.0"
 python = ">=3.10,<4.0"
 requests = "^2.32.5"
 typing-extensions = "^4.15.0"
-yt-dlp-utils = "^0.0.7"
+yt-dlp-utils = "^0.0.8"
 
 [tool.poetry.group.dev]
 optional = true
@@ -168,6 +168,7 @@ include = "youtube_unofficial"
 [tool.pyright]
 deprecateTypingAliases = true
 enableExperimentalFeatures = true
+exclude = ["**/.*", "**/__pycache__", "**/node_modules"]
 include = ["./youtube_unofficial", "./tests"]
 pythonPlatform = "Linux"
 pythonVersion = "3.10"

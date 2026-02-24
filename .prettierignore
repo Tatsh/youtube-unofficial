@@ -3,6 +3,7 @@
 *.jsonnet
 *.kate-swp
 *.libjsonnet
+*.libsonnet
 *.lock
 *.log
 *.mdc

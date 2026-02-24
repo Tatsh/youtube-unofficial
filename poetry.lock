@@ -3540,14 +3540,14 @@ tomli = {version = ">=2.0.1", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "yt-dlp"
-version = "2026.2.4"
+version = "2026.2.21"
 description = "A feature-rich command-line audio/video downloader"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "yt_dlp-2026.2.4-py3-none-any.whl", hash = "sha256:d6ea83257e8127a0097b1d37ee36201f99a292067e4616b2e5d51ab153b3dbb9"},
-    {file = "yt_dlp-2026.2.4.tar.gz", hash = "sha256:24733ef081116f29d8ee6eae7a48127101e6c56eb7aa228dd604a60654760022"},
+    {file = "yt_dlp-2026.2.21-py3-none-any.whl", hash = "sha256:0d8408f5b6d20487f5caeb946dfd04f9bcd2f1a3a125b744a0a982b590e449f7"},
+    {file = "yt_dlp-2026.2.21.tar.gz", hash = "sha256:4407dfc1a71fec0dee5ef916a8d4b66057812939b509ae45451fa8fb4376b539"},
 ]
 
 [package.dependencies]
@@ -3559,48 +3559,48 @@ pycryptodomex = {version = "*", optional = true, markers = "extra == \"default\"
 requests = {version = ">=2.32.2,<3", optional = true, markers = "extra == \"default\""}
 urllib3 = {version = ">=2.0.2,<3", optional = true, markers = "extra == \"default\""}
 websockets = {version = ">=13.0", optional = true, markers = "extra == \"default\""}
-yt-dlp-ejs = {version = "0.4.0", optional = true, markers = "extra == \"default\""}
+yt-dlp-ejs = {version = "0.5.0", optional = true, markers = "extra == \"default\""}
 
 [package.extras]
 build = ["build", "hatchling (>=1.27.0)", "pip", "setuptools (>=71.0.2)", "wheel"]
 build-curl-cffi = ["curl-cffi (==0.13.0) ; sys_platform == \"darwin\" or sys_platform == \"linux\" and platform_machine != \"armv7l\"", "curl-cffi (==0.14.0) ; sys_platform == \"win32\" or sys_platform == \"linux\" and platform_machine == \"armv7l\""]
 curl-cffi = ["curl-cffi (>=0.5.10,<0.6.dev0 || >=0.10.dev0,<0.15) ; implementation_name == \"cpython\""]
-default = ["brotli ; implementation_name == \"cpython\"", "brotlicffi ; implementation_name != \"cpython\"", "certifi", "mutagen", "pycryptodomex", "requests (>=2.32.2,<3)", "urllib3 (>=2.0.2,<3)", "websockets (>=13.0)", "yt-dlp-ejs (==0.4.0)"]
+default = ["brotli ; implementation_name == \"cpython\"", "brotlicffi ; implementation_name != \"cpython\"", "certifi", "mutagen", "pycryptodomex", "requests (>=2.32.2,<3)", "urllib3 (>=2.0.2,<3)", "websockets (>=13.0)", "yt-dlp-ejs (==0.5.0)"]
 deno = ["deno (>=2.6.6)"]
-dev = ["autopep8 (>=2.0,<3.0)", "pre-commit", "pytest (>=8.1,<9.0)", "pytest-rerunfailures (>=14.0,<15.0)", "ruff (>=0.14.0,<0.15.0)"]
+dev = ["autopep8 (>=2.0,<3.0)", "pre-commit", "pytest (>=8.1,<9.0)", "pytest-rerunfailures (>=14.0,<15.0)", "ruff (>=0.15.0,<0.16.0)"]
 pyinstaller = ["pyinstaller (>=6.17.0)"]
 secretstorage = ["cffi", "secretstorage"]
-static-analysis = ["autopep8 (>=2.0,<3.0)", "ruff (>=0.14.0,<0.15.0)"]
+static-analysis = ["autopep8 (>=2.0,<3.0)", "ruff (>=0.15.0,<0.16.0)"]
 test = ["pytest (>=8.1,<9.0)", "pytest-rerunfailures (>=14.0,<15.0)"]
 
 [[package]]
 name = "yt-dlp-ejs"
-version = "0.4.0"
+version = "0.5.0"
 description = "External JavaScript for yt-dlp supporting many runtimes"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "yt_dlp_ejs-0.4.0-py3-none-any.whl", hash = "sha256:19278cff397b243074df46342bb7616c404296aeaff01986b62b4e21823b0b9c"},
-    {file = "yt_dlp_ejs-0.4.0.tar.gz", hash = "sha256:3c67e0beb6f9f3603fbcb56f425eabaa37c52243d90d20ccbcce1dd941cfbd07"},
+    {file = "yt_dlp_ejs-0.5.0-py3-none-any.whl", hash = "sha256:674fc0efea741d3100cdf3f0f9e123150715ee41edf47ea7a62fbdeda204bdec"},
+    {file = "yt_dlp_ejs-0.5.0.tar.gz", hash = "sha256:8dfae59e418232f485253dcf8e197fefa232423c3af7824fe19e4517b173293b"},
 ]
 
 [[package]]
 name = "yt-dlp-utils"
-version = "0.0.7"
+version = "0.0.8"
 description = "Utilities for programmatic use of yt-dlp."
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "yt_dlp_utils-0.0.7-py3-none-any.whl", hash = "sha256:972e2b83ab129caf6c26dc465fb2b4d28c11f0aba8c2bf78544c3284301e3666"},
-    {file = "yt_dlp_utils-0.0.7.tar.gz", hash = "sha256:d5e7fb134e6fa8b02cd24d726b5fe032797c0764c35afe0cd4d516fcc9a40304"},
+    {file = "yt_dlp_utils-0.0.8-py3-none-any.whl", hash = "sha256:652aff3eb66e0c93a873c89de4701b65b7f0e5297721caefadba4e4268713842"},
+    {file = "yt_dlp_utils-0.0.8.tar.gz", hash = "sha256:ea231c79ceac47e7e2444002453bac9d6e136b11b72171a125f82d286be54085"},
 ]
 
 [package.dependencies]
 requests = ">=2.32.5,<3.0.0"
 typing-extensions = ">=4.15.0,<5.0.0"
-yt-dlp = {version = ">=2026.1.29,<2027.0.0", extras = ["default"]}
+yt-dlp = {version = ">=2026.2.21,<2027.0.0", extras = ["default"]}
 
 [package.extras]
 asyncio = ["aiohttp (>=3.13.3,<4.0.0)", "aiohttp-retry (>=2.9.1,<3.0.0)"]
@@ -3608,4 +3608,4 @@ asyncio = ["aiohttp (>=3.13.3,<4.0.0)", "aiohttp-retry (>=2.9.1,<3.0.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "b058e9c3c67d35f928f1746494dc381f658e9bfed4f021afd1a49522cb5c5313"
+content-hash = "c1da053c62403acf1d012fdb6371482077d508596d78329f8a48bfc05b3ccd75"
