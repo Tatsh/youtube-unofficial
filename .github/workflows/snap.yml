@@ -44,7 +44,7 @@ jobs:
           name: 'youtube-unofficial-snap-${{ matrix.system.arch }}'
           path: '*.snap'
       - name: 'Attest'
-        uses: 'actions/attest-build-provenance@v3'
+        uses: 'actions/attest-build-provenance@v4'
         with:
           subject-path: '*.snap'
       - if: "github.ref_type == 'tag'"

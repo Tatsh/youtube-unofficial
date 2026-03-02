@@ -102,7 +102,7 @@ jobs:
           path: |
             ${{ matrix.dist_path }}
       - name: 'Attest'
-        uses: 'actions/attest-build-provenance@v3'
+        uses: 'actions/attest-build-provenance@v4'
         with:
           subject-path: '${{ matrix.dist_path }}'
       - if: (matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel') && github.ref_type == 'tag'
@@ -120,7 +120,7 @@ jobs:
         shell: pwsh
       - if: github.ref_type == 'tag'
         name: 'Attest'
-        uses: 'actions/attest-build-provenance@v3'
+        uses: 'actions/attest-build-provenance@v4'
         with:
           subject-path: '_out/*.zip'
       - if: github.ref_type == 'tag'

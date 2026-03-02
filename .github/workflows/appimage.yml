@@ -104,7 +104,7 @@ jobs:
           path: |
             dist/*
       - name: 'Attest'
-        uses: 'actions/attest-build-provenance@v3'
+        uses: 'actions/attest-build-provenance@v4'
         with:
           subject-path: 'dist/*.AppImage'
       - if: github.ref_type == 'tag'
