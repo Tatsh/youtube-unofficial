@@ -6,7 +6,6 @@
 *.libsonnet
 *.lock
 *.log
-*.mdc
 *~
 .*.swp
 .*_cache/

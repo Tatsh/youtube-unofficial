@@ -1,6 +1,39 @@
 [build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core"]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[dependency-groups]
+dev = [
+  "commitizen>=4.13.9",
+  "cz-path>=0.0.6",
+  "mypy>=1.19.1",
+  "ruff>=0.15.7",
+  "types-beautifulsoup4>=4.12.0.20250516",
+  "types-requests>=2.32.4.20260107",
+  "yapf>=0.43.0",
+]
+docs = [
+  "autodoc-pydantic>=2.2.0",
+  "doc8>=2.0.0",
+  "docutils<0.22",
+  "enum-tools[sphinx]>=0.13.0",
+  "esbonio>=1.1.0",
+  "numpydoc>=1.10.0",
+  "restructuredtext-lint>=2.0.2",
+  "sphinx-click>=6.2.0",
+  "sphinx-datatables>=1.0.0",
+  "sphinx-immaterial>=0.13.9",
+  "sphinx>=9.1.0; python_version >= \"3.13\"",
+  "tomlkit>=0.14.0",
+]
+tests = [
+  "coveralls>=4.1.0",
+  "mock>=5.2.0",
+  "pytest-cov>=7.1.0",
+  "pytest-mock>=3.15.1",
+  "pytest>=9.0.2",
+  "requests-mock>=1.12.1",
+]
 
 [project]
 classifiers = [
@@ -14,12 +47,22 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Typing :: Typed",
 ]
+dependencies = [
+  "bascom>=0.1.2",
+  "beautifulsoup4>=4.14.3",
+  "click>=8.3.1",
+  "html5lib>=1.1",
+  "more-itertools>=10.8.0",
+  "requests>=2.32.5",
+  "typing-extensions>=4.15.0",
+  "yt-dlp-utils>=0.0.8",
+]
 description = "Access parts of your account unavailable through normal YouTube API access."
-dynamic = ["dependencies", "requires-python"]
 keywords = ["command line", "youtube"]
 license = "MIT"
 name = "youtube-unofficial"
 readme = "README.md"
+requires-python = ">=3.10,<4.0"
 version = "0.3.1"
 
 [[project.authors]]
@@ -43,9 +86,11 @@ version_files = [
   ".wiswa.jsonnet",
   "CITATION.cff",
   "README.md",
+  "docs/badges.rst",
   "docs/index.rst",
   "man/youtube-unofficial.1",
   "package.json",
+  "snapcraft.yaml",
   "youtube_unofficial/__init__.py",
 ]
 version_provider = "pep621"
@@ -73,14 +118,6 @@ omit = [
   "tests/test_*.py",
 ]
 
-[tool.djlint]
-max_line_length = 100
-no_line_after_yaml = true
-preserve_blank_lines = true
-preserve_leading_space = true
-profile = "jinja"
-use_gitignore = true
-
 [tool.doc8]
 max-line-length = 100
 
@@ -94,81 +131,10 @@ strict = true
 strict_optional = true
 warn_unreachable = true
 
-[tool.poetry]
-include = ["man", { format = "sdist", path = "tests" }]
-
-[tool.poetry.dependencies]
-bascom = "^0.1.2"
-beautifulsoup4 = "^4.14.3"
-click = "^8.3.1"
-html5lib = "^1.1"
-more-itertools = "^10.8.0"
-python = ">=3.10,<4.0"
-requests = "^2.32.5"
-typing-extensions = "^4.15.0"
-yt-dlp-utils = "^0.0.8"
-
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-commitizen = "^4.13.8"
-cz-path = "^0.0.4"
-djlint = "^1.36.4"
-mypy = "^1.19.1"
-ruff = "^0.15.2"
-types-beautifulsoup4 = "^4.12.0.20250516"
-types-requests = "^2.32.4.20260107"
-yapf = "^0.43.0"
-
-[tool.poetry.group.docs]
-optional = true
-
-[tool.poetry.group.docs.dependencies]
-autodoc-pydantic = "^2.2.0"
-doc8 = "^2.0.0"
-docutils = "<0.22"
-esbonio = "^1.1.0"
-numpydoc = "^1.10.0"
-restructuredtext-lint = "^2.0.2"
-sphinx-click = "^6.2.0"
-sphinx-datatables = "^1.0.0"
-sphinx-immaterial = "^0.13.9"
-tomlkit = "^0.14.0"
-
-[tool.poetry.group.docs.dependencies.enum-tools]
-extras = ["sphinx"]
-version = "^0.13.0"
-
-[[tool.poetry.group.docs.dependencies.sphinx]]
-python = ">=3.11"
-version = "<9.0.0"
-
-[[tool.poetry.group.docs.dependencies.sphinx]]
-python = "<3.11"
-version = "^7.2.5"
-
-[tool.poetry.group.tests]
-optional = true
-
-[tool.poetry.group.tests.dependencies]
-mock = "^5.2.0"
-pytest = "^9.0.2"
-pytest-cov = "^7.0.0"
-pytest-mock = "^3.15.1"
-requests-mock = "^1.12.1"
-
-[tool.poetry.group.tests.dependencies.coveralls]
-python = "<3.13"
-version = "^4.0.1"
-
-[[tool.poetry.packages]]
-include = "youtube_unofficial"
-
 [tool.pyright]
 deprecateTypingAliases = true
 enableExperimentalFeatures = true
-exclude = ["**/.*", "**/__pycache__", "**/node_modules"]
+exclude = [".venv", "**/node_modules", "**/__pycache__", "**/.*"]
 include = ["./youtube_unofficial", "./tests"]
 pythonPlatform = "Linux"
 pythonVersion = "3.10"
@@ -256,6 +222,9 @@ max-positional-args = 15
 max-public-methods = 30
 max-returns = 10
 max-statements = 100
+
+[tool.uv]
+default-groups = ["dev"]
 
 [tool.yapf]
 align_closing_bracket_with_visual_indent = true

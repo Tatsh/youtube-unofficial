@@ -8,7 +8,7 @@ updates:
     schedule:
       interval: 'weekly'
   - directory: '/'
-    package-ecosystem: 'pip'
+    package-ecosystem: 'uv'
     schedule:
       interval: 'weekly'
 version: 2

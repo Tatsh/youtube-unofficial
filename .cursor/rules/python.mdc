@@ -54,11 +54,73 @@ alwaysApply: false
   2. Standard library imports.
   3. Third-party imports.
   4. Local application imports.
+- When using `ctypes.Structure` or `ctypes.Union`, add an `if TYPE_CHECKING:` section inside the
+  class with field declarations so type checkers know the attribute types:
+
+  ```python
+  class CDROMMSF0(ctypes.Structure):
+      if TYPE_CHECKING:
+          minute: int
+          second: int
+          frame: int
+      _fields_: ClassVar[list[tuple[str, Any]]] = [
+          ('minute', ctypes.c_ubyte),
+          ('second', ctypes.c_ubyte),
+          ('frame', ctypes.c_ubyte),
+      ]
+  ```
+
+- When documenting constants, add `:meta hide-value:` at the end of the docstring:
+
+  ```python
+  MY_CONSTANT = 42
+  """The constant value.
+
+  :meta hide-value:
+  """
+  ```
+
+- Typing helpers (TypedDicts, type aliases, `Annotated` types, helper functions) go in a
+  module-level `typing.py` file.
 - When importing `subprocess`, alias it: `import subprocess as sp`.
+- Always use `pathlib.Path` over equivalent `os` and `os.path` functions.
+- Keep local variable use to a minimum unless a variable improves clarity.
+- Use the walrus operator (`:=`) when appropriate.
+- Use `match` over many `if`/`elif`/`else` statements whenever possible:
+
+  ```python
+  # Before
+  def handle_response(status: int, body: dict[str, str]) -> str:
+      if status == 200 and 'data' in body:
+          return body['data']
+      elif status == 301 or status == 302:
+          return body.get('location', '')
+      elif status == 404:
+          raise FileNotFoundError
+      elif status >= 500:
+          raise RuntimeError(body.get('error', 'Unknown'))
+      else:
+          return ''
+
+  # After
+  def handle_response(status: int, body: dict[str, str]) -> str:
+      match status:
+          case 200 if 'data' in body:
+              return body['data']
+          case 301 | 302:
+              return body.get('location', '')
+          case 404:
+              raise FileNotFoundError
+          case s if s >= 500:
+              raise RuntimeError(body.get('error', 'Unknown'))
+          case _:
+              return ''
+  ```
+
 - All test function names must start with `test_`.
 - Test files must be named `test_*.py`.
 - Use `pytest` for testing.
-- Use `@pytest.mark.parametrize` for parameterized tests.
+- Use `@pytest.mark.parametrize` for parametrised tests.
 - Use `@pytest.mark.asyncio` for asynchronous tests.
 - Use `pytest.raises` for testing exceptions.
 - Use `@pytest.fixture` decorator for fixtures.
@@ -66,6 +128,30 @@ alwaysApply: false
   file.
 - Ruff rules do not apply to files inside a `migrations` directory.
 - Call `.encode()` without arguments if the encoding is expected to be UTF-8.
+- All functions with parameters must have a NumPy-style docstring with a `Parameters` section. If
+  the return value is not `None`, include a `Returns` section.
+- Multiline docstrings must have a newline after the opening `"""` and the closing `"""` on its
+  own line:
+
+  ```python
+  def process(data: str, *, verbose: bool = False) -> int:
+      """
+      Process the input data.
+
+      Parameters
+      ----------
+      data : str
+          The data to process.
+      verbose : bool
+          Enable verbose output.
+
+      Returns
+      -------
+      int
+          The number of items processed.
+      """
+  ```
+
 - Follow all Numpy-style docstring conventions for functions and methods, with the following
   exceptions:
   - `ES01`: Extended summary is not required.
@@ -98,7 +184,10 @@ alwaysApply: false
 - Do not use the `SimpleNamespace` type and instead use dataclasses or namedtuples.
 - When using namedtuples, always use `typing.NamedTuple` to declare them.
 - When specifying keyword arguments to a function call, sort them alphabetically by the keyword
-  name.
+  name unless it would affect clarity.
+- Class body ordering: attributes first (sorted alphabetically: dunder, public, private), then
+  methods (sorted alphabetically: dunder, public, private). Exception: in Django models, follow
+  Ruff rule DJ012 (Django Style Guide ordering) instead.
 - By default, sort collections alphabetically.
 - If a function accepts a collection of items and returns it, prefer to return a modified copy of
   the collection instead of modifying it in place.
@@ -120,3 +209,92 @@ alwaysApply: false
   description.
 - Do not make useless string interpolations. Example: Use `var_name` instead of `f'{var_name}'`. If
   `var_name` is not a string, use `str(var_name)`.
+- All modules must define `__all__` as a tuple listing all public exports.
+- All private members, methods, and functions must start with `_`.
+- `__init__.py` files must only contain dunder variables (`__version__`, `__all__`, etc.), imports,
+  and `__all__` re-exports. No logic, classes, or function definitions.
+- All code and comments must be word-wrapped at 100 characters.
+- Comments that are complete sentences must end in a period.
+- Never create a `Methods` section in class docstrings. Methods are documented like functions with
+  their own docstring.
+- If a function raises exceptions, include a `Raises` section with a description for each exception
+  type.
+- In docstrings, use Sphinx cross-references when referring to other types, modules, or functions:
+  `:py:mod:`, `:py:func:`, `:py:class:`, `:py:meth:`. Use `~` to shorten the displayed name. This
+  applies to third-party types as well (e.g. `` :py:class:`~pathlib.Path` ``).
+- Use Click for CLI commands.
+- Logging is set up by `bascom`. Only call `setup_logging` in entry points (commands), never in
+  library code:
+
+  ```python
+  from bascom import setup_logging
+
+  @click.command()
+  @click.option('-d', '--debug', is_flag=True)
+  def my_command(debug: bool = False) -> None:
+      """Do something."""
+      setup_logging(debug=debug, loggers={'myproject': {}})
+  ```
+
+- In library modules, define a module-level logger (not exported):
+  `log = logging.getLogger(__name__)`.
+- Always use `%`-style formatting in log calls, never f-strings or `.format()`.
+- Log messages that are complete sentences must end in a period. Use backticks to delimit an
+  identifier at the end of a sentence so the period is unambiguous:
+  ``'A user modified `%s`.'``
+- `click.Path` must always include `path_type=Path` to get `pathlib.Path` objects.
+- Use `click.Abort` for graceful failure (exit code 1). Chain from exceptions:
+  `raise click.Abort from e`.
+- Use `click.exceptions.Exit(code)` to exit with a specific non-zero exit code without printing an
+  "Aborted!" message (unlike `click.Abort`).
+- Rename Click parameters that shadow builtins: `@click.option('--all', 'all_', ...)`.
+- `click.option` help strings must end in a period.
+- Always pass `check=True` to `sp.run` unless exit code handling is explicit.
+- Pre-compile regex patterns as module-level constants (not inside functions).
+- Prefer `@functools.cache` over `@functools.lru_cache` for unbounded caches.
+- Prefer to use `indent=2, sort_keys=True` when dumping JSON for human-readable output.
+- Chain exceptions with `raise ... from e` to preserve context.
+
+## Typing
+
+When fixing mypy errors or eliminating `Any` usage, follow these strategies in order of preference:
+
+1. **TypedDict** for dictionary shapes - place shared ones in a `typing.py` module and add to
+   `__all__`.
+2. **PEP 695 generic type variables** (`def func[T](items: Sequence[T]) -> T`) - do not use
+   `TypeVar` directly.
+3. **ParamSpec** for decorators and callable wrappers
+   (`def decorator[**P, R](fn: Callable[P, R]) -> Callable[P, R]`).
+4. **Unpack** with TypedDict for `**kwargs` typing.
+5. **Union types** (`str | bytes | Path`) when the set of types is known.
+6. **Protocol** for structural typing when the caller only needs specific methods.
+
+### Acceptable `Any`
+
+Keep `Any` only when:
+
+- The type is truly dynamic (e.g. JSON from unknown input, `plistlib.load` return).
+- Third-party libraries have untyped APIs with no stubs.
+- ctypes `_fields_` definitions require it.
+- A `cast('Any', ...)` is needed for an untyped third-party API.
+
+### Rules
+
+- `# type: ignore` must always include specific error code(s), e.g. `# type: ignore[assignment]` -
+  bare `# type: ignore` is never acceptable.
+- `# type: ignore[...]` is only acceptable when `cast()` is not suitable and a limitation in
+  Python's type system causes the error. Always add a brief comment explaining the limitation.
+- In all other cases, fix the root cause instead of suppressing the error.
+- Never weaken types to silence errors.
+- New `TypedDict`/`Protocol`/`NamedTuple` classes need docstrings (NumPy style), and every member
+  must have an individual docstring on the line immediately after its declaration:
+
+  ```python
+  class Config(TypedDict):
+      """Application configuration."""
+
+      name: str
+      """Name of the application."""
+      count: int
+      """Number of items to process."""
+  ```

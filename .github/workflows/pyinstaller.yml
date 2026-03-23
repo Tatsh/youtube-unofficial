@@ -3,22 +3,23 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: 'actions/checkout@v6'
-      - name: 'Install Poetry'
-        run: 'pipx install poetry yq'
+      - name: 'Install yq'
+        run: 'pipx install yq'
+      - name: 'Install uv'
+        uses: 'astral-sh/setup-uv@v7'
       - name: 'Set up Python'
         uses: 'actions/setup-python@v6'
         with:
-          cache: 'poetry'
           python-version: '3.13'
-      - name: 'Install dependencies (Poetry)'
+      - name: 'Install dependencies (uv)'
         run: |
-          poetry install
-          poetry run -- pip install pyinstaller
+          uv sync
+          uv pip install pyinstaller
         shell: 'bash'
       - name: 'Build with PyInstaller'
         run: |
           project_name=$(tomlq -r '.project.urls.repository|split("/")[-1]' pyproject.toml)
-          vers=$(echo "$(tomlq -r '.project.version|split(".")|map(tonumber)|@csv' pyproject.toml),0")
+          vers="$(tomlq -r '.project.version|split(".")|map(tonumber)|@csv' pyproject.toml),0"
           version=$(tomlq -r .project.version pyproject.toml)
           while IFS=$' ' read -r script_name python_path func_name; do
               func_name="${func_name#"${func_name%%[![:space:]]*}"}"
@@ -64,8 +65,9 @@ jobs:
                   cat version-info.txt
               fi
               echo "Building executable for '${script_name}'..."
-              poetry run -- pyinstaller --log-level ERROR --onefile -n "${script_name}" --optimize 1 \
-                --hidden-import colorlog -y --version-file version-info.txt \
+              uv run pyinstaller --log-level ERROR --onefile -n "${script_name}" --optimize 1 \
+                --hidden-import colorlog \
+                -y --version-file version-info.txt \
                 temp_script.py
               if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
                   cat "${script_name}.spec"
@@ -102,9 +104,23 @@ jobs:
           path: |
             ${{ matrix.dist_path }}
       - name: 'Attest'
-        uses: 'actions/attest-build-provenance@v4'
+        uses: 'actions/attest@v4'
         with:
           subject-path: '${{ matrix.dist_path }}'
+      - name: 'Generate SBOM'
+        uses: 'anchore/sbom-action@v0'
+        env:
+          SYFT_SOURCE_NAME: 'youtube-unofficial'
+          SYFT_SOURCE_VERSION: ${{ github.ref_name }}
+        with:
+          path: 'dist/'
+          output-file: 'sbom.spdx.json'
+          upload-artifact: false
+      - name: 'Attest SBOM'
+        uses: 'actions/attest@v4'
+        with:
+          subject-path: '${{ matrix.dist_path }}'
+          sbom-path: 'sbom.spdx.json'
       - if: (matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel') && github.ref_type == 'tag'
         name: 'Zip files'
         run: |
@@ -120,13 +136,20 @@ jobs:
         shell: pwsh
       - if: github.ref_type == 'tag'
         name: 'Attest'
-        uses: 'actions/attest-build-provenance@v4'
+        uses: 'actions/attest@v4'
         with:
           subject-path: '_out/*.zip'
+      - if: github.ref_type == 'tag'
+        name: 'Attest SBOM'
+        uses: 'actions/attest@v4'
+        with:
+          subject-path: '_out/*.zip'
+          sbom-path: 'sbom.spdx.json'
       - if: github.ref_type == 'tag'
         name: Upload package
         uses: softprops/action-gh-release@v2
         with:
+          draft: true
           fail_on_unmatched_files: true
           files: |
             _out/*.zip
@@ -150,6 +173,13 @@ name: 'PyInstaller'
   push:
     branches:
       - 'master'
+    paths:
+      - '**/*.py'
+      - '**/*.pyi'
+      - '.github/workflows/pyinstaller.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'poetry.lock'
     tags:
       - 'v*.*.*'
 permissions:

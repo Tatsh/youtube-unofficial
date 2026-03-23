@@ -42,8 +42,7 @@
     "wayou.vscode-todo-highlight",
     "wmaurer.change-case",
     "zainchen.json",
-    "zengxingxin.sort-js-object-keys",
-    "zeshuaro.vscode-python-poetry"
+    "zengxingxin.sort-js-object-keys"
   ],
   "unwantedRecommendations": ["ms-python.vscode-python-envs"]
 }

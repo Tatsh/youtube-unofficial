@@ -1,0 +1,53 @@
+jobs:
+  publish-release:
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: 'actions/checkout@v6'
+      - env:
+          GH_TOKEN: '${{ github.token }}'
+        id: 'check'
+        name: 'Check all workflows succeeded'
+        run: |
+          tag="${{ github.event.workflow_run.head_branch }}"
+          sha="${{ github.event.workflow_run.head_sha }}"
+          all_success=true
+          for workflow in AppImage Publish PyInstaller QA Snap Tests; do
+            status=$(gh run list -w "$workflow" --commit "$sha" --json conclusion -q '.[0].conclusion')
+            if [[ "$status" == 'failure' || "$status" == 'cancelled' ]]; then
+              echo "::error::Workflow '$workflow' ${status}."
+              exit 1
+            elif [[ "$status" != 'success' ]]; then
+              echo "Workflow '$workflow' still pending, skipping."
+              all_success=false
+            fi
+          done
+          if [[ "$all_success" != 'true' ]]; then
+            echo 'Not all workflows have completed yet.'
+            exit 0
+          fi
+          echo "All workflows succeeded for ${tag}."
+          echo "tag=${tag}" >> "$GITHUB_ENV"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+      - env:
+          GH_TOKEN: '${{ github.token }}'
+        if: "steps.check.outputs.ready == 'true'"
+        name: 'Publish release'
+        run: 'gh release edit "$tag" --draft=false'
+name: 'Release'
+'on':
+  workflow_run:
+    types:
+      - 'completed'
+    workflows:
+      - 'AppImage'
+      - 'Publish'
+      - 'PyInstaller'
+      - 'QA'
+      - 'Snap'
+      - 'Tests'
+permissions:
+  contents: 'write'

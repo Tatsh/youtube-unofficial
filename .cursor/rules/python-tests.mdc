@@ -11,7 +11,7 @@ alwaysApply: false
     `from pytest_mock import MockerFixture`.
 - All test function names must start with `test_`.
 - Test files must be named `test_*.py`.
-- Use `@pytest.mark.parametrize` for parameterized tests.
+- Use `@pytest.mark.parametrize` for parametrised tests.
 - Use `@pytest.mark.asyncio` for asynchronous tests.
 - Use `pytest.raises` for testing exceptions.
 - Use `@pytest.fixture` for fixtures.
@@ -21,3 +21,7 @@ alwaysApply: false
 - Mock external dependencies and IO operations in tests.
 - If a parameter must exist in a callback, use `_` as the identifier if it is not a keyword
   argument.
+- Use the `runner` fixture (type `CliRunner`) from `conftest.py` for testing Click commands.
+- Test Click commands by checking `result.exit_code` and `result.output`.
+- Use `mocker.patch` for complex mock setups; `monkeypatch.setattr` for simple attribute
+  replacement.

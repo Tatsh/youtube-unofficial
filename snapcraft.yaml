@@ -1,18 +1,25 @@
 apps:
   youtube-unofficial:
-    command: 'bin/youtube'
+    command: 'bin/youtube-unofficial'
     plugs:
       - 'home'
       - 'network'
       - 'network-bind'
 base: 'core24'
 confinement: 'strict'
+contact: 'https://github.com/Tatsh/youtube-unofficial/issues'
 description: 'Access parts of your account unavailable through normal YouTube API access.'
+donation: 'https://buymeacoffee.com/Tatsh'
 grade: 'stable'
+issues: 'https://github.com/Tatsh/youtube-unofficial/issues'
+license: 'MIT'
 name: 'youtube-unofficial'
 parts:
   youtube-unofficial:
-    plugin: 'poetry'
+    build-packages: []
+    plugin: 'python'
+    python-packages:
+      - '.'
     source: '.'
     stage-packages: []
 platforms:
@@ -20,5 +27,8 @@ platforms:
     build-on: 'amd64'
   arm64:
     build-on: 'arm64'
+source-code: 'https://github.com/Tatsh/youtube-unofficial'
 summary: 'Access parts of your account unavailable through normal YouTube API access.'
+title: 'youtube-unofficial'
 version: '0.3.1'
+website: 'https://tatsh.github.io/youtube-unofficial/'

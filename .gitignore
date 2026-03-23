@@ -4,6 +4,7 @@
 .*.swp
 .*_cache/
 .DS_Store*
+.claude/settings.local.json
 .coverage
 .cspellcache
 .directory

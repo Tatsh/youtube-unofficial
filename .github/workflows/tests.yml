@@ -5,17 +5,16 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - uses: 'actions/checkout@v6'
-      - name: 'Install Poetry'
-        run: 'pipx install poetry'
+      - name: 'Install uv'
+        uses: 'astral-sh/setup-uv@v7'
       - name: 'Set up Python ${{ matrix.python-version }}'
         uses: 'actions/setup-python@v6'
         with:
-          cache: 'poetry'
           python-version: '${{ matrix.python-version }}'
-      - name: 'Install dependencies (Poetry)'
-        run: 'poetry install --with=tests'
+      - name: 'Install dependencies (uv)'
+        run: 'uv sync --group tests --all-extras'
       - name: 'Install pytest-action dependencies'
-        run: 'poetry run pip install pytest-md pytest-emoji'
+        run: 'uv pip install pytest-md pytest-emoji'
       - name: 'Install dependencies (Yarn)'
         run: 'yarn'
       - name: 'Run tests'
@@ -45,8 +44,24 @@ name: 'Tests'
   pull_request:
     branches:
       - 'master'
+    paths:
+      - '**/*.py'
+      - '**/*.pyi'
+      - '.github/workflows/tests.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'poetry.lock'
+      - 'tests/**'
   push:
     branches:
       - 'master'
+    paths:
+      - '**/*.py'
+      - '**/*.pyi'
+      - '.github/workflows/tests.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'poetry.lock'
+      - 'tests/**'
 permissions:
   contents: 'read'

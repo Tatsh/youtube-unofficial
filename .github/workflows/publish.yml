@@ -1,18 +1,54 @@
 jobs:
+  check:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: 'actions/checkout@v6'
+      - env:
+          GH_TOKEN: '${{ github.token }}'
+        id: 'check'
+        name: 'Wait for workflows'
+        run: |
+          sha="${{ github.sha }}"
+          for i in $(seq 1 30); do
+            all_done=true
+            for workflow in AppImage PyInstaller QA Snap Tests; do
+              status=$(gh run list -w "$workflow" --commit "$sha" --json conclusion -q '.[0].conclusion')
+              if [[ "$status" == 'failure' || "$status" == 'cancelled' ]]; then
+                echo "::error::Workflow '$workflow' ${status}."
+                exit 1
+              elif [[ "$status" != 'success' ]]; then
+                echo "Workflow '$workflow' still pending."
+                all_done=false
+              fi
+            done
+            if [[ "$all_done" == 'true' ]]; then
+              echo 'All workflows succeeded.'
+              exit 0
+            fi
+            echo "Waiting 60s for workflows to complete (attempt ${i}/30)..."
+            sleep 60
+          done
+          echo '::error::Timed out waiting for workflows.'
+          exit 1
   publish:
+    needs:
+      - 'check'
     runs-on: 'ubuntu-latest'
     steps:
       - uses: 'actions/checkout@v6'
       - uses: 'actions/setup-python@v6'
         with:
           python-version: '3.13'
-      - name: 'Install Poetry'
-        run: 'pipx install poetry'
-      - run: 'poetry build'
+      - name: 'Install uv'
+        uses: 'astral-sh/setup-uv@v7'
+      - run: 'uv build'
       - uses: 'pypa/gh-action-pypi-publish@release/v1'
       - uses: 'softprops/action-gh-release@v2'
         with:
-          files: 'dist/*'
+          draft: true
+          files: |
+            dist/*.tar.gz
+            dist/*.whl
 name: 'Publish'
 'on':
   push:

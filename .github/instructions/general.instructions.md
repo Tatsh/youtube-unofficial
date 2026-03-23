@@ -23,3 +23,12 @@ liked videos directly from the command line.
   be abbreviated:
   - `config` for configuration.
 - Prefer to use immutable data structures over mutable ones.
+- Run `yarn format` after any changes to format all files. Must exit with code 0.
+- Run `yarn qa` after any changes to type-check and run QA utilities. Must exit with code 0. Both
+  commands must pass before committing.
+- Use `yarn` to invoke Node-based tools (Prettier, markdownlint-cli2, cspell).
+- Use `uv run` to invoke Python tools (pytest, mypy, Ruff).
+- Spell-check uses cspell with British English (`en-GB`). Exception: code identifiers must use
+  American English (`ColorCode` not `ColourCode`).
+- Add new words to `.vscode/dictionary.txt` in lowercase and keep the file sorted. Prefer to commit
+  dictionary changes separately with the message `dictionary: update`.

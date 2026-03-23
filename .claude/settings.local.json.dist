@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api *)",
+      "Bash(git add *)",
+      "Bash(git check-ignore *)",
+      "Bash(git commit *)",
+      "Bash(git status *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(mktemp *)",
+      "Bash(yarn check-formatting *)",
+      "Bash(yarn check-spelling *)",
+      "Bash(yarn dict:update *)",
+      "Bash(yarn format *)",
+      "Bash(yarn gen-docs *)",
+      "Bash(yarn gen-manpage *)",
+      "Bash(yarn mypy *)",
+      "Bash(yarn qa *)",
+      "Bash(yarn regen *)",
+      "Bash(yarn ruff *)",
+      "Bash(yarn ruff:fix *)",
+      "Bash(yarn test *)",
+      "Bash(yarn test:cov *)"
+    ]
+  }
+}

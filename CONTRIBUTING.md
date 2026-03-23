@@ -15,12 +15,12 @@ help maintain code quality and consistency.
 
 ## Development Environment
 
-- Use [Poetry](https://python-poetry.org/) to manage Python dependencies:
-  - Install dependencies: `poetry install`
-  - Add a dependency: `poetry add <package>`
-  - Add a dev dependency: `poetry add --group dev <package>`
-  - Add a test dependency: `poetry add --group tests <package>`
-  - Add a docs dependency (rarely needed): `poetry add --group docs <package>`
+- Use [uv](https://docs.astral.sh/uv/) to manage Python dependencies:
+  - Install dependencies: `uv sync`
+  - Add a dependency: `uv add <package>`
+  - Add a dev dependency: `uv add --group dev <package>`
+  - Add a test dependency: `uv add --group tests <package>`
+  - Add a docs dependency (rarely needed): `uv add --group docs <package>`
 - Use [Yarn](https://yarnpkg.com/) to install Node.js based dependencies:
   - Install Node.js dependencies: `yarn`
 - Install [pre-commit](https://pre-commit.com/) and make sure it is enabled by running
@@ -35,8 +35,8 @@ The following scripts are available via `yarn` (see `package.json`):
 - `yarn test:cov`: Run tests with coverage report.
 - `yarn ruff` / `yarn ruff:fix`: Run Ruff linter (and auto-fix).
 - `yarn mypy`: Run Mypy type checker.
-- `yarn check-formatting`: Check code formatting (Python, Markdown, etc).
-- `yarn format`: Auto-format code (Python, Markdown, etc).
+- `yarn check-formatting`: Check code formatting.
+- `yarn format`: Auto-format code.
 - `yarn check-spelling`: Run spell checker.
 - `yarn gen-docs`: Build HTML documentation.
 - `yarn gen-manpage`: Build man page documentation. If you update documentation, please run this and
@@ -58,8 +58,8 @@ The above all need to pass for any code changes to be accepted.
 - Prefer latest Python features (3.10+).
 - For subprocess, avoid `shell=True` and `check=False`.
 - Alias subprocess as `import subprocess as sp`.
-- Add public facing API elements to `__all__`. Prefer not to use underscore-prefix except in 'private'
-  method names. Do not create class attributes that invoke name mangling.
+- Add public facing API elements to `__all__`. Prefer not to use underscore-prefix except in
+  'private' method names. Do not create class attributes that invoke name mangling.
 - See [Python instructions] for full details.
 
 ## Python Tests Guidelines
@@ -68,7 +68,7 @@ The above all need to pass for any code changes to be accepted.
 - All test functions must start with `test_` and test files as `test_*.py`.
 - Always add type hints, including return values.
 - Use fixtures from `tests/conftest.py` only.
-- Use `@pytest.mark.parametrize` for parameterized tests and `@pytest.mark.asyncio` for async tests.
+- Use `@pytest.mark.parametrize` for parametrised tests and `@pytest.mark.asyncio` for async tests.
 - Do not add docstrings to test functions.
 - Mock external dependencies and I/O operations.
 - Strive to keep the coverage level the same or higher.

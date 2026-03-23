@@ -3,17 +3,18 @@ jobs:
     runs-on: ${{ matrix.system.image }}
     steps:
       - uses: 'actions/checkout@v6'
-      - name: 'Install Poetry'
-        run: 'pipx install poetry yq'
+      - name: 'Install yq'
+        run: 'pipx install yq'
+      - name: 'Install uv'
+        uses: 'astral-sh/setup-uv@v7'
       - name: 'Set up Python'
         uses: 'actions/setup-python@v6'
         with:
-          cache: 'poetry'
           python-version: '3.13'
-      - name: 'Install dependencies (Poetry)'
+      - name: 'Install dependencies (uv)'
         run: |
-          poetry install
-          poetry run -- pip install python-appimage
+          uv sync
+          uv pip install python-appimage
           wget -O generic.svg 'https://raw.githubusercontent.com/KDE/breeze-icons/refs/heads/master/icons/preferences/32/preferences-other.svg'
         shell: 'bash'
       - name: 'Build with python-appimage'
@@ -23,10 +24,10 @@ jobs:
           rm -fR dist
           mkdir dist
           while IFS=$' ' read -r script_name python_path func_name; do
-              rm -fR recipe
-              mkdir recipe
               func_name="${func_name#"${func_name%%[![:space:]]*}"}"
               func_name="${func_name%"${func_name##*[![:space:]]}"}"
+              rm -fR recipe
+              mkdir recipe
               cat > recipe/entrypoint.sh <<EOF
           {{ python-executable }} \${APPDIR}/opt/python{{ python-version }}/bin/${script_name} "\$@"
           EOF
@@ -79,9 +80,9 @@ jobs:
                   cat "recipe/${script_name}.appinfo.xml"
               fi
               cp generic.svg "recipe/${script_name}.svg"
-              echo "Building executable for '${script_name}'..."
-              poetry run python -m python_appimage -v build app -l "manylinux2014_${{ matrix.system.arch }}" -p 3.13 recipe
-              mv "${script_name}-${{ matrix.system.arch }}.AppImage" "dist/${script_name}-${version}-${{ matrix.system.arch }}.AppImage"
+              echo "Building AppImage for '${script_name}'..."
+              uv run python -m python_appimage -v build app -l "manylinux2014_${{ matrix.system.arch }}" -p 3.13 recipe
+              mv "${script_name}-${{ matrix.system.arch }}.AppImage" "dist/${script_name}-v${version}-${{ matrix.system.arch }}.AppImage"
           done < <(tomlq -r '.project.scripts|to_entries[]|"\(.key) \(.value|split(":")|join(" "))"' pyproject.toml)
         shell: 'bash'
       - name: 'Test binary'
@@ -103,14 +104,29 @@ jobs:
           name: youtube-unofficial-binaries-linux-${{ matrix.system.arch }}
           path: |
             dist/*
+      - name: 'Generate SBOM'
+        uses: 'anchore/sbom-action@v0'
+        env:
+          SYFT_SOURCE_NAME: 'youtube-unofficial'
+          SYFT_SOURCE_VERSION: ${{ github.ref_name }}
+        with:
+          path: 'dist/'
+          output-file: 'sbom.spdx.json'
+          upload-artifact: false
       - name: 'Attest'
-        uses: 'actions/attest-build-provenance@v4'
+        uses: 'actions/attest@v4'
         with:
           subject-path: 'dist/*.AppImage'
+      - name: 'Attest SBOM'
+        uses: 'actions/attest@v4'
+        with:
+          subject-path: 'dist/*.AppImage'
+          sbom-path: 'sbom.spdx.json'
       - if: github.ref_type == 'tag'
         name: Upload package
         uses: softprops/action-gh-release@v2
         with:
+          draft: true
           fail_on_unmatched_files: true
           files: |
             dist/*.AppImage
@@ -124,6 +140,13 @@ name: 'AppImage'
   push:
     branches:
       - 'master'
+    paths:
+      - '**/*.py'
+      - '**/*.pyi'
+      - '.github/workflows/appimage.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'poetry.lock'
     tags:
       - 'v*.*.*'
 permissions:
