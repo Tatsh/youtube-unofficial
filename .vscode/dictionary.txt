@@ -1,4 +1,5 @@
 anchore
+Ångström
 appdir
 appimage
 appinfo
@@ -29,7 +30,6 @@ datatables
 debugpy
 dialog
 docstrings
-doctree
 doctree
 doctrees
 dunder
@@ -139,4 +139,3 @@ yarnrc
 youtu
 youtubei
 ytcfg
-Ångström
