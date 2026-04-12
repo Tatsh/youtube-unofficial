@@ -1,16 +1,11 @@
----
-description: Python coding guidelines
-globs: **/*.py, **/*.pyi
-alwaysApply: false
----
-
 # Python guidelines
 
 - Follow all rules given by Ruff, with the following exceptions:
   - `ANN401`: Allow use of the `typing.Any` type.
   - `ARG001`, `ARG002`, and `ARG004`: Allow unused arguments in functions and methods, primarily in
     cases where a method is overridden or a function must be compatible with an interface.
-  - `COM812`: Do not automatically assume trailing commas are wanted.
+  - `COM812`: Disabled because it may conflict with a formatter. By default, do not add trailing
+    commas.
   - `CPY001`: Never add copyright notices in files.
   - `D107`: Docstrings in `__init__` methods are not required.
   - `D203`: A blank line is not required after the class declaration.
@@ -23,12 +18,21 @@ alwaysApply: false
   - `TD002`: Do not add an author in `TODO` comments.
   - `TD003`: Do not add a link in `TODO` comments.
   - `TD004`: Do not add a colon in `TODO` comments.
-- When creating a function or method, always write the parameters horizontally without a trailing
-  comma (except when the line exceeds 100 characters). Example:
+- When a function or method signature fits on one line within 100 characters, write its parameters
+  horizontally. Example:
 
   ```python
   def my_function(param1: int, param2: str, param3: bool) -> None:
       pass
+  ```
+
+- When a function or method signature does not fit in 100 characters, write its parameters aligned
+  vertically without excessive new lines or a trailing comma:
+
+  ```python
+  def long_function(param1: int,
+                    param2: int,
+                    param3: int) -> None:
   ```
 
 - Calling `subprocess` functions with `shell=True` is highly discouraged.
@@ -130,8 +134,10 @@ alwaysApply: false
 - Call `.encode()` without arguments if the encoding is expected to be UTF-8.
 - All functions with parameters must have a NumPy-style docstring with a `Parameters` section. If
   the return value is not `None`, include a `Returns` section.
-- Multiline docstrings must have a newline after the opening `"""` and the closing `"""` on its
-  own line:
+- In docstrings, write types with the same syntax as annotations (for example `str | None`, not
+  `str or None`).
+- When a docstring spans more than one line, the opening `"""` and the closing `"""` must each sit
+  alone on their own line; the summary and body follow on the lines between them:
 
   ```python
   def process(data: str, *, verbose: bool = False) -> int:

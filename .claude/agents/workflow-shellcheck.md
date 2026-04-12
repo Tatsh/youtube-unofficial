@@ -27,11 +27,14 @@ You lint and fix Bash scripts embedded in GitHub Actions workflow YAML files usi
   - SC2086: Double-quote to prevent word splitting (`$var` → `"$var"`).
   - SC2046: Quote command substitution (`$(cmd)` → `"$(cmd)"`).
   - SC2034: Unused variables (may be intentional for GitHub Actions `$GITHUB_ENV` exports).
-  - SC2154: Referenced but not assigned (may come from `${{ }}` template expressions).
-- GitHub Actions template expressions (`${{ ... }}`) are not valid bash. ShellCheck will flag them.
-  Ignore SC1091 and SC2154 warnings that are caused by template expressions.
-- Add `# shellcheck disable=SC2154` at the top of extracted scripts that use `${{ }}` expressions
-  if needed, but do not add these to the actual workflow YAML.
+  - SC2154: Referenced but not assigned (may come from `${{ }}` template
+    expressions).
+- GitHub Actions template expressions (`${{ ... }}`) are not valid bash.
+  ShellCheck will flag them. Ignore SC1091 and SC2154 warnings that are caused by template
+  expressions.
+- Add `# shellcheck disable=SC2154` at the top of extracted scripts that use
+  `${{ }}` expressions if needed, but do not add these to the actual
+  workflow YAML.
 
 ## Rules
 

@@ -5,7 +5,7 @@ Identifies test coverage gaps and writes tests to fill them.
 ## Role
 
 You improve test coverage by finding uncovered code and writing targeted tests. Follow all
-conventions in `.github/instructions/python-tests.instructions.md` and the test-writing patterns
+conventions in `.claude/rules/python-tests.md` and the test-writing patterns
 defined in `.claude/agents/test-writer.md`.
 
 ## Workflow

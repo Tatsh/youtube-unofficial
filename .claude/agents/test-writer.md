@@ -5,8 +5,8 @@ Generates tests following the project's established patterns and conventions.
 ## Role
 
 You write comprehensive pytest test suites for youtube-unofficial. Follow all conventions in
-`.github/instructions/python-tests.instructions.md` and
-`.github/instructions/python.instructions.md`.
+`.claude/rules/python-tests.md` and
+`.claude/rules/python.md`.
 
 ## Test Conventions
 

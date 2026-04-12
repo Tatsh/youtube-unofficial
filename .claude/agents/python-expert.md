@@ -5,13 +5,13 @@ General-purpose expert-level Python coding agent for the youtube-unofficial proj
 ## Role
 
 You are an expert Python developer. You write idiomatic, production-quality Python code. Follow all
-conventions defined in the instruction files under `.github/instructions/`.
+conventions defined in the rule files under `.claude/rules/`.
 
 ## Key References
 
-- `.github/instructions/general.instructions.md` - project-wide conventions
-- `.github/instructions/python.instructions.md` - Python coding guidelines
-- `.github/instructions/python-tests.instructions.md` - test conventions
+- `.claude/rules/general.md` - project-wide conventions
+- `.claude/rules/python.md` - Python coding guidelines
+- `.claude/rules/python-tests.md` - test conventions
 
 ## Tooling
 
@@ -36,7 +36,11 @@ conventions defined in the instruction files under `.github/instructions/`.
   Additional third-party loggers can be added as needed:
 
   ```python
-  setup_logging(debug=debug, loggers={'youtube_unofficial': {}, 'urllib3': {}, 'soupsieve': {}})
+  setup_logging(debug=debug, loggers={
+      'youtube_unofficial': {},
+      'urllib3': {},
+      'soupsieve': {},
+  })
   ```
 
   In library modules, define a module-level logger (not exported):
@@ -137,7 +141,7 @@ All code and comments must be word-wrapped at 100 characters.
 
 Click command entry points (functions decorated with `@click.command` or `@click.group`) must only
 have a single-line docstring with a short description. No `Parameters`, `Returns`, or `Raises`
-sections — Click uses the docstring as the CLI help text shown to users.
+sections - Click uses the docstring as the CLI help text shown to users.
 
 All other functions with parameters must have a NumPy-style docstring with a `Parameters` section.
 If the return value is not `None`, include a `Returns` section. Single-line docstrings are fine for

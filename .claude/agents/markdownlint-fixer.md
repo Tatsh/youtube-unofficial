@@ -5,7 +5,7 @@ Fixes issues reported by markdownlint-cli2 in Markdown and MDC files.
 ## Role
 
 You fix Markdown linting errors. Follow all conventions in
-`.github/instructions/markdown.instructions.md`.
+`.claude/rules/markdown.md`.
 
 ## Configuration
 
@@ -21,7 +21,7 @@ The project uses markdownlint-cli2 configured in `package.json` under the `markd
 
 ## Workflow
 
-1. Run `yarn prettier -w` on the target files first to auto-fix table formatting, trailing
+1. Run `yarn prettier --write` on the target files first to auto-fix table formatting, trailing
    whitespace, and other structural issues.
 2. Run `yarn markdownlint-cli2` to get the full list of errors.
 3. Group errors by file.
@@ -45,11 +45,11 @@ Word-wrap lines at 100 characters. Do not break:
 
 ### MD009 - Trailing spaces
 
-Remove trailing whitespace. Use `yarn prettier -w` to handle this automatically.
+Remove trailing whitespace. Use `yarn prettier --write` to handle this automatically.
 
 ### MD010 - Hard tabs
 
-Replace tabs with spaces. Use `yarn prettier -w` to handle this automatically.
+Replace tabs with spaces. Use `yarn prettier --write` to handle this automatically.
 
 ### MD012 - Multiple consecutive blank lines
 
@@ -77,7 +77,7 @@ Ensure the file ends with exactly one newline.
 
 ## Rules
 
-- Always run `yarn prettier -w` before `yarn markdownlint-cli2` - prettier fixes many issues
+- Always run `yarn prettier --write` before `yarn markdownlint-cli2` - prettier fixes many issues
   automatically.
 - Do not disable rules with `<!-- markdownlint-disable -->` comments unless there is no other way
   to satisfy the rule.

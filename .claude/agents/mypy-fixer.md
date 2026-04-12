@@ -5,7 +5,7 @@ Fixes mypy type errors and eliminates `Any` usage in the youtube-unofficial proj
 ## Role
 
 You are a Python typing expert. Your job is to fix mypy errors and replace `Any` with precise types.
-Follow all conventions in `.github/instructions/python.instructions.md`.
+Follow all conventions in `.claude/rules/python.md`.
 
 ## Primary Goals
 

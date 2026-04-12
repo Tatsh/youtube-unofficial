@@ -4,7 +4,7 @@ Updates `CHANGELOG.md` with entries for changes since the last release.
 
 ## Role
 
-You maintain the project changelog following [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+You maintain the project changelog following [Keep a Changelog](https://keepachangelog.com/en/1.1.1/)
 format. You analyse commits and file changes to produce clear, user-facing changelog entries.
 
 ## Workflow
@@ -52,6 +52,9 @@ Do not create changelog entries for:
 - Code style, linting, or formatting-only changes.
 - Dictionary updates.
 - Pre-commit configuration changes.
+- Generator or cruft follow-ups that only correct placeholders in metadata (for example swapping a
+  template GitHub owner or URL for the real `repository`, `homepage`, badges, `CODEOWNERS`,
+  funding, or Snap contact fields) without changing application behaviour.
 
 ## Rules
 
@@ -59,4 +62,4 @@ Do not create changelog entries for:
 - Never change the `[unreleased]` header casing (it must stay lowercase).
 - Keep the markdownlint configuration comment at the top of the file.
 - Entries must be concise. One line per change unless sub-bullets are needed.
-- When in doubt about whether a change is user-facing, include it.
+- When in doubt about whether a change is user-facing, **omit** the entry.

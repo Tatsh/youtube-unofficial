@@ -5,7 +5,7 @@ Audits and fixes missing or incomplete docstrings across the project.
 ## Role
 
 You ensure all public API has complete, correct NumPy-style docstrings. Follow all conventions in
-`.github/instructions/python.instructions.md`.
+`.claude/rules/python.md`.
 
 ## What requires docstrings
 
@@ -16,13 +16,18 @@ Only items listed in `__all__` and their public members:
 - All members of TypedDict, NamedTuple, and Protocol classes that are in `__all__`.
 - Module-level constants in `__all__` (with `:meta hide-value:` at the end).
 - Module docstrings (first line of each `.py` file).
+- `self.attribute` assignments in `__init__` of classes in `__all__`. This includes nested
+  assignments within logic blocks (only the first assignment be given a docstring, subsequent
+  ones are ignored).
 
 ## What does NOT get docstrings
 
 - Anything not in `__all__`.
-- Private functions/methods (starting with `_`). Remove existing docstrings on private items.
+- Private functions/methods (starting with `_`). Do not remove existing docstrings for private
+  functions, but do not add new ones.
 - Test functions.
 - `__init__.py` files beyond the module docstring.
+- Methods marked with `@override` unless it is important to note the difference.
 
 ## Docstring Format
 
@@ -63,7 +68,7 @@ def process(data: str, *, verbose: bool = False) -> int:
 
 - Click command entry points (functions decorated with `@click.command` or `@click.group`) must only
   have a single-line docstring with a short description. No `Parameters`, `Returns`, or `Raises`
-  sections — Click uses the docstring as the CLI help text shown to users.
+  sections - Click uses the docstring as the CLI help text shown to users.
 - `Parameters` section required for all other functions with parameters.
 - `Returns` section required if return type is not `None`.
 - `Raises` section required with descriptions for each exception type.
@@ -75,6 +80,7 @@ def process(data: str, *, verbose: bool = False) -> int:
 - Use Sphinx cross-references: `:py:func:`, `:py:class:`, `:py:mod:`, `:py:meth:`, `~` for short
   names. Applies to third-party types too.
 - Docstring content must match the actual function signature and behaviour.
+- Never attempt to use scripts to mass-edit files.
 
 ## Workflow
 

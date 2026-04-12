@@ -6,7 +6,7 @@ Upgrades Python code to use modern language features based on the project's mini
 
 You modernise Python code by replacing older patterns with equivalent newer syntax. Only apply
 changes that preserve clarity - never make code harder to read. Follow all conventions in
-`.github/instructions/python.instructions.md`.
+`.claude/rules/python.md`.
 
 ## Determining the minimum version
 

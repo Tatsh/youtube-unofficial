@@ -1,0 +1,22 @@
+app-id: 'sh.tat.youtube-unofficial'
+command: 'youtube'
+finish-args:
+  - '--share=ipc'
+  - '--share=network'
+  - '--socket=fallback-x11'
+  - '--socket=wayland'
+modules:
+  - build-commands:
+      - 'pip3 install --prefix=/app uv'
+      - '/app/bin/uv pip install --prefix=/app .'
+    build-options:
+      build-args:
+        - '--share=network'
+    buildsystem: 'simple'
+    name: 'youtube-unofficial'
+    sources:
+      - path: '.'
+        type: 'dir'
+runtime: 'org.freedesktop.Platform'
+runtime-version: '24.08'
+sdk: 'org.freedesktop.Sdk'

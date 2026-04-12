@@ -6,17 +6,19 @@ jobs:
       startsWith(github.event.workflow_run.head_branch, 'v')
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'actions/checkout@v6'
+      - uses: 'actions/checkout@v6.0.2'
       - env:
           GH_TOKEN: '${{ github.token }}'
+          HEAD_BRANCH: '${{ github.event.workflow_run.head_branch }}'
+          HEAD_SHA: '${{ github.event.workflow_run.head_sha }}'
         id: 'check'
         name: 'Check all workflows succeeded'
         run: |
-          tag="${{ github.event.workflow_run.head_branch }}"
-          sha="${{ github.event.workflow_run.head_sha }}"
+          tag="$HEAD_BRANCH"
+          sha="$HEAD_SHA"
           all_success=true
-          for workflow in AppImage Publish PyInstaller QA Snap Tests; do
-            status=$(gh run list -w "$workflow" --commit "$sha" --json conclusion -q '.[0].conclusion')
+          for workflow in AppImage Flatpak Prettier Publish PyInstaller QA Snap Spelling Tests markdownlint; do
+            status=$(gh run list --workflow "$workflow" --commit "$sha" --json conclusion --jq '.[0].conclusion')
             if [[ "$status" == 'failure' || "$status" == 'cancelled' ]]; then
               echo "::error::Workflow '$workflow' ${status}."
               exit 1
@@ -44,10 +46,14 @@ name: 'Release'
       - 'completed'
     workflows:
       - 'AppImage'
+      - 'Flatpak'
+      - 'Prettier'
       - 'Publish'
       - 'PyInstaller'
       - 'QA'
       - 'Snap'
+      - 'Spelling'
       - 'Tests'
+      - 'markdownlint'
 permissions:
   contents: 'write'

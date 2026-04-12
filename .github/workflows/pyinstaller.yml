@@ -1,14 +1,17 @@
 jobs:
   build:
+    env:
+      WINDOWS_SIGNING_CERT: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE }}
+      APPLE_SIGNING_CERT: ${{ secrets.APPLE_SIGNING_CERTIFICATE }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: 'actions/checkout@v6'
+      - uses: 'actions/checkout@v6.0.2'
       - name: 'Install yq'
         run: 'pipx install yq'
       - name: 'Install uv'
-        uses: 'astral-sh/setup-uv@v7'
+        uses: 'astral-sh/setup-uv@v8.0.0'
       - name: 'Set up Python'
-        uses: 'actions/setup-python@v6'
+        uses: 'actions/setup-python@v6.2.0'
         with:
           python-version: '3.13'
       - name: 'Install dependencies (uv)'
@@ -74,6 +77,27 @@ jobs:
               fi
           done < <(tomlq -r '.project.scripts|to_entries[]|"\(.key) \(.value|split(":")|join(" "))"' pyproject.toml)
         shell: 'bash'
+      - if: (matrix.os == 'windows-latest' || matrix.os == 'windows-11-arm') && env.WINDOWS_SIGNING_CERT != ''
+        name: 'Sign Windows binaries'
+        env:
+          SIGNING_CERT_BASE64: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE }}
+          SIGNING_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PASSWORD }}
+          TIMESTAMP_URL: ${{ secrets.WINDOWS_TIMESTAMP_URL }}
+        run: |
+          $certBytes = [Convert]::FromBase64String($env:SIGNING_CERT_BASE64)
+          $certPath = Join-Path $env:RUNNER_TEMP 'cert.pfx'
+          [IO.File]::WriteAllBytes($certPath, $certBytes)
+          $timestampArgs = @()
+          if ($env:TIMESTAMP_URL) {
+            $timestampArgs = @('/tr', $env:TIMESTAMP_URL, '/td', 'sha256')
+          }
+          foreach ($exe in (Get-ChildItem -Path dist\*.exe)) {
+            Write-Host "Signing '$($exe.Name)'..."
+            & signtool sign /f $certPath /p $env:SIGNING_PASSWORD @timestampArgs /fd sha256 $exe.FullName
+            if ($LASTEXITCODE -ne 0) { throw "signtool failed for $($exe.Name)" }
+          }
+          Remove-Item $certPath
+        shell: 'pwsh'
       - if: matrix.os == 'windows-latest' || matrix.os == 'windows-11-arm'
         name: 'Test binary'
         run: |
@@ -83,6 +107,49 @@ jobs:
             Write-Host "Testing '$($file.FullName)'."
             & $file.FullName --help
           }
+      - if: (matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel') && env.APPLE_SIGNING_CERT != ''
+        name: 'Sign and notarise macOS binaries'
+        env:
+          APPLE_CERT_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_SIGNING_PASSWORD }}
+          APPLE_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID_EMAIL: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          cert_path="$RUNNER_TEMP/cert.p12"
+          base64 -d <<<"$APPLE_CERT_BASE64" > "$cert_path"
+          security create-keychain -p '' "$keychain"
+          security set-keychain-settings "$keychain"
+          security unlock-keychain -p '' "$keychain"
+          security import "$cert_path" -k "$keychain" -P "$APPLE_CERT_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S 'apple-tool:,apple:' -k '' "$keychain"
+          security list-keychains -d user -s "$keychain" login.keychain-db
+          for file in dist/*; do
+            if [[ "${file}" == dist/index.*js ]]; then
+              continue
+            fi
+            echo "Signing '${file}'..."
+            codesign --force --options runtime --sign "$APPLE_IDENTITY" --timestamp "$file"
+          done
+          zip_path="$RUNNER_TEMP/notarize.zip"
+          zip -j "$zip_path" dist/*
+          xcrun notarytool submit "$zip_path" \
+            --apple-id "$APPLE_ID_EMAIL" \
+            --password "$APPLE_ID_PASSWORD" \
+            --team-id "$APPLE_TEAM" \
+            --wait
+          for file in dist/*; do
+            if [[ "${file}" == dist/index.*js ]]; then
+              continue
+            fi
+            xcrun stapler staple "$file" || true
+          done
+          rm -f "$cert_path" "$zip_path"
+          security delete-keychain "$keychain"
+        shell: 'bash'
       - if: matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
         name: 'Test binary'
         run: |
@@ -97,18 +164,18 @@ jobs:
               "./${file}" --help
           done
       - name: 'Upload Artifacts'
-        uses: 'actions/upload-artifact@v7'
+        uses: 'actions/upload-artifact@v7.0.1'
         with:
           if-no-files-found: error
           name: youtube-unofficial-binaries-${{ matrix.suffix }}
           path: |
             ${{ matrix.dist_path }}
       - name: 'Attest'
-        uses: 'actions/attest@v4'
+        uses: 'actions/attest@v4.1.0'
         with:
           subject-path: '${{ matrix.dist_path }}'
       - name: 'Generate SBOM'
-        uses: 'anchore/sbom-action@v0'
+        uses: 'anchore/sbom-action@v0.24.0'
         env:
           SYFT_SOURCE_NAME: 'youtube-unofficial'
           SYFT_SOURCE_VERSION: ${{ github.ref_name }}
@@ -117,7 +184,7 @@ jobs:
           output-file: 'sbom.spdx.json'
           upload-artifact: false
       - name: 'Attest SBOM'
-        uses: 'actions/attest@v4'
+        uses: 'actions/attest@v4.1.0'
         with:
           subject-path: '${{ matrix.dist_path }}'
           sbom-path: 'sbom.spdx.json'
@@ -136,18 +203,18 @@ jobs:
         shell: pwsh
       - if: github.ref_type == 'tag'
         name: 'Attest'
-        uses: 'actions/attest@v4'
+        uses: 'actions/attest@v4.1.0'
         with:
           subject-path: '_out/*.zip'
       - if: github.ref_type == 'tag'
         name: 'Attest SBOM'
-        uses: 'actions/attest@v4'
+        uses: 'actions/attest@v4.1.0'
         with:
           subject-path: '_out/*.zip'
           sbom-path: 'sbom.spdx.json'
       - if: github.ref_type == 'tag'
         name: Upload package
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3.0.0
         with:
           draft: true
           fail_on_unmatched_files: true
@@ -174,8 +241,7 @@ name: 'PyInstaller'
     branches:
       - 'master'
     paths:
-      - '**/*.py'
-      - '**/*.pyi'
+      - 'youtube_unofficial/**'
       - '.github/workflows/pyinstaller.yml'
       - 'pyproject.toml'
       - 'uv.lock'

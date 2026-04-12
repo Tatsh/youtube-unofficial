@@ -1,11 +1,14 @@
 local utils = import 'utils.libjsonnet';
 
 {
+  uses_user_defaults: true,
   description: 'Access parts of your account unavailable through normal YouTube API access.',
   keywords: ['command line', 'youtube'],
   project_name: 'youtube-unofficial',
   version: '0.3.1',
   want_main: true,
+  want_flatpak: true,
+  publishing+: { flathub: 'sh.tat.youtube-unofficial' },
   docs_conf+: {
     config+: {
       intersphinx_mapping+: {
@@ -60,8 +63,5 @@ local utils = import 'utils.libjsonnet';
         },
       },
     },
-  },
-  copilot+: {
-    intro: 'youtube-unofficial is a command line tool to access parts of your YouTube account that are not available through the normal YouTube API. It allows a user to manage subscriptions, playlists, and liked videos directly from the command line.',
   },
 }

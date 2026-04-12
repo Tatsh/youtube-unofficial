@@ -8,13 +8,13 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - name: 'Checkout repository'
-        uses: 'actions/checkout@v6'
+        uses: 'actions/checkout@v6.0.2'
       - name: 'Initialize CodeQL'
-        uses: 'github/codeql-action/init@v4'
+        uses: 'github/codeql-action/init@v4.35.1'
         with:
           languages: '${{ matrix.language }}'
       - name: 'Perform CodeQL Analysis'
-        uses: 'github/codeql-action/analyze@v4'
+        uses: 'github/codeql-action/analyze@v4.35.1'
         with:
           category: '/language:${{matrix.language}}'
     strategy:
@@ -22,13 +22,28 @@ jobs:
       matrix:
         language:
           - 'python'
+          - 'actions'
 name: 'CodeQL'
 'on':
   pull_request:
     branches:
       - 'master'
+    paths:
+      - '**/*.py'
+      - '**/*.pyi'
+      - '.github/workflows/*.yml'
+      - '.github/workflows/*.yaml'
+      - '**/action.yml'
+      - '**/action.yaml'
   push:
     branches:
       - 'master'
+    paths:
+      - '**/*.py'
+      - '**/*.pyi'
+      - '.github/workflows/*.yml'
+      - '.github/workflows/*.yaml'
+      - '**/action.yml'
+      - '**/action.yaml'
   schedule:
     - cron: '15 4 * * 3'

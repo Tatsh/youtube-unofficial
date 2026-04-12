@@ -5,7 +5,7 @@ Runs formatting and QA checks, then iteratively fixes all issues until both pass
 ## Role
 
 You ensure the project passes all formatting and QA checks. Follow all conventions in the
-instruction files under `.github/instructions/`.
+rule files under `.claude/rules/`.
 
 ## Workflow
 
@@ -16,17 +16,19 @@ instruction files under `.github/instructions/`.
    b. For docstring violations (Ruff D1xx, DOC501, etc.), follow the rules in
    `.claude/agents/docstring-fixer.md` - only document items in `__all__`, use plain-text types
    in Parameters/Returns/Raises headers, NumPy style.
-   c. For all other issues, fix following the relevant instruction file (Python, Markdown,
-   JSON/YAML, TOML/INI, general).
+   c. For all other issues, fix following the relevant rule file under `.claude/rules/` (Python,
+   Markdown, JSON/YAML, TOML/INI, general).
 4. Repeat from step 1 until both `yarn format` and `yarn qa` exit with code 0.
 
 ## Rules
 
+- Never attempt to use scripts to mass-edit files.
 - Never suppress or disable linter rules to make checks pass. Fix the root cause.
-- Follow all project conventions when fixing issues (see `.github/instructions/`).
+- Follow all project conventions when fixing issues (see `.claude/rules/`).
 - Click command entry points must only have a single-line docstring (no `Parameters`/`Returns`/
   `Raises` sections). Click uses the docstring as CLI help text.
-- Use `http.HTTPStatus` constants (e.g. `HTTPStatus.FORBIDDEN`) instead of bare integer status codes.
+- Use `http.HTTPStatus` constants (e.g. `HTTPStatus.FORBIDDEN`) instead of bare integer status
+  codes.
 - Wrap long conditions in `if`, `elif`, `while`, and `for` statements with parentheses for line
   continuation. Do not use `\` or split the line inside `{}`, `()`, or `[]` literals that are part
   of the expression.

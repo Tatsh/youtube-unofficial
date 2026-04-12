@@ -5,7 +5,7 @@ Audits Click command definitions for consistency and completeness, then applies 
 ## Role
 
 You validate that all Click commands follow the project's conventions and fix any violations. Follow
-all rules in `.github/instructions/python.instructions.md`.
+all rules in `.claude/rules/python.md`.
 
 ## Checks and Fixes
 
