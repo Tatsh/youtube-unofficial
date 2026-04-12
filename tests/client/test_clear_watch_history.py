@@ -69,3 +69,20 @@ def test_clear_watch_history(mocker: MockerFixture, requests_mock: Mocker, clien
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads((data_path / 'clear-watch-history/00.json').read_text()))
     assert client.clear_watch_history() is True
+
+
+def test_clear_watch_history_missing_session_ytcfg(mocker: MockerFixture, requests_mock: Mocker,
+                                                   client: YouTubeClient, data_path: Path) -> None:
+    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    mocker.patch('youtube_unofficial.client.Soup')
+    mocker.patch(
+        'youtube_unofficial.client.find_ytcfg',
+        return_value={
+            'INNERTUBE_API_KEY': 'test_api_key',
+            'VISITOR_DATA': 'test_visitor_data',
+        },
+    )
+    mocker.patch('youtube_unofficial.client.initial_data',
+                 return_value=json.loads((data_path / 'clear-watch-history/00.json').read_text()))
+    with pytest.raises(KeyError, match='DELEGATED_SESSION_ID'):
+        client.clear_watch_history()

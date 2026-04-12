@@ -12,6 +12,7 @@ from youtube_unofficial.utils import (
     initial_data,
     ytcfg_headers,
 )
+import pytest
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -38,6 +39,12 @@ def test_context_client_body() -> None:
     assert result == {'clientName': 'WEB', 'clientVersion': '1.20230101'}
 
 
+def test_context_client_body_missing_version() -> None:
+    ytcfg: YtcfgDict = {}
+    with pytest.raises(KeyError, match='INNERTUBE_CONTEXT_CLIENT_VERSION'):
+        context_client_body(ytcfg)
+
+
 def test_initial_data(mocker: MockerFixture) -> None:
     mock_content = mocker.MagicMock(spec=BeautifulSoup)
     mock_script = 'var ytInitialData = {"key": "value"};'
@@ -62,6 +69,12 @@ def test_ytcfg_headers() -> None:
         'x-goog-page-id': '12345',
         'x-origin': 'https://www.youtube.com',
     }
+
+
+def test_ytcfg_headers_missing_session_ids() -> None:
+    ytcfg: YtcfgDict = {}
+    with pytest.raises(KeyError, match='DELEGATED_SESSION_ID'):
+        ytcfg_headers(ytcfg)
 
 
 def test_extract_script_content(mocker: MockerFixture) -> None:

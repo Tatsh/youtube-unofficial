@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 import json
 
 from youtube_unofficial.constants import WATCH_HISTORY_URL
+import pytest
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -128,3 +129,20 @@ def test_get_history_video_ids_missing_video_id(mocker: MockerFixture, requests_
                      (data_path / 'get-history-video-ids/00-missing-video-id.json').read_text()))
     result = list(client.get_history_video_ids(return_dict=False))
     assert result == []
+
+
+def test_get_history_video_ids_bad_video_id_type(mocker: MockerFixture, requests_mock: Mocker,
+                                                 client: YouTubeClient, data_path: Path) -> None:
+    mocker.patch('youtube_unofficial.client.find_ytcfg',
+                 return_value={
+                     'INNERTUBE_API_KEY': 'test_api_key',
+                     'VISITOR_DATA': 'test_visitor_data',
+                     'USER_SESSION_ID': 'test_session_id',
+                     'SESSION_INDEX': 0,
+                 })
+    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    mocker.patch('youtube_unofficial.client.initial_data',
+                 return_value=json.loads(
+                     (data_path / 'get-history-video-ids/00-bad-video-id-type.json').read_text()))
+    with pytest.raises(TypeError, match='Expected string video ID'):
+        list(client.get_history_video_ids(return_dict=True))

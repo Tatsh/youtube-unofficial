@@ -16,46 +16,40 @@ log = logging.getLogger(__name__)
 
 
 @overload
-def download_page(
-    sess: Session,
-    url: str,
-    data: Any = None,
-    method: Literal['get', 'post'] = 'get',
-    headers: Mapping[str, str] | None = None,
-    params: Mapping[str, str] | None = None,
-    json: Any = None,
-    *,
-    return_json: Literal[False],
-) -> str:  # pragma: no cover
+def download_page(sess: Session,
+                  url: str,
+                  data: Any = None,
+                  method: Literal['get', 'post'] = 'get',
+                  headers: Mapping[str, str] | None = None,
+                  params: Mapping[str, str] | None = None,
+                  json: Any = None,
+                  *,
+                  return_json: Literal[False]) -> str:  # pragma: no cover
     ...
 
 
 @overload
-def download_page(
-    sess: Session,
-    url: str,
-    data: Any = None,
-    method: Literal['get', 'post'] = 'get',
-    headers: Mapping[str, str] | None = None,
-    params: Mapping[str, str] | None = None,
-    json: Any = None,
-    *,
-    return_json: Literal[True],
-) -> dict[str, Any]:  # pragma: no cover
+def download_page(sess: Session,
+                  url: str,
+                  data: Any = None,
+                  method: Literal['get', 'post'] = 'get',
+                  headers: Mapping[str, str] | None = None,
+                  params: Mapping[str, str] | None = None,
+                  json: Any = None,
+                  *,
+                  return_json: Literal[True]) -> dict[str, Any]:  # pragma: no cover
     ...
 
 
-def download_page(
-    sess: Session,
-    url: str,
-    data: Any = None,
-    method: Literal['get', 'post'] = 'get',
-    headers: Mapping[str, str] | None = None,
-    params: Mapping[str, str] | None = None,
-    json: Any = None,
-    *,
-    return_json: bool = False,
-) -> str | dict[str, Any]:
+def download_page(sess: Session,
+                  url: str,
+                  data: Any = None,
+                  method: Literal['get', 'post'] = 'get',
+                  headers: Mapping[str, str] | None = None,
+                  params: Mapping[str, str] | None = None,
+                  json: Any = None,
+                  *,
+                  return_json: bool = False) -> str | dict[str, Any]:
     """
     Download a page using the provided session.
 

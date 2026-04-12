@@ -57,13 +57,10 @@ def _require_ytcfg_playlist_api(ytcfg: YtcfgDict) -> None:
     Raises
     ------
     KeyError
-        If required Innertube or session keys are missing.
+        If ``INNERTUBE_API_KEY`` or ``VISITOR_DATA`` is missing.
     """
     if 'INNERTUBE_API_KEY' not in ytcfg or 'VISITOR_DATA' not in ytcfg:
         msg = 'Missing INNERTUBE_API_KEY or VISITOR_DATA in ytcfg.'
-        raise KeyError(msg)
-    if 'DELEGATED_SESSION_ID' not in ytcfg and 'USER_SESSION_ID' not in ytcfg:
-        msg = 'Missing DELEGATED_SESSION_ID or USER_SESSION_ID in ytcfg.'
         raise KeyError(msg)
 
 
@@ -659,16 +656,14 @@ class YouTubeClient:
         m = hashlib.sha1(f'{now} {sapisid} https://www.youtube.com'.encode())  # noqa: S324
         return f'SAPISIDHASH {now}_{m.hexdigest()}'
 
-    def _single_feedback_api_call(
-        self,
-        ytcfg: YtcfgDict,
-        feedback_token: str = '',
-        api_url: str = '/youtubei/v1/feedback',
-        merge_json: dict[str, Any] | None = None,
-        click_tracking_params: str | None = None,
-        *,
-        return_is_processed: bool = True,
-    ) -> dict[str, Any] | bool:
+    def _single_feedback_api_call(self,
+                                  ytcfg: YtcfgDict,
+                                  feedback_token: str = '',
+                                  api_url: str = '/youtubei/v1/feedback',
+                                  merge_json: dict[str, Any] | None = None,
+                                  click_tracking_params: str | None = None,
+                                  *,
+                                  return_is_processed: bool = True) -> dict[str, Any] | bool:
         if not merge_json:
             merge_json = {}
         feedback_token_part = ({
@@ -752,44 +747,38 @@ class YouTubeClient:
         return self._toggle_history(WATCH_HISTORY_URL, 2)
 
     @overload
-    def _download_page(
-        self,
-        url: str,
-        data: Any = None,
-        method: Literal['get', 'post'] = 'get',
-        headers: Mapping[str, str] | None = None,
-        params: Mapping[str, str] | None = None,
-        json: Any = None,
-        *,
-        return_json: Literal[False] = False,
-    ) -> str:  # pragma: no cover
+    def _download_page(self,
+                       url: str,
+                       data: Any = None,
+                       method: Literal['get', 'post'] = 'get',
+                       headers: Mapping[str, str] | None = None,
+                       params: Mapping[str, str] | None = None,
+                       json: Any = None,
+                       *,
+                       return_json: Literal[False] = False) -> str:  # pragma: no cover
         ...
 
     @overload
-    def _download_page(
-        self,
-        url: str,
-        data: Any = None,
-        method: Literal['get', 'post'] = 'get',
-        headers: Mapping[str, str] | None = None,
-        params: Mapping[str, str] | None = None,
-        json: Any = None,
-        *,
-        return_json: Literal[True],
-    ) -> dict[str, Any]:  # pragma: no cover
+    def _download_page(self,
+                       url: str,
+                       data: Any = None,
+                       method: Literal['get', 'post'] = 'get',
+                       headers: Mapping[str, str] | None = None,
+                       params: Mapping[str, str] | None = None,
+                       json: Any = None,
+                       *,
+                       return_json: Literal[True]) -> dict[str, Any]:  # pragma: no cover
         ...
 
-    def _download_page(
-        self,
-        url: str,
-        data: Any = None,
-        method: Literal['get', 'post'] = 'get',
-        headers: Mapping[str, str] | None = None,
-        params: Mapping[str, str] | None = None,
-        json: Any = None,
-        *,
-        return_json: bool = False,
-    ) -> str | dict[str, Any]:
+    def _download_page(self,
+                       url: str,
+                       data: Any = None,
+                       method: Literal['get', 'post'] = 'get',
+                       headers: Mapping[str, str] | None = None,
+                       params: Mapping[str, str] | None = None,
+                       json: Any = None,
+                       *,
+                       return_json: bool = False) -> str | dict[str, Any]:
         return download_page(  # type: ignore[call-overload,no-any-return]
             self.session,
             url,

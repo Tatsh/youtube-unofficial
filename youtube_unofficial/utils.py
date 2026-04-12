@@ -128,8 +128,7 @@ def initial_data(content: Soup) -> dict[str, Any]:
                     '',
                     first(x for x in extract_script_content(content)
                           if re.match(_YT_INITIAL_DATA_RE, x)),
-                ).split('\n'))[:-1]),
-    )
+                ).split('\n'))[:-1]))
 
 
 def find_ytcfg(soup: Soup) -> YtcfgDict:
@@ -155,8 +154,7 @@ def find_ytcfg(soup: Soup) -> YtcfgDict:
                 first(x for x in extract_script_content(soup)
                       if '"INNERTUBE_CONTEXT_CLIENT_VERSION":' in x).strip().replace('\n', ''),
                 count=1,
-            ))),
-    )
+            ))))
 
 
 def ytcfg_headers(ytcfg: YtcfgDict) -> dict[str, str]:

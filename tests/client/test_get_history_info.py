@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 import json
 
 from youtube_unofficial.constants import WATCH_HISTORY_URL
+import pytest
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -131,6 +132,41 @@ def test_get_history_info_bad_continuation(mocker: MockerFixture, requests_mock:
                        }]})
     result = list(client.get_history_info())
     assert result == [{'videoRenderer': {'videoId': 'test_video'}}]
+
+
+def test_get_history_info_no_continuation_token(mocker: MockerFixture, requests_mock: Mocker,
+                                                client: YouTubeClient) -> None:
+    mocker.patch('youtube_unofficial.client.find_ytcfg',
+                 return_value={
+                     'USER_SESSION_ID': 'test_session_id',
+                     'INNERTUBE_API_KEY': 'test_api_key',
+                     'SESSION_INDEX': 0,
+                     'VISITOR_DATA': 'test_visitor_data',
+                 })
+    mocker.patch(
+        'youtube_unofficial.client.initial_data',
+        return_value={
+            'contents': {
+                'twoColumnBrowseResultsRenderer': {
+                    'tabs': [{
+                        'tabRenderer': {
+                            'content': {
+                                'sectionListRenderer': {
+                                    'contents': [],
+                                    'continuations': [{
+                                        'nextContinuationData': None,
+                                    }],
+                                },
+                            },
+                        },
+                    }],
+                },
+            },
+        },
+    )
+    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    with pytest.raises(RuntimeError, match='Failed to find continuation token'):
+        list(client.get_history_info())
 
 
 def test_get_history_info_no_videos(mocker: MockerFixture, requests_mock: Mocker,

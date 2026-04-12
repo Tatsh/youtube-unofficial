@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from youtube_unofficial.constants import WATCH_LATER_URL
+import pytest
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -32,6 +33,46 @@ def test_remove_video_id_from_playlist(mocker: MockerFixture, requests_mock: Moc
     result = client.remove_video_id_from_playlist(playlist_id='test_playlist',
                                                   video_id='test_video')
     assert result is True
+
+
+def test_remove_video_id_from_playlist_missing_innertube_keys(mocker: MockerFixture,
+                                                              requests_mock: Mocker,
+                                                              client: YouTubeClient) -> None:
+    mocker.patch(
+        'youtube_unofficial.client.find_ytcfg',
+        return_value={
+            'VISITOR_DATA': 'test_visitor_data',
+            'USER_SESSION_ID': 'test_session_id',
+            'SESSION_INDEX': 0,
+        },
+    )
+    mocker.patch('youtube_unofficial.client.Soup')
+    requests_mock.get(WATCH_LATER_URL, text='<html></html>')
+    with pytest.raises(KeyError, match='INNERTUBE_API_KEY'):
+        client.remove_video_id_from_playlist(playlist_id='test_playlist', video_id='test_video')
+
+
+def test_remove_video_id_from_playlist_missing_sapisid(mocker: MockerFixture, requests_mock: Mocker,
+                                                       client: YouTubeClient) -> None:
+    mocker.patch(
+        'youtube_unofficial.client.find_ytcfg',
+        return_value={
+            'INNERTUBE_API_KEY': 'test_api_key',
+            'VISITOR_DATA': 'test_visitor_data',
+            'USER_SESSION_ID': 'test_session_id',
+            'SESSION_INDEX': 0,
+        },
+    )
+    mocker.patch('youtube_unofficial.client.context_client_body', return_value={})
+    mocker.patch('youtube_unofficial.client.Soup')
+    mocker.patch.object(client.session.cookies, 'get', return_value=None)
+    requests_mock.get(WATCH_LATER_URL, text='<html></html>')
+    requests_mock.post(
+        'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
+        json={'status': 'STATUS_SUCCEEDED'},
+    )
+    with pytest.raises(RuntimeError, match='SAPISID'):
+        client.remove_video_id_from_playlist(playlist_id='test_playlist', video_id='test_video')
 
 
 def test_clear_playlist(mocker: MockerFixture, client: YouTubeClient) -> None:
