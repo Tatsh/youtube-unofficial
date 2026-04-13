@@ -12,7 +12,7 @@ local utils = import 'utils.libjsonnet';
   docs_conf+: {
     config+: {
       intersphinx_mapping+: {
-        requests: ['https://requests.readthedocs.io/en/latest/', null],
+        niquests: ['https://niquests.readthedocs.io/en/latest/', null],
       },
     },
   },
@@ -73,7 +73,6 @@ local utils = import 'utils.libjsonnet';
           dev+: {
             dependencies+: {
               'types-beautifulsoup4': utils.latestPypiPackageVersionCaret('types-beautifulsoup4'),
-              'types-requests': utils.latestPypiPackageVersionCaret('types-requests'),
             },
           },
           tests+: {},
