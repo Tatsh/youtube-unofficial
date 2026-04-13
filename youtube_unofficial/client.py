@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import AsyncGenerator, Iterable, Mapping
 from datetime import datetime, timezone
 from operator import itemgetter
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -12,14 +12,12 @@ import logging
 
 from bs4 import BeautifulSoup as Soup
 from typing_extensions import overload
-import yt_dlp_utils
 
 from .constants import (
     EXTRACTED_THUMBNAIL_KEYS,
     HISTORY_ENTRY_KEYS_TO_SKIP,
     SIMPLE_TEXT_KEYS,
     TEXT_RUNS_KEYS,
-    USER_AGENT,
     WATCH_HISTORY_URL,
     WATCH_LATER_URL,
 )
@@ -35,7 +33,10 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Sequence
+    from collections.abc import Sequence
+
+    from niquests.cookies import RequestsCookieJar
+    import niquests
 
     from .typing.history import (
         DescriptionSnippet,
@@ -72,30 +73,25 @@ class NoFeedbackToken(Exception):
 
 class YouTubeClient:
     """YouTube client for managing playlists and history."""
-    def __init__(self, browser: str, profile: str) -> None:
+    def __init__(self, session: niquests.AsyncSession) -> None:
         """
         Initialise the client.
 
         Parameters
         ----------
-        browser : str
-            The browser to use.
-        profile : str
-            The profile to use.
+        session : niquests.AsyncSession
+            Authenticated async HTTP session (for example from
+            :func:`~youtube_unofficial.session.build_youtube_session`).
         """
-        self.session = yt_dlp_utils.setup_session(browser,
-                                                  profile,
-                                                  domains={'.youtube.com'},
-                                                  setup_retry=True)
-        """Requests :py:class:`requests.Session` instance."""
-        self.session.headers.update({'User-Agent': USER_AGENT})
+        self.session = session
+        """Niquests :py:class:`~niquests.AsyncSession` instance."""
         self._rsvi_cache: dict[str, Any] | None = None
 
-    def remove_video_id_from_playlist(self,
-                                      playlist_id: str,
-                                      video_id: str,
-                                      *,
-                                      cache_values: bool | None = False) -> bool:
+    async def remove_video_id_from_playlist(self,
+                                            playlist_id: str,
+                                            video_id: str,
+                                            *,
+                                            cache_values: bool | None = False) -> bool:
         """
         Remove a video from a playlist.
 
@@ -119,7 +115,7 @@ class YouTubeClient:
             ytcfg = self._rsvi_cache['ytcfg']
             headers = self._rsvi_cache['headers']
         else:
-            soup = self._download_page_soup(WATCH_LATER_URL)
+            soup = await self._download_page_soup(WATCH_LATER_URL)
             ytcfg = find_ytcfg(soup)
             headers = ytcfg_headers(ytcfg)
         if cache_values:
@@ -128,45 +124,43 @@ class YouTubeClient:
         _require_ytcfg_playlist_api(ytcfg)
         delegated_session_id = ytcfg.get('DELEGATED_SESSION_ID')
         session_index = ytcfg.get('SESSION_INDEX')
-        return cast(
-            'bool',
-            self._download_page(
-                'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
-                method='post',
-                params={'key': ytcfg['INNERTUBE_API_KEY']},
-                headers={
-                    'Authorization': self._authorization_sapisidhash_header(),
-                    'x-goog-authuser': f'{session_index or 0}',
-                    'x-origin': 'https://www.youtube.com',
-                    'x-goog-visitor-id': ytcfg['VISITOR_DATA'],
-                    'accept': '*/*',
-                    'origin': 'https://www.youtube.com',
-                    'referer': f'https://www.youtube.com/playlist?list={playlist_id}',
-                }
-                | ({
-                    'x-goog-pageid': delegated_session_id
-                } if delegated_session_id else {}),
-                json={
-                    'actions': [action],
-                    'playlistId': playlist_id,
-                    'params': 'CAFAAQ%3D%3D',
-                    'context': {
-                        'client': context_client_body(ytcfg),
-                        'request': {
-                            'consistencyTokenJars': [],
-                            'internalExperimentFlags': []
-                        },
+        resp = await self._download_page(
+            'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
+            method='post',
+            params={'key': ytcfg['INNERTUBE_API_KEY']},
+            headers={
+                'Authorization': self._authorization_sapisidhash_header(),
+                'x-goog-authuser': f'{session_index or 0}',
+                'x-origin': 'https://www.youtube.com',
+                'x-goog-visitor-id': ytcfg['VISITOR_DATA'],
+                'accept': '*/*',
+                'origin': 'https://www.youtube.com',
+                'referer': f'https://www.youtube.com/playlist?list={playlist_id}',
+            }
+            | ({
+                'x-goog-pageid': delegated_session_id
+            } if delegated_session_id else {}),
+            json={
+                'actions': [action],
+                'playlistId': playlist_id,
+                'params': 'CAFAAQ%3D%3D',
+                'context': {
+                    'client': context_client_body(ytcfg),
+                    'request': {
+                        'consistencyTokenJars': [],
+                        'internalExperimentFlags': []
                     },
                 },
-                return_json=True,
-            )['status'] == 'STATUS_SUCCEEDED',
+            },
+            return_json=True,
         )
+        return bool(resp['status'] == 'STATUS_SUCCEEDED')
 
-    def remove_set_video_id_from_playlist(self,
-                                          playlist_id: str,
-                                          set_video_id: str,
-                                          *,
-                                          cache_values: bool | None = False) -> bool:
+    async def remove_set_video_id_from_playlist(self,
+                                                playlist_id: str,
+                                                set_video_id: str,
+                                                *,
+                                                cache_values: bool | None = False) -> bool:
         """
         Remove a video from a playlist by its *setVideoId*.
 
@@ -190,54 +184,52 @@ class YouTubeClient:
             ytcfg = self._rsvi_cache['ytcfg']
             headers = self._rsvi_cache['headers']
         else:
-            soup = self._download_page_soup(WATCH_LATER_URL)
+            soup = await self._download_page_soup(WATCH_LATER_URL)
             ytcfg = find_ytcfg(soup)
             headers = ytcfg_headers(ytcfg)
         if cache_values:
             self._rsvi_cache = {'soup': soup, 'ytcfg': ytcfg, 'headers': headers}
         _require_ytcfg_playlist_api(ytcfg)
-        return cast(
-            'bool',
-            self._download_page(
-                'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
-                method='post',
-                params={'key': ytcfg['INNERTUBE_API_KEY']},
-                headers={
-                    'Authorization': self._authorization_sapisidhash_header(),
-                    'x-goog-authuser': f'{ytcfg.get("SESSION_INDEX", 0)}',
-                    'x-origin': 'https://www.youtube.com',
-                    'x-goog-visitor-id': ytcfg['VISITOR_DATA'],
-                    'accept': '*/*',
-                    'origin': 'https://www.youtube.com',
-                    'referer': f'https://www.youtube.com/playlist?list={playlist_id}',
-                }
-                | ({
-                    'x-goog-pageid': ytcfg['DELEGATED_SESSION_ID']
-                } if ytcfg.get('DELEGATED_SESSION_ID') else {}),
-                json={
-                    'actions': [{
-                        'action': 'ACTION_REMOVE_VIDEO',
-                        'setVideoId': set_video_id,
-                    }],
-                    'playlistId': playlist_id,
-                    'params': 'CAFAAQ%3D%3D',
-                    'context': {
-                        'client': context_client_body(ytcfg),
-                        'request': {
-                            'consistencyTokenJars': [],
-                            'internalExperimentFlags': [],
-                            'useSsl': True,
-                        },
-                        'user': {
-                            'lockedSafetyMode': False
-                        },
+        resp = await self._download_page(
+            'https://www.youtube.com/youtubei/v1/browse/edit_playlist',
+            method='post',
+            params={'key': ytcfg['INNERTUBE_API_KEY']},
+            headers={
+                'Authorization': self._authorization_sapisidhash_header(),
+                'x-goog-authuser': f'{ytcfg.get("SESSION_INDEX", 0)}',
+                'x-origin': 'https://www.youtube.com',
+                'x-goog-visitor-id': ytcfg['VISITOR_DATA'],
+                'accept': '*/*',
+                'origin': 'https://www.youtube.com',
+                'referer': f'https://www.youtube.com/playlist?list={playlist_id}',
+            }
+            | ({
+                'x-goog-pageid': ytcfg['DELEGATED_SESSION_ID']
+            } if ytcfg.get('DELEGATED_SESSION_ID') else {}),
+            json={
+                'actions': [{
+                    'action': 'ACTION_REMOVE_VIDEO',
+                    'setVideoId': set_video_id,
+                }],
+                'playlistId': playlist_id,
+                'params': 'CAFAAQ%3D%3D',
+                'context': {
+                    'client': context_client_body(ytcfg),
+                    'request': {
+                        'consistencyTokenJars': [],
+                        'internalExperimentFlags': [],
+                        'useSsl': True,
+                    },
+                    'user': {
+                        'lockedSafetyMode': False
                     },
                 },
-                return_json=True,
-            )['status'] == 'STATUS_SUCCEEDED',
+            },
+            return_json=True,
         )
+        return bool(resp['status'] == 'STATUS_SUCCEEDED')
 
-    def clear_watch_history(self) -> bool:
+    async def clear_watch_history(self) -> bool:
         """
         Clear watch history.
 
@@ -249,8 +241,9 @@ class YouTubeClient:
         Raises
         ------
         NoFeedbackToken
+            If the feedback token cannot be found in the page data.
         """
-        content = self._download_page_soup(WATCH_HISTORY_URL)
+        content = await self._download_page_soup(WATCH_HISTORY_URL)
         ytcfg = find_ytcfg(content)
         init_data = initial_data(content)
         # If there are no videos, there is no search and index is 0.
@@ -268,9 +261,9 @@ class YouTubeClient:
                     'confirmEndpoint']['feedbackEndpoint']['feedbackToken']
         except (IndexError, KeyError) as e:
             raise NoFeedbackToken from e
-        return cast('bool', self._single_feedback_api_call(ytcfg, feedback_token))
+        return cast('bool', await self._single_feedback_api_call(ytcfg, feedback_token))
 
-    def get_playlist_info(self, playlist_id: str) -> Iterator[PlaylistInfo]:
+    async def get_playlist_info(self, playlist_id: str) -> AsyncGenerator[PlaylistInfo, None]:
         """
         Get playlist information.
 
@@ -294,7 +287,7 @@ class YouTubeClient:
             If a continuation response is not a mapping.
         """
         url = f'https://www.youtube.com/playlist?list={playlist_id}'
-        content = self._download_page_soup(url)
+        content = await self._download_page_soup(url)
         ytcfg = find_ytcfg(content)
         ytcfg_headers(ytcfg)
         yt_init_data = initial_data(content)
@@ -318,7 +311,7 @@ class YouTubeClient:
                 elif 'continuationItemRenderer' in item:
                     break
         except KeyError:
-            yield from []
+            return
         endpoint = continuation = api_url = None
         try:
             endpoint = video_list_renderer['contents'][-1]['continuationItemRenderer'][
@@ -329,7 +322,7 @@ class YouTubeClient:
             pass
         if continuation and api_url:
             while True:
-                contents = self._single_feedback_api_call(
+                contents = await self._single_feedback_api_call(
                     ytcfg,
                     api_url=api_url,
                     merge_json={'continuation': continuation},
@@ -354,25 +347,27 @@ class YouTubeClient:
                     break
 
     @overload
-    def get_playlist_video_ids(self, playlist_id: str) -> Iterator[str]:  # pragma: no cover
+    def get_playlist_video_ids(self,
+                               playlist_id: str) -> AsyncGenerator[str, None]:  # pragma: no cover
+        ...
+
+    @overload
+    def get_playlist_video_ids(
+        self, playlist_id: str, *, return_dict: Literal[True]
+    ) -> AsyncGenerator[PlaylistVideoIDsEntry, None]:  # pragma: no cover
         ...
 
     @overload
     def get_playlist_video_ids(
             self, playlist_id: str, *,
-            return_dict: Literal[True]) -> Iterator[PlaylistVideoIDsEntry]:  # pragma: no cover
+            return_dict: Literal[False]) -> AsyncGenerator[str, None]:  # pragma: no cover
         ...
 
-    @overload
-    def get_playlist_video_ids(self, playlist_id: str, *,
-                               return_dict: Literal[False]) -> Iterator[str]:  # pragma: no cover
-        ...
-
-    def get_playlist_video_ids(
+    async def get_playlist_video_ids(
             self,
             playlist_id: str,
             *,
-            return_dict: bool = False) -> Iterator[str] | Iterator[PlaylistVideoIDsEntry]:
+            return_dict: bool = False) -> AsyncGenerator[str | PlaylistVideoIDsEntry, None]:
         """
         Get video IDs from a playlist.
 
@@ -388,7 +383,7 @@ class YouTubeClient:
         str | PlaylistVideoIDsEntry
             The video IDs or dictionaries with video information.
         """
-        for item in self.get_playlist_info(playlist_id):
+        async for item in self.get_playlist_info(playlist_id):
             renderer = item['playlistVideoRenderer']
             if 'videoId' not in renderer:
                 continue
@@ -413,32 +408,34 @@ class YouTubeClient:
             else:
                 yield renderer['videoId']
 
-    def clear_playlist(self, playlist_id: str) -> None:
+    async def clear_playlist(self, playlist_id: str) -> None:
         """
         Remove all videos from the specified playlist.
 
-        Use `WL` for Watch Later.
+        Use ``WL`` for Watch Later.
 
         Parameters
         ----------
         playlist_id : str
             The ID of the playlist.
         """
-        playlist_info = self.get_playlist_info(playlist_id)
         try:
-            video_ids = [x['playlistVideoRenderer']['videoId'] for x in playlist_info]
+            video_ids: list[str] = [
+                x['playlistVideoRenderer']['videoId']
+                async for x in self.get_playlist_info(playlist_id)
+            ]
         except KeyError:
             log.info('Caught KeyError. This probably means the playlist is empty.')
             return
         for video_id in video_ids:
             log.debug('Deleting from playlist: video_id = %s', video_id)
-            self.remove_video_id_from_playlist(playlist_id, video_id)
+            await self.remove_video_id_from_playlist(playlist_id, video_id)
 
-    def clear_watch_later(self) -> None:
+    async def clear_watch_later(self) -> None:
         """Remove all videos from the 'Watch Later' playlist."""
-        self.clear_playlist('WL')
+        await self.clear_playlist('WL')
 
-    def get_history_info(self) -> Iterator[dict[str, Any]]:
+    async def get_history_info(self) -> AsyncGenerator[dict[str, Any], None]:
         """
         Get information about the History playlist.
 
@@ -452,7 +449,7 @@ class YouTubeClient:
         RuntimeError
             If a continuation token cannot be found.
         """
-        content = self._download_page_soup(WATCH_HISTORY_URL)
+        content = await self._download_page_soup(WATCH_HISTORY_URL)
         init_data = initial_data(content)
         ytcfg = find_ytcfg(content)
         section_list_renderer = init_data['contents']['twoColumnBrowseResultsRenderer']['tabs'][0][
@@ -460,7 +457,8 @@ class YouTubeClient:
         next_continuation = None
         for section_list in section_list_renderer['contents']:
             try:
-                yield from section_list['itemSectionRenderer']['contents']
+                for item in section_list['itemSectionRenderer']['contents']:
+                    yield item
             except KeyError:  # noqa: PERF203
                 if 'continuationItemRenderer' in section_list:
                     next_continuation = {
@@ -482,7 +480,7 @@ class YouTubeClient:
             'ctoken': next_continuation['continuation'],
         }
         while True:
-            resp = self._single_feedback_api_call(
+            resp = await self._single_feedback_api_call(
                 ytcfg,
                 api_url='/youtubei/v1/browse',
                 merge_json={'continuation': params['continuation']},
@@ -498,7 +496,8 @@ class YouTubeClient:
             continuations = None
             for section_list in section_list_renderer:
                 try:
-                    yield from section_list['itemSectionRenderer']['contents']
+                    for item in section_list['itemSectionRenderer']['contents']:
+                        yield item
                 except KeyError:  # noqa: PERF203
                     if 'continuationItemRenderer' in section_list:
                         continuations = {
@@ -518,33 +517,38 @@ class YouTubeClient:
             params['continuation'] = continuations['continuation']
 
     @overload
-    def get_history_video_ids(self) -> Iterator[str]:  # pragma: no cover
+    def get_history_video_ids(self) -> AsyncGenerator[str, None]:  # pragma: no cover
+        ...
+
+    @overload
+    def get_history_video_ids(
+        self,
+        *,
+        return_dict: Literal[True] = True
+    ) -> AsyncGenerator[HistoryVideoIDsEntry, None]:  # pragma: no cover
         ...
 
     @overload
     def get_history_video_ids(
             self,
             *,
-            return_dict: Literal[True] = True
-    ) -> Iterator[HistoryVideoIDsEntry]:  # pragma: no cover
+            return_dict: Literal[False] = False) -> AsyncGenerator[str, None]:  # pragma: no cover
         ...
 
-    @overload
-    def get_history_video_ids(self,
-                              *,
-                              return_dict: Literal[False] = False
-                              ) -> Iterator[str]:  # pragma: no cover
-        ...
-
-    def get_history_video_ids(  # noqa: C901
-            self, *, return_dict: bool = False) -> Iterator[str] | Iterator[HistoryVideoIDsEntry]:
+    async def get_history_video_ids(  # noqa: C901
+            self, *, return_dict: bool = False) -> AsyncGenerator[str | HistoryVideoIDsEntry, None]:
         """
         Get video IDs from the History playlist.
 
+        Parameters
+        ----------
+        return_dict : bool
+            If ``True``, yield dictionaries with detailed video information.
+
         Yields
         ------
-        str
-            The video IDs.
+        str | HistoryVideoIDsEntry
+            The video IDs or dictionaries with video information.
 
         Raises
         ------
@@ -557,7 +561,7 @@ class YouTubeClient:
                     return True
             return False
 
-        for entry in self.get_history_info():
+        async for entry in self.get_history_info():
             d: dict[str, Any] = {}
             if 'videoId' not in entry.get('videoRenderer', {}):
                 continue
@@ -567,7 +571,7 @@ class YouTubeClient:
                         continue
                     if k == 'videoId':
                         if not isinstance(v, str):
-                            msg = f'Expected string video ID, got {type(v)}'
+                            msg = f'Expected string video ID, got {type(v)}.'
                             raise TypeError(msg)
                         d['video_id'] = v
                     elif isinstance(v, int | str | float | bool):
@@ -606,7 +610,7 @@ class YouTubeClient:
             else:
                 yield entry['videoRenderer']['videoId']
 
-    def remove_video_ids_from_history(self, video_ids: Sequence[str]) -> bool:
+    async def remove_video_ids_from_history(self, video_ids: Sequence[str]) -> bool:
         """
         Delete a history entry by video ID.
 
@@ -622,24 +626,29 @@ class YouTubeClient:
         """
         if not video_ids:
             return False
-        history_info = self.get_history_info()
-        content = self._download_page_soup(WATCH_HISTORY_URL)
+        entries: list[dict[str, Any]] = [
+            x async for x in self.get_history_info() if x['videoRenderer']['videoId'] in video_ids
+        ]
+        content = await self._download_page_soup(WATCH_HISTORY_URL)
         ytcfg = find_ytcfg(content)
-        entries = [x for x in history_info if x['videoRenderer']['videoId'] in video_ids]
         if not entries:
             return False
-        return all(
-            self._single_feedback_api_call(
-                ytcfg,
-                entry['videoRenderer']['menu']['menuRenderer']['topLevelButtons'][0]
+        for entry in entries:
+            if not await self._single_feedback_api_call(
+                    ytcfg,
+                    entry['videoRenderer']['menu']['menuRenderer']['topLevelButtons'][0]
                 ['buttonRenderer']['serviceEndpoint']['feedbackEndpoint']['feedbackToken'],
-            ) for entry in entries)
+            ):
+                return False
+        return True
 
     def _authorization_sapisidhash_header(self, ytcfg: YtcfgDict | None = None) -> str:
         now = int(datetime.now(timezone.utc).timestamp())
-        sapisid = self.session.cookies.get(
+        cookies = cast('RequestsCookieJar', self.session.cookies)
+        sapisid: str | None = cookies.get(  # type: ignore[no-untyped-call]
             '__Secure-3PAPISID',
-            self.session.cookies.get('SAPISID', self.session.cookies.get('__Secure-1PAPISID')),
+            cookies.get(  # type: ignore[no-untyped-call]
+                'SAPISID', cookies.get('__Secure-1PAPISID')),  # type: ignore[no-untyped-call]
         )
         if sapisid is None:
             msg = 'Missing SAPISID cookie required for authorisation.'
@@ -656,14 +665,14 @@ class YouTubeClient:
         m = hashlib.sha1(f'{now} {sapisid} https://www.youtube.com'.encode())  # noqa: S324
         return f'SAPISIDHASH {now}_{m.hexdigest()}'
 
-    def _single_feedback_api_call(self,
-                                  ytcfg: YtcfgDict,
-                                  feedback_token: str = '',
-                                  api_url: str = '/youtubei/v1/feedback',
-                                  merge_json: dict[str, Any] | None = None,
-                                  click_tracking_params: str | None = None,
-                                  *,
-                                  return_is_processed: bool = True) -> dict[str, Any] | bool:
+    async def _single_feedback_api_call(self,
+                                        ytcfg: YtcfgDict,
+                                        feedback_token: str = '',
+                                        api_url: str = '/youtubei/v1/feedback',
+                                        merge_json: dict[str, Any] | None = None,
+                                        click_tracking_params: str | None = None,
+                                        *,
+                                        return_is_processed: bool = True) -> dict[str, Any] | bool:
         if not merge_json:
             merge_json = {}
         feedback_token_part = ({
@@ -699,7 +708,7 @@ class YouTubeClient:
                      | feedback_token_part
                      | merge_json)
         log.debug('Request JSON: %s', json.dumps(json_data, indent=2, sort_keys=True))
-        ret = self._download_page(
+        ret = await self._download_page(
             api_url,
             method='post',
             params={'prettyPrint': 'false'},
@@ -719,8 +728,8 @@ class YouTubeClient:
                 return False
         return ret
 
-    def _toggle_history(self, page_url: str, contents_index: int) -> bool:
-        content = self._download_page_soup(page_url)
+    async def _toggle_history(self, page_url: str, contents_index: int) -> bool:
+        content = await self._download_page_soup(page_url)
         ytcfg = find_ytcfg(content)
         info = initial_data(content)['contents']['twoColumnBrowseResultsRenderer'][
             'secondaryContents']['browseFeedActionsRenderer']['contents'][contents_index][
@@ -728,14 +737,14 @@ class YouTubeClient:
                     'confirmDialogRenderer']['confirmEndpoint']
         return cast(
             'bool',
-            self._single_feedback_api_call(
+            await self._single_feedback_api_call(
                 ytcfg,
                 info['feedbackEndpoint']['feedbackToken'],
                 info['commandMetadata']['webCommandMetadata']['apiUrl'],
             ),
         )
 
-    def toggle_watch_history(self) -> bool:
+    async def toggle_watch_history(self) -> bool:
         """
         Pauses or resumes watch history depending on the current state.
 
@@ -744,42 +753,42 @@ class YouTubeClient:
         bool
             ``True`` if the operation was successful, ``False`` otherwise.
         """
-        return self._toggle_history(WATCH_HISTORY_URL, 2)
+        return await self._toggle_history(WATCH_HISTORY_URL, 2)
 
     @overload
-    def _download_page(self,
-                       url: str,
-                       data: Any = None,
-                       method: Literal['get', 'post'] = 'get',
-                       headers: Mapping[str, str] | None = None,
-                       params: Mapping[str, str] | None = None,
-                       json: Any = None,
-                       *,
-                       return_json: Literal[False] = False) -> str:  # pragma: no cover
+    async def _download_page(self,
+                             url: str,
+                             data: Any = None,
+                             method: Literal['get', 'post'] = 'get',
+                             headers: Mapping[str, str] | None = None,
+                             params: Mapping[str, str] | None = None,
+                             json: Any = None,
+                             *,
+                             return_json: Literal[False] = False) -> str:  # pragma: no cover
         ...
 
     @overload
-    def _download_page(self,
-                       url: str,
-                       data: Any = None,
-                       method: Literal['get', 'post'] = 'get',
-                       headers: Mapping[str, str] | None = None,
-                       params: Mapping[str, str] | None = None,
-                       json: Any = None,
-                       *,
-                       return_json: Literal[True]) -> dict[str, Any]:  # pragma: no cover
+    async def _download_page(self,
+                             url: str,
+                             data: Any = None,
+                             method: Literal['get', 'post'] = 'get',
+                             headers: Mapping[str, str] | None = None,
+                             params: Mapping[str, str] | None = None,
+                             json: Any = None,
+                             *,
+                             return_json: Literal[True]) -> dict[str, Any]:  # pragma: no cover
         ...
 
-    def _download_page(self,
-                       url: str,
-                       data: Any = None,
-                       method: Literal['get', 'post'] = 'get',
-                       headers: Mapping[str, str] | None = None,
-                       params: Mapping[str, str] | None = None,
-                       json: Any = None,
-                       *,
-                       return_json: bool = False) -> str | dict[str, Any]:
-        return download_page(  # type: ignore[call-overload,no-any-return]
+    async def _download_page(self,
+                             url: str,
+                             data: Any = None,
+                             method: Literal['get', 'post'] = 'get',
+                             headers: Mapping[str, str] | None = None,
+                             params: Mapping[str, str] | None = None,
+                             json: Any = None,
+                             *,
+                             return_json: bool = False) -> str | dict[str, Any]:
+        return await download_page(  # type: ignore[call-overload,no-any-return]
             self.session,
             url,
             data,
@@ -789,6 +798,9 @@ class YouTubeClient:
             json,
             return_json=return_json)
 
-    def _download_page_soup(self, *args: Any, **kwargs: Any) -> Soup:
-        return Soup(cast('str', self._download_page(*args, **kwargs)),
-                    kwargs.pop('parser', 'html5lib'))
+    async def _download_page_soup(self,
+                                  *args: Any,
+                                  parser: str = 'html5lib',
+                                  **kwargs: Any) -> Soup:
+        html = await self._download_page(*args, **kwargs)
+        return Soup(html, parser)

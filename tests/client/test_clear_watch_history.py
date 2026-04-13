@@ -1,21 +1,30 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
+from unittest.mock import AsyncMock
 import json
 
 from youtube_unofficial.client import NoFeedbackToken, YouTubeClient
-from youtube_unofficial.constants import WATCH_HISTORY_URL
 import pytest
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from pytest_mock import MockerFixture
-    from requests_mock import Mocker
 
 
-def test_clear_watch_history_no_feedback_token(mocker: MockerFixture, requests_mock: Mocker,
-                                               client: YouTubeClient) -> None:
+async def _fake_dl_with_json(json_data: dict[str, Any]) -> Any:
+    async def _inner(*args: Any, **kwargs: Any) -> str | dict[str, Any]:
+        if kwargs.get('return_json'):
+            return json_data
+        return '<html></html>'
+
+    return _inner
+
+
+@pytest.mark.anyio
+async def test_clear_watch_history_no_feedback_token(mocker: MockerFixture,
+                                                     client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.Soup')
     mocker.patch('youtube_unofficial.client.find_ytcfg', return_value={})
     mocker.patch('youtube_unofficial.client.initial_data',
@@ -28,19 +37,17 @@ def test_clear_watch_history_no_feedback_token(mocker: MockerFixture, requests_m
                          }
                      }
                  })
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    requests_mock.post(
-        'https://www.youtube.com/youtubei/v1/feedback',
-        json={'status': 'STATUS_SUCCEEDED'},
-    )
-
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     with pytest.raises(NoFeedbackToken):
-        client.clear_watch_history()
+        await client.clear_watch_history()
 
 
-def test_clear_watch_history_clear_button_disabled(mocker: MockerFixture, requests_mock: Mocker,
-                                                   client: YouTubeClient, data_path: Path) -> None:
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+@pytest.mark.anyio
+async def test_clear_watch_history_clear_button_disabled(mocker: MockerFixture,
+                                                         client: YouTubeClient,
+                                                         data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.Soup')
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
@@ -50,16 +57,15 @@ def test_clear_watch_history_clear_button_disabled(mocker: MockerFixture, reques
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
                      (data_path / 'clear-watch-history/00-button-disabled.json').read_text()))
-    assert client.clear_watch_history() is False
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
+    assert await client.clear_watch_history() is False
 
 
-def test_clear_watch_history(mocker: MockerFixture, requests_mock: Mocker, client: YouTubeClient,
-                             data_path: Path) -> None:
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    requests_mock.post('https://www.youtube.com/youtubei/v1/feedback',
-                       json={'feedbackResponses': [{
-                           'isProcessed': True
-                       }]})
+@pytest.mark.anyio
+async def test_clear_watch_history(mocker: MockerFixture, client: YouTubeClient,
+                                   data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.Soup')
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
@@ -68,12 +74,20 @@ def test_clear_watch_history(mocker: MockerFixture, requests_mock: Mocker, clien
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads((data_path / 'clear-watch-history/00.json').read_text()))
-    assert client.clear_watch_history() is True
+
+    async def fake_dl(*args: Any, **kwargs: Any) -> str | dict[str, Any]:
+        if kwargs.get('return_json'):
+            return cast('dict[str, Any]', {'feedbackResponses': [{'isProcessed': True}]})
+        return '<html></html>'
+
+    mocker.patch('youtube_unofficial.client.download_page', side_effect=fake_dl)
+    assert await client.clear_watch_history() is True
 
 
-def test_clear_watch_history_missing_session_ytcfg(mocker: MockerFixture, requests_mock: Mocker,
-                                                   client: YouTubeClient, data_path: Path) -> None:
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+@pytest.mark.anyio
+async def test_clear_watch_history_missing_session_ytcfg(mocker: MockerFixture,
+                                                         client: YouTubeClient,
+                                                         data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.Soup')
     mocker.patch(
         'youtube_unofficial.client.find_ytcfg',
@@ -84,5 +98,8 @@ def test_clear_watch_history_missing_session_ytcfg(mocker: MockerFixture, reques
     )
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads((data_path / 'clear-watch-history/00.json').read_text()))
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     with pytest.raises(KeyError, match='DELEGATED_SESSION_ID'):
-        client.clear_watch_history()
+        await client.clear_watch_history()

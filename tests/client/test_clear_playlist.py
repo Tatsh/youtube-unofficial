@@ -1,20 +1,25 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock
 import json
+
+import pytest
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from _pytest.logging import LogCaptureFixture
     from pytest_mock import MockerFixture
-    from requests_mock import Mocker
     from youtube_unofficial.client import YouTubeClient
 
 
-def test_clear_playlist_empty(mocker: MockerFixture, requests_mock: Mocker, client: YouTubeClient,
-                              caplog: LogCaptureFixture, data_path: Path) -> None:
-    requests_mock.get('https://www.youtube.com/playlist?list=test_playlist', text='<html></html>')
+@pytest.mark.anyio
+async def test_clear_playlist_empty(mocker: MockerFixture, client: YouTubeClient,
+                                    caplog: LogCaptureFixture, data_path: Path) -> None:
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -25,13 +30,16 @@ def test_clear_playlist_empty(mocker: MockerFixture, requests_mock: Mocker, clie
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads((data_path / 'clear-playlist/00-empty.json').read_text()))
     with caplog.at_level('INFO'):
-        client.clear_playlist(playlist_id='test_playlist')
+        await client.clear_playlist(playlist_id='test_playlist')
         assert 'playlist is empty.' in caplog.records[0].message
 
 
-def test_clear_playlist_empty_iter(mocker: MockerFixture, requests_mock: Mocker,
-                                   client: YouTubeClient, data_path: Path) -> None:
-    requests_mock.get('https://www.youtube.com/playlist?list=test_playlist', text='<html></html>')
+@pytest.mark.anyio
+async def test_clear_playlist_empty_iter(mocker: MockerFixture, client: YouTubeClient,
+                                         data_path: Path) -> None:
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -43,13 +51,16 @@ def test_clear_playlist_empty_iter(mocker: MockerFixture, requests_mock: Mocker,
                  return_value=json.loads(
                      (data_path / 'clear-playlist/00-empty-iter.json').read_text()))
     rem_video_id = mocker.spy(client, 'remove_video_id_from_playlist')
-    client.clear_playlist(playlist_id='test_playlist')
+    await client.clear_playlist(playlist_id='test_playlist')
     assert rem_video_id.call_count == 0
 
 
-def test_clear_playlist(mocker: MockerFixture, requests_mock: Mocker, client: YouTubeClient,
-                        data_path: Path) -> None:
-    requests_mock.get('https://www.youtube.com/playlist?list=test_playlist', text='<html></html>')
+@pytest.mark.anyio
+async def test_clear_playlist(mocker: MockerFixture, client: YouTubeClient,
+                              data_path: Path) -> None:
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -59,7 +70,7 @@ def test_clear_playlist(mocker: MockerFixture, requests_mock: Mocker, client: Yo
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads((data_path / 'clear-playlist/00.json').read_text()))
-    mocker.patch.object(client, 'remove_video_id_from_playlist')
+    mocker.patch.object(client, 'remove_video_id_from_playlist', new_callable=AsyncMock)
     rem_video_id = mocker.spy(client, 'remove_video_id_from_playlist')
-    client.clear_playlist(playlist_id='test_playlist')
+    await client.clear_playlist(playlist_id='test_playlist')
     assert rem_video_id.call_count == 2

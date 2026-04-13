@@ -9,11 +9,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+### Added
+
+- New `build_youtube_session()` function for creating an async HTTP session with browser cookies.
+- New `session` module exposing session-creation utilities.
+
 ### Changed
 
+- Switched from `requests` to `niquests` for HTTP; the entire Python API is now fully async.
+- `YouTubeClient` constructor now accepts an `AsyncSession` instead of browser name and profile
+  strings.
+- All client methods are now coroutines and all generators are now async generators.
+- CLI commands are unchanged; async calls are wrapped internally with `anyio.run`.
 - Replaced internal assertions with explicit exceptions for playlist API calls, session validation,
   and continuation handling so missing keys, unexpected response shapes, and absent cookies surface
   as `KeyError`, `RuntimeError`, or `TypeError` instead of `AssertionError`.
+
+### Removed
+
+- `requests` dependency, replaced by `niquests-cache`.
 
 ## [0.3.1]
 

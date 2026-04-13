@@ -6,9 +6,11 @@ import json
 import logging
 
 from bascom import setup_logging
+import anyio
 import click
 
-from . import YouTubeClient
+from .client import YouTubeClient
+from .session import build_youtube_session
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -18,18 +20,28 @@ __all__ = ('clear_watch_history', 'clear_watch_later', 'print_history', 'print_p
            'remove_watch_later_video_id', 'toggle_watch_history')
 
 
+async def _print_playlist_ids(browser: str, profile: str, playlist_id: str, *,
+                              output_json: bool) -> None:
+    session = await build_youtube_session(browser, profile)
+    async with session:
+        yt = YouTubeClient(session)
+        async for entry in yt.get_playlist_video_ids(
+                playlist_id, return_dict=output_json):  # type: ignore[call-overload]
+            if output_json:
+                click.echo(json.dumps(entry, sort_keys=True))
+            else:
+                click.echo(entry)
+
+
 def print_playlist_ids_callback(browser: str,
                                 profile: str,
                                 playlist_id: str,
                                 *,
                                 output_json: bool = False) -> None:
-    yt = YouTubeClient(browser, profile)
-    for entry in yt.get_playlist_video_ids(playlist_id,
-                                           return_dict=output_json):  # type: ignore[call-overload]
-        if output_json:
-            click.echo(json.dumps(entry, sort_keys=True))
-        else:
-            click.echo(entry)
+    async def _run() -> None:
+        await _print_playlist_ids(browser, profile, playlist_id, output_json=output_json)
+
+    anyio.run(_run)
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
@@ -108,6 +120,18 @@ def print_playlist(browser: str,
     print_playlist_ids_callback(browser, profile, playlist_id, output_json=output_json)
 
 
+async def _print_history(browser: str, profile: str, *, output_json: bool) -> None:
+    session = await build_youtube_session(browser, profile)
+    async with session:
+        yt = YouTubeClient(session)
+        async for entry in yt.get_history_video_ids(
+                return_dict=output_json):  # type: ignore[call-overload]
+            if output_json:
+                click.echo(json.dumps(entry, sort_keys=True))
+            else:
+                click.echo(entry)
+
+
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
 @click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
@@ -164,12 +188,18 @@ def print_history(browser: str,
                           'propagate': False,
                       }
                   })
-    yt = YouTubeClient(browser, profile)
-    for entry in yt.get_history_video_ids(return_dict=output_json):  # type: ignore[call-overload]
-        if output_json:
-            click.echo(json.dumps(entry, sort_keys=True))
-        else:
-            click.echo(entry)
+
+    async def _run() -> None:
+        await _print_history(browser, profile, output_json=output_json)
+
+    anyio.run(_run)
+
+
+async def _remove_history_entries(browser: str, profile: str, video_ids: tuple[str, ...]) -> None:
+    session = await build_youtube_session(browser, profile)
+    async with session:
+        yt = YouTubeClient(session)
+        await yt.remove_video_ids_from_history(list(video_ids))
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
@@ -191,16 +221,21 @@ def remove_history_entries(browser: str,
                           'propagate': False,
                       }
                   })
-    yt = YouTubeClient(browser, profile)
-    for video_id in video_ids:
-        yt.remove_video_ids_from_history(video_id)
+    anyio.run(_remove_history_entries, browser, profile, video_ids)
+
+
+async def _remove_svi(browser: str, profile: str, playlist_id: str,
+                      video_ids: Iterable[str]) -> None:
+    session = await build_youtube_session(browser, profile)
+    async with session:
+        yt = YouTubeClient(session)
+        for svi in video_ids:
+            await yt.remove_video_id_from_playlist(playlist_id, svi)
 
 
 def remove_svi_callback(browser: str, profile: str, playlist_id: str,
                         video_ids: Iterable[str]) -> None:
-    yt = YouTubeClient(browser, profile)
-    for svi in video_ids:
-        yt.remove_video_id_from_playlist(playlist_id, svi)
+    anyio.run(_remove_svi, browser, profile, playlist_id, video_ids)
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
@@ -249,12 +284,22 @@ def remove_video_id(browser: str,
     remove_svi_callback(browser, profile, playlist_id, video_ids)
 
 
+async def _toggle_watch_history(browser: str, profile: str) -> None:
+    session = await build_youtube_session(browser, profile)
+    async with session:
+        yt = YouTubeClient(session)
+        if not await yt.toggle_watch_history():
+            click.echo('Failed to toggle watch history.', err=True)
+            raise click.Abort
+    click.echo('Watch history toggled.')
+
+
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
 @click.option('-d', '--debug', is_flag=True, help='Enable debug output.')
 @click.option('-b', '--browser', default='chrome', help='Browser to read cookies from.')
 @click.option('-p', '--profile', default='Default', help='Browser profile.')
 def toggle_watch_history(browser: str, profile: str, *, debug: bool = False) -> None:
-    """Disable or enable watch history."""  # noqa: DOC501
+    """Disable or enable watch history."""
     setup_logging(debug=debug,
                   loggers={
                       'youtube_unofficial': {
@@ -263,10 +308,15 @@ def toggle_watch_history(browser: str, profile: str, *, debug: bool = False) -> 
                           'propagate': False,
                       }
                   })
-    if not YouTubeClient(browser=browser, profile=profile).toggle_watch_history():
-        click.echo('Failed to toggle watch history.', err=True)
-        raise click.Abort
-    click.echo('Watch history toggled.')
+    anyio.run(_toggle_watch_history, browser, profile)
+
+
+async def _clear_watch_history(browser: str, profile: str) -> None:
+    session = await build_youtube_session(browser, profile)
+    async with session:
+        yt = YouTubeClient(session)
+        await yt.clear_watch_history()
+    click.echo('Watch history cleared.')
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
@@ -283,9 +333,15 @@ def clear_watch_history(browser: str, profile: str, *, debug: bool = False) -> N
                           'propagate': False,
                       }
                   })
-    yt = YouTubeClient(browser, profile)
-    yt.clear_watch_history()
-    click.echo('Watch history cleared.')
+    anyio.run(_clear_watch_history, browser, profile)
+
+
+async def _clear_watch_later(browser: str, profile: str) -> None:
+    session = await build_youtube_session(browser, profile)
+    async with session:
+        yt = YouTubeClient(session)
+        await yt.clear_watch_later()
+    click.echo('Watch later queue cleared.')
 
 
 @click.command(context_settings={'help_option_names': ('-h', '--help')})
@@ -302,6 +358,4 @@ def clear_watch_later(browser: str, profile: str, *, debug: bool = False) -> Non
                           'propagate': False,
                       }
                   })
-    yt = YouTubeClient(browser, profile)
-    yt.clear_watch_later()
-    click.echo('Watch later queue cleared.')
+    anyio.run(_clear_watch_later, browser, profile)

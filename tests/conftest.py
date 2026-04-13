@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, NoReturn, cast
+from typing import TYPE_CHECKING, Any, NoReturn, cast
 import os
 
 from click.testing import CliRunner
 from youtube_unofficial.client import YouTubeClient
+import niquests
 import pytest
 
 if TYPE_CHECKING:
@@ -45,12 +46,26 @@ def mock_extract_cookies_from_browser(mocker: MockerFixture) -> None:
 
 
 @pytest.fixture
-def client(mock_cookie_jar: MagicMock, mock_extract_cookies_from_browser: None) -> YouTubeClient:
-    client = YouTubeClient(browser='firefox', profile='default')
-    client.session.cookies = mock_cookie_jar
-    return client
+def client(mock_cookie_jar: MagicMock, mock_extract_cookies_from_browser: None,
+           mocker: MockerFixture) -> YouTubeClient:
+    mock_session = mocker.AsyncMock(spec=niquests.AsyncSession)
+    mock_session.cookies = mock_cookie_jar
+    return YouTubeClient(mock_session)
 
 
 @pytest.fixture
 def data_path() -> Path:
     return Path(__file__).parent / 'client/data'
+
+
+def make_niquests_response(mocker: MockerFixture,
+                           *,
+                           text: str = '',
+                           json_data: dict[str, Any] | None = None,
+                           status_code: int = 200) -> MagicMock:
+    r = mocker.MagicMock()
+    r.text = text.strip() if text else ''
+    r.json = mocker.MagicMock(return_value=json_data if json_data is not None else {})
+    r.raise_for_status = mocker.MagicMock()
+    r.status_code = status_code
+    return cast('MagicMock', r)

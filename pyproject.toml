@@ -8,7 +8,7 @@ dev = [
   "cz-path>=0.0.6",
   "mypy>=1.20.0",
   "ruff>=0.15.9",
-  "ty>=0.0.28",
+  "ty>=0.0.29",
   "types-beautifulsoup4>=4.12.0.20250516",
   "types-requests>=2.33.0.20260402",
   "yapf>=0.43.0",
@@ -33,7 +33,6 @@ tests = [
   "pytest-cov>=7.1.0",
   "pytest-mock>=3.15.1",
   "pytest>=9.0.2",
-  "requests-mock>=1.12.1",
 ]
 
 [project]
@@ -49,14 +48,15 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
+  "anyio>=4.8.0",
   "bascom>=0.1.2",
   "beautifulsoup4>=4.14.3",
   "click>=8.3.2",
   "html5lib>=1.1",
   "more-itertools>=11.0.1",
-  "requests>=2.33.1",
+  "niquests-cache>=0.0.3",
   "typing-extensions>=4.15.0",
-  "yt-dlp-utils>=0.0.8",
+  "yt-dlp-utils[asyncio]>=0.0.8",
 ]
 description = "Access parts of your account unavailable through normal YouTube API access."
 keywords = ["command line", "youtube"]
@@ -219,6 +219,9 @@ max-statements = 100
 [tool.uv]
 default-groups = "all"
 exclude-newer = "1 week"
+
+[tool.uv.exclude-newer-package]
+niquests-cache = false
 
 [tool.yapf]
 align_closing_bracket_with_visual_indent = true

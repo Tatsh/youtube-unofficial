@@ -81,19 +81,27 @@ Some commands accept a `-j`/`--json` argument to print machine-readable output a
 ### In Python
 
 ```python
-from youtube_unofficial import YouTubeClient
+import asyncio
 
-# Arguments are the browser name and profile.
-yt = YouTubeClient('chrome', 'Default')
+from youtube_unofficial import YouTubeClient, build_youtube_session
 
-# Clear watch history
-yt.clear_watch_history()
 
-# Remove a single video ID from Watch Later queue
-yt.remove_video_id_from_playlist('WL', video_id)
+async def main() -> None:
+    session = await build_youtube_session('chrome', 'Default')
+    async with session:
+        yt = YouTubeClient(session)
 
-# Clear entire Watch Later queue
-yt.clear_watch_later()
+        # Clear watch history
+        await yt.clear_watch_history()
+
+        # Remove a single video ID from Watch Later queue
+        await yt.remove_video_id_from_playlist('WL', video_id)
+
+        # Clear entire Watch Later queue
+        await yt.clear_watch_later()
+
+
+asyncio.run(main())
 ```
 
 ## Contributing

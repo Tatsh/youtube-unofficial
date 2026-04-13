@@ -17,6 +17,15 @@ local utils = import 'utils.libjsonnet';
     },
   },
   security_policy_supported_versions: { '0.3.x': ':white_check_mark:' },
+  tests_pyproject+: {
+    tool+: {
+      ruff+: {
+        lint+: {
+          'extend-ignore'+: ['RUF029'],
+        },
+      },
+    },
+  },
   pyproject+: {
     project+: {
       scripts: {
@@ -43,10 +52,13 @@ local utils = import 'utils.libjsonnet';
       poetry+: {
         dependencies+: {
           'more-itertools': utils.latestPypiPackageVersionCaret('more-itertools'),
-          'yt-dlp-utils': utils.latestPypiPackageVersionCaret('yt-dlp-utils'),
+          'yt-dlp-utils': {
+            extras: ['asyncio'],
+            version: utils.latestPypiPackageVersionCaret('yt-dlp-utils'),
+          },
           beautifulsoup4: utils.latestPypiPackageVersionCaret('beautifulsoup4'),
           html5lib: utils.latestPypiPackageVersionCaret('html5lib'),
-          requests: utils.latestPypiPackageVersionCaret('requests'),
+          'niquests-cache': utils.latestPypiPackageVersionCaret('niquests-cache'),
         },
         group+: {
           dev+: {
@@ -55,11 +67,12 @@ local utils = import 'utils.libjsonnet';
               'types-requests': utils.latestPypiPackageVersionCaret('types-requests'),
             },
           },
-          tests+: {
-            dependencies+: {
-              'requests-mock': utils.latestPypiPackageVersionCaret('requests-mock'),
-            },
-          },
+          tests+: {},
+        },
+      },
+      uv+: {
+        'exclude-newer-package'+: {
+          'niquests-cache': false,
         },
       },
     },

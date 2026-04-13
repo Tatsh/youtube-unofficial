@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 
 
 def extract_script_content(soup: Soup) -> Iterator[str]:
-    yield from (''.join(list(x.children)) for x in soup.select('script'))  # type: ignore[arg-type]
+    yield from (''.join(cast('list[str]', list(x.children))) for x in soup.select('script'))
 
 
 def extract_keys(keys: Iterable[_K], obj: Mapping[_K, _V]) -> dict[_K, _V]:

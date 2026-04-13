@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
+from unittest.mock import AsyncMock
 import json
 
-from youtube_unofficial.constants import WATCH_HISTORY_URL
 import pytest
 
 if TYPE_CHECKING:
@@ -11,12 +11,12 @@ if TYPE_CHECKING:
 
     from _pytest.logging import LogCaptureFixture
     from pytest_mock import MockerFixture
-    from requests_mock import Mocker
     from youtube_unofficial.client import YouTubeClient
 
 
-def test_get_history_info_no_continuation(mocker: MockerFixture, requests_mock: Mocker,
-                                          client: YouTubeClient, data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_info_no_continuation(mocker: MockerFixture, client: YouTubeClient,
+                                                data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -27,13 +27,16 @@ def test_get_history_info_no_continuation(mocker: MockerFixture, requests_mock: 
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
                      (data_path / 'get-history-info/00-no-continuation.json').read_text()))
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    result = list(client.get_history_info())
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
+    result = [item async for item in client.get_history_info()]
     assert result == [{'videoRenderer': {'videoId': 'test_video'}}]
 
 
-def test_get_history_info_with_continuation(mocker: MockerFixture, requests_mock: Mocker,
-                                            client: YouTubeClient, data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_info_with_continuation(mocker: MockerFixture, client: YouTubeClient,
+                                                  data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -45,12 +48,16 @@ def test_get_history_info_with_continuation(mocker: MockerFixture, requests_mock
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
                      (data_path / 'get-history-info/00-with-continuation.json').read_text()))
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    requests_mock.post(
-        'https://www.youtube.com/youtubei/v1/browse',
-        json=json.loads(
-            (data_path / 'get-history-info/00-with-continuation-response.json').read_text()))
-    result = list(client.get_history_info())
+    browse_json = json.loads(
+        (data_path / 'get-history-info/00-with-continuation-response.json').read_text())
+
+    async def fake_dl(*args: Any, **kwargs: Any) -> str | dict[str, Any]:
+        if kwargs.get('return_json'):
+            return cast('dict[str, Any]', browse_json)
+        return '<html></html>'
+
+    mocker.patch('youtube_unofficial.client.download_page', side_effect=fake_dl)
+    result = [item async for item in client.get_history_info()]
     assert result == [{
         'videoRenderer': {
             'videoId': 'test_video'
@@ -62,8 +69,9 @@ def test_get_history_info_with_continuation(mocker: MockerFixture, requests_mock
     }]
 
 
-def test_get_history_info_alt_continuation(mocker: MockerFixture, requests_mock: Mocker,
-                                           client: YouTubeClient, data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_info_alt_continuation(mocker: MockerFixture, client: YouTubeClient,
+                                                 data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -75,19 +83,28 @@ def test_get_history_info_alt_continuation(mocker: MockerFixture, requests_mock:
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
                      (data_path / 'get-history-info/00-alt-continuation.json').read_text()))
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    requests_mock.post(
-        'https://www.youtube.com/youtubei/v1/browse',
-        response_list=json.loads(
-            (data_path / 'get-history-info/00-alt-continuation-response.json').read_text()))
-    result = list(client.get_history_info())
+    responses = json.loads(
+        (data_path / 'get-history-info/00-alt-continuation-response.json').read_text())
+    post_idx = 0
+
+    async def fake_dl(*args: Any, **kwargs: Any) -> str | dict[str, Any]:
+        nonlocal post_idx
+        if kwargs.get('return_json'):
+            j = responses[post_idx]['json']
+            post_idx += 1
+            return cast('dict[str, Any]', j)
+        return '<html></html>'
+
+    mocker.patch('youtube_unofficial.client.download_page', side_effect=fake_dl)
+    result = [item async for item in client.get_history_info()]
     assert result == [{'videoRenderer': {'videoId': 'test_video'}}]
 
 
-def test_get_history_info_no_continuation_on_2nd_req(mocker: MockerFixture, requests_mock: Mocker,
-                                                     client: YouTubeClient,
-                                                     caplog: LogCaptureFixture,
-                                                     data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_info_no_continuation_on_2nd_req(mocker: MockerFixture,
+                                                           client: YouTubeClient,
+                                                           caplog: LogCaptureFixture,
+                                                           data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -100,20 +117,28 @@ def test_get_history_info_no_continuation_on_2nd_req(mocker: MockerFixture, requ
         'youtube_unofficial.client.initial_data',
         return_value=json.loads(
             (data_path / 'get-history-info/00-no-continuation-on-2nd-req.json').read_text()))
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    requests_mock.post(
-        'https://www.youtube.com/youtubei/v1/browse',
-        response_list=json.loads(
-            (data_path /
-             'get-history-info/00-no-continuation-on-2nd-req-responses.json').read_text()))
+    resp_list = json.loads(
+        (data_path / 'get-history-info/00-no-continuation-on-2nd-req-responses.json').read_text())
+    post_idx = 0
+
+    async def fake_dl(*args: Any, **kwargs: Any) -> str | dict[str, Any]:
+        nonlocal post_idx
+        if kwargs.get('return_json'):
+            j = resp_list[post_idx]['json']
+            post_idx += 1
+            return cast('dict[str, Any]', j)
+        return '<html></html>'
+
+    mocker.patch('youtube_unofficial.client.download_page', side_effect=fake_dl)
     with caplog.at_level('INFO'):
-        result = list(client.get_history_info())
+        result = [item async for item in client.get_history_info()]
         assert result == [{'videoRenderer': {'videoId': 'test_video'}}]
         assert 'end of watch history.' in caplog.records[0].message
 
 
-def test_get_history_info_bad_continuation(mocker: MockerFixture, requests_mock: Mocker,
-                                           client: YouTubeClient, data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_info_bad_continuation(mocker: MockerFixture, client: YouTubeClient,
+                                                 data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -125,17 +150,20 @@ def test_get_history_info_bad_continuation(mocker: MockerFixture, requests_mock:
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
                      (data_path / 'get-history-info/00-bad-continuation.json').read_text()))
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    requests_mock.post('https://www.youtube.com/youtubei/v1/browse',
-                       json={'onResponseReceivedActions': [{
-                           'appendContinuationItemsAction': {}
-                       }]})
-    result = list(client.get_history_info())
+
+    async def fake_dl(*args: Any, **kwargs: Any) -> str | dict[str, Any]:
+        if kwargs.get('return_json'):
+            return {'onResponseReceivedActions': [{'appendContinuationItemsAction': {}}]}
+        return '<html></html>'
+
+    mocker.patch('youtube_unofficial.client.download_page', side_effect=fake_dl)
+    result = [item async for item in client.get_history_info()]
     assert result == [{'videoRenderer': {'videoId': 'test_video'}}]
 
 
-def test_get_history_info_no_continuation_token(mocker: MockerFixture, requests_mock: Mocker,
-                                                client: YouTubeClient) -> None:
+@pytest.mark.anyio
+async def test_get_history_info_no_continuation_token(mocker: MockerFixture,
+                                                      client: YouTubeClient) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -164,13 +192,17 @@ def test_get_history_info_no_continuation_token(mocker: MockerFixture, requests_
             },
         },
     )
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     with pytest.raises(RuntimeError, match='Failed to find continuation token'):
-        list(client.get_history_info())
+        async for _ in client.get_history_info():
+            pass
 
 
-def test_get_history_info_no_videos(mocker: MockerFixture, requests_mock: Mocker,
-                                    client: YouTubeClient, data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_info_no_videos(mocker: MockerFixture, client: YouTubeClient,
+                                          data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -181,6 +213,8 @@ def test_get_history_info_no_videos(mocker: MockerFixture, requests_mock: Mocker
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
                      (data_path / 'get-history-info/00-no-videos.json').read_text()))
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    result = list(client.get_history_info())
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
+    result = [item async for item in client.get_history_info()]
     assert result == []

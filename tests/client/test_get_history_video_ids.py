@@ -1,21 +1,21 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock
 import json
 
-from youtube_unofficial.constants import WATCH_HISTORY_URL
 import pytest
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from pytest_mock import MockerFixture
-    from requests_mock import Mocker
     from youtube_unofficial.client import YouTubeClient
 
 
-def test_get_history_video_ids(mocker: MockerFixture, requests_mock: Mocker, client: YouTubeClient,
-                               data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_video_ids(mocker: MockerFixture, client: YouTubeClient,
+                                     data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -23,10 +23,12 @@ def test_get_history_video_ids(mocker: MockerFixture, requests_mock: Mocker, cli
                      'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads((data_path / 'get-history-video-ids/00.json').read_text()))
-    result = list(client.get_history_video_ids(return_dict=True))
+    result = [x async for x in client.get_history_video_ids(return_dict=True)]
     assert result == [{
         'video_id': 'test_video_id',
         'title': 'Test Title',
@@ -80,8 +82,9 @@ def test_get_history_video_ids(mocker: MockerFixture, requests_mock: Mocker, cli
     }]
 
 
-def test_get_history_video_ids_strings(mocker: MockerFixture, requests_mock: Mocker,
-                                       client: YouTubeClient, data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_video_ids_strings(mocker: MockerFixture, client: YouTubeClient,
+                                             data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -89,16 +92,19 @@ def test_get_history_video_ids_strings(mocker: MockerFixture, requests_mock: Moc
                      'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
                      (data_path / 'get-history-video-ids/00-strings.json').read_text()))
-    result = list(client.get_history_video_ids())
+    result = [x async for x in client.get_history_video_ids()]
     assert result == ['test_video_id', 'test_video_id']
 
 
-def test_get_history_video_ids_empty(mocker: MockerFixture, requests_mock: Mocker,
-                                     client: YouTubeClient, data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_video_ids_empty(mocker: MockerFixture, client: YouTubeClient,
+                                           data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -106,16 +112,19 @@ def test_get_history_video_ids_empty(mocker: MockerFixture, requests_mock: Mocke
                      'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
                      (data_path / 'get-history-video-ids/00-empty.json').read_text()))
-    result = list(client.get_history_video_ids(return_dict=False))
+    result = [x async for x in client.get_history_video_ids(return_dict=False)]
     assert result == []
 
 
-def test_get_history_video_ids_missing_video_id(mocker: MockerFixture, requests_mock: Mocker,
-                                                client: YouTubeClient, data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_video_ids_missing_video_id(mocker: MockerFixture, client: YouTubeClient,
+                                                      data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -123,16 +132,19 @@ def test_get_history_video_ids_missing_video_id(mocker: MockerFixture, requests_
                      'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
                      (data_path / 'get-history-video-ids/00-missing-video-id.json').read_text()))
-    result = list(client.get_history_video_ids(return_dict=False))
+    result = [x async for x in client.get_history_video_ids(return_dict=False)]
     assert result == []
 
 
-def test_get_history_video_ids_bad_video_id_type(mocker: MockerFixture, requests_mock: Mocker,
-                                                 client: YouTubeClient, data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_get_history_video_ids_bad_video_id_type(mocker: MockerFixture, client: YouTubeClient,
+                                                       data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'INNERTUBE_API_KEY': 'test_api_key',
@@ -140,9 +152,12 @@ def test_get_history_video_ids_bad_video_id_type(mocker: MockerFixture, requests
                      'USER_SESSION_ID': 'test_session_id',
                      'SESSION_INDEX': 0,
                  })
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
+    mocker.patch('youtube_unofficial.client.download_page',
+                 new_callable=AsyncMock,
+                 return_value='<html></html>')
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
                      (data_path / 'get-history-video-ids/00-bad-video-id-type.json').read_text()))
     with pytest.raises(TypeError, match='Expected string video ID'):
-        list(client.get_history_video_ids(return_dict=True))
+        async for _ in client.get_history_video_ids(return_dict=True):
+            pass

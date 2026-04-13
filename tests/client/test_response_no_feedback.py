@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 import json
 
-from youtube_unofficial.constants import WATCH_HISTORY_URL
+import pytest
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from pytest_mock import MockerFixture
-    from requests_mock import Mocker
     from youtube_unofficial.client import YouTubeClient
 
 
-def test_response_no_feedback_responses_key(mocker: MockerFixture, requests_mock: Mocker,
-                                            client: YouTubeClient, data_path: Path) -> None:
+@pytest.mark.anyio
+async def test_response_no_feedback_responses_key(mocker: MockerFixture, client: YouTubeClient,
+                                                  data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.find_ytcfg',
                  return_value={
                      'USER_SESSION_ID': 'test_session_id',
@@ -25,6 +25,11 @@ def test_response_no_feedback_responses_key(mocker: MockerFixture, requests_mock
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads((data_path / 'response-no-feedback-00.json').read_text()))
-    requests_mock.get(WATCH_HISTORY_URL, text='<html></html>')
-    requests_mock.post('https://www.youtube.com/youtubei/v1/feedback', json={})
-    assert client.remove_video_ids_from_history(['test_video']) is False
+
+    async def fake_dl(*args: Any, **kwargs: Any) -> str | dict[str, Any]:
+        if kwargs.get('return_json'):
+            return cast('dict[str, Any]', {})
+        return '<html></html>'
+
+    mocker.patch('youtube_unofficial.client.download_page', side_effect=fake_dl)
+    assert await client.remove_video_ids_from_history(['test_video']) is False
