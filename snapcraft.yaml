@@ -1,6 +1,6 @@
 apps:
   youtube-unofficial:
-    command: 'bin/youtube'
+    command: 'bin/youtube-unofficial'
     plugs:
       - 'home'
       - 'network'

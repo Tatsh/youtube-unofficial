@@ -1,5 +1,5 @@
 anchore
-Ångström
+anyio
 appdir
 appimage
 appinfo
@@ -70,6 +70,7 @@ monkeypatch
 myproject
 mypy
 namedtuples
+niquests
 norecursedirs
 notarytool
 npmjs
@@ -84,7 +85,6 @@ pavelzw
 phash
 pipx
 plistlib
-prepped
 prodvers
 pycache
 pydantic
@@ -139,3 +139,4 @@ yarnrc
 youtu
 youtubei
 ytcfg
+Ångström

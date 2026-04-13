@@ -1,5 +1,5 @@
 app-id: 'sh.tat.youtube-unofficial'
-command: 'youtube'
+command: 'youtube-unofficial'
 finish-args:
   - '--share=ipc'
   - '--share=network'

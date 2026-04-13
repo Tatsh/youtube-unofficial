@@ -43,6 +43,8 @@ All RST badges must be indented under the `.. only:: html` directive (3-space in
 4. If differences are found, rewrite `docs/badges.rst` to match the README, preserving the
    `.. only:: html` wrapper and blank-line separation between badges.
 5. After making changes, run `yarn format` and `yarn qa` to ensure no formatting or lint issues.
+   Do not be concerned with other types of QA issues that may arise from the change, as long as the
+   badge sync is correct.
 
 ## Rules
 

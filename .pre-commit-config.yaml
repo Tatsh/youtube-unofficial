@@ -5,7 +5,6 @@ ci:
     - 'detect-aws-credentials'
     - 'fix-formatting-markdown'
     - 'fix-formatting-prettier'
-    - 'fix-ruff'
     - 'yarn-check-lock'
 default_install_hook_types:
   - 'pre-commit'
@@ -45,6 +44,12 @@ repos:
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
     rev: '0.11.6'
+  - hooks:
+      - args:
+          - '--fix'
+        id: 'ruff-check'
+    repo: 'https://github.com/astral-sh/ruff-pre-commit'
+    rev: 'v0.15.10'
   - hooks:
       - id: 'yapf'
         name: 'check Python files are formatted'
@@ -94,14 +99,6 @@ repos:
         id: 'fix-formatting-prettier'
         language: 'system'
         name: 'check files are formatted with Prettier'
-      - entry: 'uv run ruff check --fix --exit-non-zero-on-fix'
-        id: 'fix-ruff'
-        language: 'system'
-        name: 'check Python files have Ruff fixes applied'
-        require_serial: true
-        types_or:
-          - 'python'
-          - 'pyi'
       - entry: 'yarn markdownlint-cli2 --config package.json --configPointer /markdownlint-cli2 --fix'
         id: 'fix-formatting-markdown'
         language: 'system'
@@ -112,4 +109,4 @@ repos:
   - hooks:
       - id: 'cspell'
     repo: 'https://github.com/streetsidesoftware/cspell-cli'
-    rev: 'v9.7.0'
+    rev: 'v9.8.0'

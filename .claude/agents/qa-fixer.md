@@ -11,6 +11,7 @@ rule files under `.claude/rules/`.
 
 1. Run `yarn format`. Fix any issues it reports.
 2. Run `yarn qa`. Parse the output for errors.
+
 3. For each error:
    a. Read the file.
    b. For docstring violations (Ruff D1xx, DOC501, etc.), follow the rules in

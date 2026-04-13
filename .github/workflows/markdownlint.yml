@@ -8,7 +8,7 @@ jobs:
         with:
           key: "${{ runner.os }}-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}"
           path: '~/.yarn/berry'
-          restore-keys: '${ runner.os }}-yarn'
+          restore-keys: '${{ runner.os }}-yarn'
       - name: 'Install dependencies (Yarn)'
         run: 'yarn'
       - name: 'Check formatting (markdownlint)'

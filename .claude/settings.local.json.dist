@@ -20,6 +20,7 @@
       "Bash(uv run wiswa *)",
       "Bash(uv run yapf *)",
       "Bash(uv run yarn pyright *)",
+      "Bash(uv run ty *)",
       "Bash(uv sync *)",
       "Bash(uv tree *)",
       "Bash(uv venv *)",
