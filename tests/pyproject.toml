@@ -18,10 +18,10 @@ extend-ignore = [
   "INP001",
   "PLC0415",
   "PLR2004",
-  "RUF029",
   "S101",
   "S105",
   "S106",
+  "RUF029",
 ]
 
 [tool.ruff.lint.pep8-naming]

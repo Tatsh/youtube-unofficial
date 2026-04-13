@@ -26,6 +26,14 @@ local utils = import 'utils.libjsonnet';
       },
     },
   },
+  flatpak+: { command: 'youtube' },
+  snapcraft+: {
+    apps+: {
+      'youtube-unofficial'+: {
+        command: 'bin/youtube',
+      },
+    },
+  },
   pyproject+: {
     project+: {
       scripts: {
@@ -51,6 +59,7 @@ local utils = import 'utils.libjsonnet';
       },
       poetry+: {
         dependencies+: {
+          anyio: utils.latestPypiPackageVersionCaret('anyio'),
           'more-itertools': utils.latestPypiPackageVersionCaret('more-itertools'),
           'yt-dlp-utils': {
             extras: ['asyncio'],
