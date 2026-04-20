@@ -4,10 +4,10 @@ requires = ["hatchling"]
 
 [dependency-groups]
 dev = [
-  "commitizen>=4.13.9",
+  "commitizen>=4.13.10",
   "cz-path>=0.0.6",
   "mypy>=1.20.0",
-  "ruff>=0.15.9",
+  "ruff>=0.15.10",
   "ty>=0.0.29",
   "types-beautifulsoup4>=4.12.0.20250516",
   "yapf>=0.43.0",
@@ -17,7 +17,7 @@ docs = [
   "doc8>=2.0.0",
   "docutils<0.22",
   "enum-tools[sphinx]>=0.13.0",
-  "esbonio>=1.1.0",
+  "esbonio>=2.0.0",
   "numpydoc>=1.10.0",
   "restructuredtext-lint>=2.0.2",
   "sphinx-click>=6.2.0",
@@ -31,7 +31,7 @@ tests = [
   "mock>=5.2.0",
   "pytest-cov>=7.1.0",
   "pytest-mock>=3.15.1",
-  "pytest>=9.0.2",
+  "pytest>=9.0.3",
 ]
 
 [project]
@@ -52,10 +52,10 @@ dependencies = [
   "beautifulsoup4>=4.14.3",
   "click>=8.3.2",
   "html5lib>=1.1",
-  "more-itertools>=11.0.1",
+  "more-itertools>=11.0.2",
   "niquests-cache>=0.0.3",
   "typing-extensions>=4.15.0",
-  "yt-dlp-utils[asyncio]>=0.0.8",
+  "yt-dlp-utils[asyncio]>=0.1.0",
 ]
 description = "Access parts of your account unavailable through normal YouTube API access."
 keywords = ["command line", "youtube"]

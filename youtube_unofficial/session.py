@@ -10,14 +10,14 @@ import yt_dlp_utils
 
 if TYPE_CHECKING:
     from niquests.cookies import RequestsCookieJar
-    from niquests_cache.session import CachedAsyncSession
+    from niquests_cache.session import AsyncCachedSession
 
 from .constants import USER_AGENT
 
 __all__ = ('build_youtube_session',)
 
 
-async def build_youtube_session(browser: str, profile: str) -> CachedAsyncSession:
+async def build_youtube_session(browser: str, profile: str) -> AsyncCachedSession:
     """
     Build a cached async session with cookies from the browser profile.
 
@@ -32,7 +32,7 @@ async def build_youtube_session(browser: str, profile: str) -> CachedAsyncSessio
 
     Returns
     -------
-    CachedAsyncSession
+    AsyncCachedSession
         Session ready for ``async with`` or immediate use.
     """
     def _sync_setup() -> Any:

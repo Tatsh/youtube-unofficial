@@ -13,17 +13,32 @@ jobs:
           for i in $(seq 1 30); do
             all_done=true
             for workflow in AppImage Flatpak Prettier PyInstaller QA Snap Spelling Tests markdownlint; do
-              status=$(gh run list --workflow "$workflow" --commit "$sha" --json conclusion --jq '.[0].conclusion')
-              if [[ "$status" == 'failure' || "$status" == 'cancelled' ]]; then
-                echo "::error::Workflow '$workflow' ${status}."
-                exit 1
-              elif [[ "$status" != 'success' ]]; then
-                echo "Workflow '$workflow' still pending."
-                all_done=false
+              run=$(gh run list --workflow "$workflow" --commit "$sha" --json status,conclusion --jq '.[0]')
+              if [[ -z "$run" || "$run" == 'null' ]]; then
+                echo "Workflow '$workflow' did not run for this commit; treating as optional."
+                continue
               fi
+              status=$(echo "$run" | jq -r '.status')
+              conclusion=$(echo "$run" | jq -r '.conclusion')
+              case "$conclusion" in
+                failure|cancelled|timed_out|startup_failure|action_required)
+                  echo "::error::Workflow '$workflow' ${conclusion}."
+                  exit 1
+                  ;;
+                success|skipped|neutral)
+                  ;;
+                *)
+                  if [[ "$status" == 'completed' ]]; then
+                    echo "::error::Workflow '$workflow' completed with unexpected conclusion '${conclusion}'."
+                    exit 1
+                  fi
+                  echo "Workflow '$workflow' still pending (status=${status})."
+                  all_done=false
+                  ;;
+              esac
             done
             if [[ "$all_done" == 'true' ]]; then
-              echo 'All workflows succeeded.'
+              echo 'All required workflows succeeded.'
               exit 0
             fi
             echo "Waiting 60s for workflows to complete (attempt ${i}/30)..."
@@ -41,7 +56,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: 'Install uv'
-        uses: 'astral-sh/setup-uv@v8.0.0'
+        uses: 'astral-sh/setup-uv@v8.1.0'
       - run: 'uv build'
       - uses: 'pypa/gh-action-pypi-publish@release/v1'
       - uses: 'softprops/action-gh-release@v3.0.0'

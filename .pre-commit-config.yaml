@@ -43,13 +43,13 @@ repos:
           - '--frozen'
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
-    rev: '0.11.6'
+    rev: '0.11.7'
   - hooks:
       - args:
           - '--fix'
         id: 'ruff-check'
     repo: 'https://github.com/astral-sh/ruff-pre-commit'
-    rev: 'v0.15.10'
+    rev: 'v0.15.11'
   - hooks:
       - id: 'yapf'
         name: 'check Python files are formatted'
@@ -86,7 +86,7 @@ repos:
         stages:
           - 'post-checkout'
           - 'post-merge'
-      - entry: 'yarn prettier --write'
+      - entry: 'yarn exec prettier --write'
         exclude: "((requirements|robots).txt|Dockerfile.*|..*ignore|.(coveragerc|gitattributes)|.*.(csv|lock|resource|robot)|pylock.*\\.toml|CODEOWNERS|py.typed)$"
         exclude_types:
           - 'binary'
@@ -109,4 +109,4 @@ repos:
   - hooks:
       - id: 'cspell'
     repo: 'https://github.com/streetsidesoftware/cspell-cli'
-    rev: 'v9.8.0'
+    rev: 'v10.0.0'
