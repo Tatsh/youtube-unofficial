@@ -38,11 +38,7 @@ if TYPE_CHECKING:
     from niquests.cookies import RequestsCookieJar
     import niquests
 
-    from .typing.history import (
-        DescriptionSnippet,
-        HistoryVideoIDsEntry,
-        MetadataBadgeRendererTop,
-    )
+    from .typing.history import DescriptionSnippet, HistoryVideoIDsEntry, MetadataBadgeRendererTop
     from .typing.playlist import PlaylistInfo, PlaylistVideoListRenderer
     from .typing.ytcfg import YtcfgDict
 
@@ -135,7 +131,7 @@ class YouTubeClient:
                 'x-goog-visitor-id': ytcfg['VISITOR_DATA'],
                 'accept': '*/*',
                 'origin': 'https://www.youtube.com',
-                'referer': f'https://www.youtube.com/playlist?list={playlist_id}',
+                'referer': f'https://www.youtube.com/playlist?list={playlist_id}'
             }
             | ({
                 'x-goog-pageid': delegated_session_id
@@ -149,11 +145,10 @@ class YouTubeClient:
                     'request': {
                         'consistencyTokenJars': [],
                         'internalExperimentFlags': []
-                    },
-                },
+                    }
+                }
             },
-            return_json=True,
-        )
+            return_json=True)
         return bool(resp['status'] == 'STATUS_SUCCEEDED')
 
     async def remove_set_video_id_from_playlist(self,
@@ -201,7 +196,7 @@ class YouTubeClient:
                 'x-goog-visitor-id': ytcfg['VISITOR_DATA'],
                 'accept': '*/*',
                 'origin': 'https://www.youtube.com',
-                'referer': f'https://www.youtube.com/playlist?list={playlist_id}',
+                'referer': f'https://www.youtube.com/playlist?list={playlist_id}'
             }
             | ({
                 'x-goog-pageid': ytcfg['DELEGATED_SESSION_ID']
@@ -209,7 +204,7 @@ class YouTubeClient:
             json={
                 'actions': [{
                     'action': 'ACTION_REMOVE_VIDEO',
-                    'setVideoId': set_video_id,
+                    'setVideoId': set_video_id
                 }],
                 'playlistId': playlist_id,
                 'params': 'CAFAAQ%3D%3D',
@@ -218,15 +213,14 @@ class YouTubeClient:
                     'request': {
                         'consistencyTokenJars': [],
                         'internalExperimentFlags': [],
-                        'useSsl': True,
+                        'useSsl': True
                     },
                     'user': {
                         'lockedSafetyMode': False
-                    },
-                },
+                    }
+                }
             },
-            return_json=True,
-        )
+            return_json=True)
         return bool(resp['status'] == 'STATUS_SUCCEEDED')
 
     async def clear_watch_history(self) -> bool:
@@ -326,8 +320,7 @@ class YouTubeClient:
                     ytcfg,
                     api_url=api_url,
                     merge_json={'continuation': continuation},
-                    return_is_processed=False,
-                )
+                    return_is_processed=False)
                 if not isinstance(contents, dict):
                     msg = 'Expected dict response from continuation API.'
                     raise TypeError(msg)
@@ -403,8 +396,7 @@ class YouTubeClient:
                     owner=owner,
                     title=title,
                     video_id=renderer['videoId'],
-                    watch_url=f'https://www.youtube.com/watch?v={renderer["videoId"]}',
-                )
+                    watch_url=f'https://www.youtube.com/watch?v={renderer["videoId"]}')
             else:
                 yield renderer['videoId']
 
@@ -477,15 +469,14 @@ class YouTubeClient:
             raise RuntimeError(msg)
         params = {
             'continuation': next_continuation['continuation'],
-            'ctoken': next_continuation['continuation'],
+            'ctoken': next_continuation['continuation']
         }
         while True:
             resp = await self._single_feedback_api_call(
                 ytcfg,
                 api_url='/youtubei/v1/browse',
                 merge_json={'continuation': params['continuation']},
-                return_is_processed=False,
-            )
+                return_is_processed=False)
             contents = cast('dict[str, Any]', resp)
             try:
                 section_list_renderer = contents['onResponseReceivedActions'][0][
@@ -504,9 +495,8 @@ class YouTubeClient:
                             'continuation': (
                                 section_list['continuationItemRenderer']['continuationEndpoint']
                                 ['continuationCommand']['token']),
-                            'clickTrackingParams': (
-                                section_list['continuationItemRenderer']['continuationEndpoint']
-                                ['clickTrackingParams']),
+                            'clickTrackingParams': (section_list['continuationItemRenderer']
+                                                    ['continuationEndpoint']['clickTrackingParams'])
                         }
                     break
             if not continuations:
@@ -635,10 +625,8 @@ class YouTubeClient:
             return False
         for entry in entries:
             if not await self._single_feedback_api_call(
-                    ytcfg,
-                    entry['videoRenderer']['menu']['menuRenderer']['topLevelButtons'][0]
-                ['buttonRenderer']['serviceEndpoint']['feedbackEndpoint']['feedbackToken'],
-            ):
+                    ytcfg, entry['videoRenderer']['menu']['menuRenderer']['topLevelButtons'][0]
+                ['buttonRenderer']['serviceEndpoint']['feedbackEndpoint']['feedbackToken']):
                 return False
         return True
 
@@ -648,7 +636,7 @@ class YouTubeClient:
         sapisid: str | None = cookies.get(  # type: ignore[no-untyped-call]
             '__Secure-3PAPISID',
             cookies.get(  # type: ignore[no-untyped-call]
-                'SAPISID', cookies.get('__Secure-1PAPISID')),  # type: ignore[no-untyped-call]
+                'SAPISID', cookies.get('__Secure-1PAPISID'))  # type: ignore[no-untyped-call]
         )
         if sapisid is None:
             msg = 'Missing SAPISID cookie required for authorisation.'
@@ -678,7 +666,7 @@ class YouTubeClient:
         feedback_token_part = ({
             'feedbackTokens': [feedback_token],
             'isFeedbackTokenUnencrypted': False,
-            'shouldMerge': False,
+            'shouldMerge': False
         } if feedback_token else {})
         api_url = f'https://www.youtube.com{api_url}'
         log.debug('API URL: %s', api_url)
@@ -690,14 +678,14 @@ class YouTubeClient:
             'Authorization': self._authorization_sapisidhash_header(ytcfg),
             'x-goog-authuser': f'{ytcfg.get("SESSION_INDEX", 0)}',
             'x-origin': 'https://www.youtube.com',
-            'X-Youtube-Bootstrap-Logged-In': 'true',
+            'X-Youtube-Bootstrap-Logged-In': 'true'
         } | ({
             'x-goog-pageid': delegated_session_id
         } if delegated_session_id else {})
         log.debug('Request headers: %s', headers)
         json_data = ({
             'context': {
-                'client': context_client_body(ytcfg),
+                'client': context_client_body(ytcfg)
             }
                        | ({
                            'clickTracking': {
@@ -708,14 +696,12 @@ class YouTubeClient:
                      | feedback_token_part
                      | merge_json)
         log.debug('Request JSON: %s', json.dumps(json_data, indent=2, sort_keys=True))
-        ret = await self._download_page(
-            api_url,
-            method='post',
-            params={'prettyPrint': 'false'},
-            headers=headers,
-            json=json_data,
-            return_json=True,
-        )
+        ret = await self._download_page(api_url,
+                                        method='post',
+                                        params={'prettyPrint': 'false'},
+                                        headers=headers,
+                                        json=json_data,
+                                        return_json=True)
         log.debug('Response JSON: %s', json.dumps(ret, indent=2, sort_keys=True))
         if (ret.get('responseContext', {}).get('mainAppWebResponseContext', {}).get(
                 'loggedOut', False)):
@@ -736,13 +722,9 @@ class YouTubeClient:
                 'buttonRenderer']['navigationEndpoint']['confirmDialogEndpoint']['content'][
                     'confirmDialogRenderer']['confirmEndpoint']
         return cast(
-            'bool',
-            await self._single_feedback_api_call(
-                ytcfg,
-                info['feedbackEndpoint']['feedbackToken'],
-                info['commandMetadata']['webCommandMetadata']['apiUrl'],
-            ),
-        )
+            'bool', await self._single_feedback_api_call(
+                ytcfg, info['feedbackEndpoint']['feedbackToken'],
+                info['commandMetadata']['webCommandMetadata']['apiUrl']))
 
     async def toggle_watch_history(self) -> bool:
         """

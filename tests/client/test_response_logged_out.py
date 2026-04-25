@@ -21,7 +21,7 @@ async def test_response_indicates_logged_out(mocker: MockerFixture, client: YouT
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads((data_path / 'response-logged-out-00.json').read_text()))

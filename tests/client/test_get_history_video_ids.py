@@ -21,7 +21,7 @@ async def test_get_history_video_ids(mocker: MockerFixture, client: YouTubeClien
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
                      'USER_SESSION_ID': 'test_session_id',
-                     'SESSION_INDEX': 0,
+                     'SESSION_INDEX': 0
                  })
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,
@@ -50,10 +50,10 @@ async def test_get_history_video_ids(mocker: MockerFixture, client: YouTubeClien
         }, {
             'height': 320,
             'width': 180,
-            'url': 'test_thumbnail_url',
+            'url': 'test_thumbnail_url'
         }],
         'random': 1,
-        'watch_url': 'https://www.youtube.com/watch?v=test_video_id',
+        'watch_url': 'https://www.youtube.com/watch?v=test_video_id'
     }, {
         'video_id': 'test_video_id',
         'title': 'Test Title',
@@ -75,10 +75,10 @@ async def test_get_history_video_ids(mocker: MockerFixture, client: YouTubeClien
         }, {
             'height': 320,
             'width': 180,
-            'url': 'test_thumbnail_url',
+            'url': 'test_thumbnail_url'
         }],
         'random': 1,
-        'watch_url': 'https://www.youtube.com/watch?v=test_video_id',
+        'watch_url': 'https://www.youtube.com/watch?v=test_video_id'
     }]
 
 
@@ -90,7 +90,7 @@ async def test_get_history_video_ids_strings(mocker: MockerFixture, client: YouT
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
                      'USER_SESSION_ID': 'test_session_id',
-                     'SESSION_INDEX': 0,
+                     'SESSION_INDEX': 0
                  })
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,
@@ -110,7 +110,7 @@ async def test_get_history_video_ids_empty(mocker: MockerFixture, client: YouTub
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
                      'USER_SESSION_ID': 'test_session_id',
-                     'SESSION_INDEX': 0,
+                     'SESSION_INDEX': 0
                  })
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,
@@ -130,7 +130,7 @@ async def test_get_history_video_ids_missing_video_id(mocker: MockerFixture, cli
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
                      'USER_SESSION_ID': 'test_session_id',
-                     'SESSION_INDEX': 0,
+                     'SESSION_INDEX': 0
                  })
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,
@@ -150,7 +150,7 @@ async def test_get_history_video_ids_bad_video_id_type(mocker: MockerFixture, cl
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
                      'USER_SESSION_ID': 'test_session_id',
-                     'SESSION_INDEX': 0,
+                     'SESSION_INDEX': 0
                  })
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,

@@ -21,7 +21,7 @@ async def test_response_no_feedback_responses_key(mocker: MockerFixture, client:
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads((data_path / 'response-no-feedback-00.json').read_text()))

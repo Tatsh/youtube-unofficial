@@ -21,7 +21,7 @@ async def test_get_playlist_video_ids(mocker: MockerFixture, client: YouTubeClie
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
                      'USER_SESSION_ID': 'test_session_id',
-                     'SESSION_INDEX': 0,
+                     'SESSION_INDEX': 0
                  })
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,
@@ -41,7 +41,7 @@ async def test_get_playlist_video_ids_dict(mocker: MockerFixture, client: YouTub
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'VISITOR_DATA': 'test_visitor_data',
                      'USER_SESSION_ID': 'test_session_id',
-                     'SESSION_INDEX': 0,
+                     'SESSION_INDEX': 0
                  })
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,

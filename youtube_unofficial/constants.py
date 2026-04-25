@@ -49,7 +49,7 @@ TEXT_RUNS_KEYS = {
     'longBylineText': 'long_byline_text',
     'ownerText': 'owner_text',
     'title': 'title',
-    'shortBylineText': 'short_byline_text',
+    'shortBylineText': 'short_byline_text'
 }
 """
 Keys for text runs fields.

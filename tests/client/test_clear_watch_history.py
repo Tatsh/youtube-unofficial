@@ -89,13 +89,11 @@ async def test_clear_watch_history_missing_session_ytcfg(mocker: MockerFixture,
                                                          client: YouTubeClient,
                                                          data_path: Path) -> None:
     mocker.patch('youtube_unofficial.client.Soup')
-    mocker.patch(
-        'youtube_unofficial.client.find_ytcfg',
-        return_value={
-            'INNERTUBE_API_KEY': 'test_api_key',
-            'VISITOR_DATA': 'test_visitor_data',
-        },
-    )
+    mocker.patch('youtube_unofficial.client.find_ytcfg',
+                 return_value={
+                     'INNERTUBE_API_KEY': 'test_api_key',
+                     'VISITOR_DATA': 'test_visitor_data'
+                 })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads((data_path / 'clear-watch-history/00.json').read_text()))
     mocker.patch('youtube_unofficial.client.download_page',

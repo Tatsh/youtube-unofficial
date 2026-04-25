@@ -78,7 +78,7 @@ def print_watch_later(browser: str,
                       'youtube_unofficial': {
                           'handlers': ('console',),
                           'level': logging.DEBUG if debug else logging.INFO,
-                          'propagate': False,
+                          'propagate': False
                       }
                   })
     print_playlist_ids_callback(browser, profile, 'WL', output_json=output_json)
@@ -185,7 +185,7 @@ def print_history(browser: str,
                       'youtube_unofficial': {
                           'handlers': ('console',),
                           'level': logging.DEBUG if debug else logging.INFO,
-                          'propagate': False,
+                          'propagate': False
                       }
                   })
 
@@ -218,7 +218,7 @@ def remove_history_entries(browser: str,
                       'youtube_unofficial': {
                           'handlers': ('console',),
                           'level': logging.DEBUG if debug else logging.INFO,
-                          'propagate': False,
+                          'propagate': False
                       }
                   })
     anyio.run(_remove_history_entries, browser, profile, video_ids)
@@ -254,7 +254,7 @@ def remove_watch_later_video_id(browser: str,
                       'youtube_unofficial': {
                           'handlers': ('console',),
                           'level': logging.DEBUG if debug else logging.INFO,
-                          'propagate': False,
+                          'propagate': False
                       }
                   })
     remove_svi_callback(browser, profile, 'WL', video_ids)
@@ -278,7 +278,7 @@ def remove_video_id(browser: str,
                       'youtube_unofficial': {
                           'handlers': ('console',),
                           'level': logging.DEBUG if debug else logging.INFO,
-                          'propagate': False,
+                          'propagate': False
                       }
                   })
     remove_svi_callback(browser, profile, playlist_id, video_ids)
@@ -305,7 +305,7 @@ def toggle_watch_history(browser: str, profile: str, *, debug: bool = False) -> 
                       'youtube_unofficial': {
                           'handlers': ('console',),
                           'level': logging.DEBUG if debug else logging.INFO,
-                          'propagate': False,
+                          'propagate': False
                       }
                   })
     anyio.run(_toggle_watch_history, browser, profile)
@@ -330,7 +330,7 @@ def clear_watch_history(browser: str, profile: str, *, debug: bool = False) -> N
                       'youtube_unofficial': {
                           'handlers': ('console',),
                           'level': logging.DEBUG if debug else logging.INFO,
-                          'propagate': False,
+                          'propagate': False
                       }
                   })
     anyio.run(_clear_watch_history, browser, profile)
@@ -355,7 +355,7 @@ def clear_watch_later(browser: str, profile: str, *, debug: bool = False) -> Non
                       'youtube_unofficial': {
                           'handlers': ('console',),
                           'level': logging.DEBUG if debug else logging.INFO,
-                          'propagate': False,
+                          'propagate': False
                       }
                   })
     anyio.run(_clear_watch_later, browser, profile)

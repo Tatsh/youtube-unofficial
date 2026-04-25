@@ -22,7 +22,7 @@ async def test_get_history_info_no_continuation(mocker: MockerFixture, client: Y
                      'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
@@ -43,7 +43,7 @@ async def test_get_history_info_with_continuation(mocker: MockerFixture, client:
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
@@ -78,7 +78,7 @@ async def test_get_history_info_alt_continuation(mocker: MockerFixture, client: 
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
@@ -111,7 +111,7 @@ async def test_get_history_info_no_continuation_on_2nd_req(mocker: MockerFixture
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch(
         'youtube_unofficial.client.initial_data',
@@ -145,7 +145,7 @@ async def test_get_history_info_bad_continuation(mocker: MockerFixture, client: 
                      'INNERTUBE_CONTEXT_CLIENT_VERSION': '1.0',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(
@@ -169,29 +169,27 @@ async def test_get_history_info_no_continuation_token(mocker: MockerFixture,
                      'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
-    mocker.patch(
-        'youtube_unofficial.client.initial_data',
-        return_value={
-            'contents': {
-                'twoColumnBrowseResultsRenderer': {
-                    'tabs': [{
-                        'tabRenderer': {
-                            'content': {
-                                'sectionListRenderer': {
-                                    'contents': [],
-                                    'continuations': [{
-                                        'nextContinuationData': None,
-                                    }],
-                                },
-                            },
-                        },
-                    }],
-                },
-            },
-        },
-    )
+    mocker.patch('youtube_unofficial.client.initial_data',
+                 return_value={
+                     'contents': {
+                         'twoColumnBrowseResultsRenderer': {
+                             'tabs': [{
+                                 'tabRenderer': {
+                                     'content': {
+                                         'sectionListRenderer': {
+                                             'contents': [],
+                                             'continuations': [{
+                                                 'nextContinuationData': None
+                                             }]
+                                         }
+                                     }
+                                 }
+                             }]
+                         }
+                     }
+                 })
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,
                  return_value='<html></html>')
@@ -208,7 +206,7 @@ async def test_get_history_info_no_videos(mocker: MockerFixture, client: YouTube
                      'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch('youtube_unofficial.client.initial_data',
                  return_value=json.loads(

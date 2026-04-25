@@ -67,7 +67,7 @@ def test_ytcfg_headers() -> None:
     assert result == {
         'x-goog-authuser': '0',
         'x-goog-page-id': '12345',
-        'x-origin': 'https://www.youtube.com',
+        'x-origin': 'https://www.youtube.com'
     }
 
 
@@ -81,14 +81,13 @@ def test_extract_script_content(mocker: MockerFixture) -> None:
     mock_soup = mocker.MagicMock(spec=BeautifulSoup)
     mock_script_tags = [
         mocker.MagicMock(children=['var ytInitialData = {"key": "value"};']),
-        mocker.MagicMock(children=['<script>console.log("test");</script>']),
+        mocker.MagicMock(children=['<script>console.log("test");</script>'])
     ]
     mock_soup.select.return_value = mock_script_tags
 
     result = list(extract_script_content(mock_soup))
 
     assert result == [
-        'var ytInitialData = {"key": "value"};',
-        '<script>console.log("test");</script>',
+        'var ytInitialData = {"key": "value"};', '<script>console.log("test");</script>'
     ]
     mock_soup.select.assert_called_once_with('script')

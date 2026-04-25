@@ -25,7 +25,7 @@ async def test_remove_video_id_from_playlist(mocker: MockerFixture, client: YouT
         'INNERTUBE_API_KEY': 'test_api_key',
         'VISITOR_DATA': 'test_visitor_data',
         'USER_SESSION_ID': 'test_session_id',
-        'SESSION_INDEX': 0,
+        'SESSION_INDEX': 0
     }
     mocker.patch('youtube_unofficial.client.find_ytcfg', return_value=ytcfg_mock)
     mocker.patch('youtube_unofficial.client.context_client_body', return_value={})
@@ -41,14 +41,12 @@ async def test_remove_video_id_from_playlist(mocker: MockerFixture, client: YouT
 @pytest.mark.anyio
 async def test_remove_video_id_from_playlist_missing_innertube_keys(mocker: MockerFixture,
                                                                     client: YouTubeClient) -> None:
-    mocker.patch(
-        'youtube_unofficial.client.find_ytcfg',
-        return_value={
-            'VISITOR_DATA': 'test_visitor_data',
-            'USER_SESSION_ID': 'test_session_id',
-            'SESSION_INDEX': 0,
-        },
-    )
+    mocker.patch('youtube_unofficial.client.find_ytcfg',
+                 return_value={
+                     'VISITOR_DATA': 'test_visitor_data',
+                     'USER_SESSION_ID': 'test_session_id',
+                     'SESSION_INDEX': 0
+                 })
     mocker.patch('youtube_unofficial.client.Soup')
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,
@@ -61,15 +59,13 @@ async def test_remove_video_id_from_playlist_missing_innertube_keys(mocker: Mock
 @pytest.mark.anyio
 async def test_remove_video_id_from_playlist_missing_sapisid(mocker: MockerFixture,
                                                              client: YouTubeClient) -> None:
-    mocker.patch(
-        'youtube_unofficial.client.find_ytcfg',
-        return_value={
-            'INNERTUBE_API_KEY': 'test_api_key',
-            'VISITOR_DATA': 'test_visitor_data',
-            'USER_SESSION_ID': 'test_session_id',
-            'SESSION_INDEX': 0,
-        },
-    )
+    mocker.patch('youtube_unofficial.client.find_ytcfg',
+                 return_value={
+                     'INNERTUBE_API_KEY': 'test_api_key',
+                     'VISITOR_DATA': 'test_visitor_data',
+                     'USER_SESSION_ID': 'test_session_id',
+                     'SESSION_INDEX': 0
+                 })
     mocker.patch('youtube_unofficial.client.context_client_body', return_value={})
     mocker.patch('youtube_unofficial.client.Soup')
     mocker.patch.object(client.session.cookies, 'get', return_value=None)
@@ -131,7 +127,7 @@ async def test_remove_video_from_playlist_cached(mocker: MockerFixture,
                      'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch('youtube_unofficial.client.context_client_body', return_value={})
     mocker.patch('youtube_unofficial.client.Soup')
@@ -158,7 +154,7 @@ async def test_remove_set_video_id_from_playlist(mocker: MockerFixture,
                      'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch('youtube_unofficial.client.context_client_body', return_value={})
     mocker.patch('youtube_unofficial.client.Soup')
@@ -177,7 +173,7 @@ async def test_remove_set_video_id_from_playlist_cached(mocker: MockerFixture,
                      'USER_SESSION_ID': 'test_session_id',
                      'INNERTUBE_API_KEY': 'test_api_key',
                      'SESSION_INDEX': 0,
-                     'VISITOR_DATA': 'test_visitor_data',
+                     'VISITOR_DATA': 'test_visitor_data'
                  })
     mocker.patch('youtube_unofficial.client.context_client_body', return_value={})
     mocker.patch('youtube_unofficial.client.Soup')

@@ -15,7 +15,7 @@ def _ytcfg() -> dict[str, str | int]:
         'INNERTUBE_API_KEY': 'test_api_key',
         'VISITOR_DATA': 'test_visitor_data',
         'USER_SESSION_ID': 'test_session_id',
-        'SESSION_INDEX': 0,
+        'SESSION_INDEX': 0
     }
 
 
@@ -33,45 +33,42 @@ def _playlist_initial_with_continuation() -> dict[str, object]:
                                             'playlistVideoListRenderer': {
                                                 'contents': [{
                                                     'playlistVideoRenderer': {
-                                                        'videoId': 'v1',
-                                                    },
+                                                        'videoId': 'v1'
+                                                    }
                                                 }, {
                                                     'continuationItemRenderer': {
                                                         'continuationEndpoint': {
                                                             'commandMetadata': {
                                                                 'webCommandMetadata': {
-                                                                    'apiUrl': '/youtubei/v1/test',
-                                                                },
+                                                                    'apiUrl': '/youtubei/v1/test'
+                                                                }
                                                             },
                                                             'continuationCommand': {
-                                                                'token': 'tok',
-                                                            },
-                                                        },
-                                                    },
-                                                }],
-                                            },
-                                        }],
-                                    },
-                                }],
-                            },
-                        },
-                    },
-                }],
-            },
-        },
+                                                                'token': 'tok'
+                                                            }
+                                                        }
+                                                    }
+                                                }]
+                                            }
+                                        }]
+                                    }
+                                }]
+                            }
+                        }
+                    }
+                }]
+            }
+        }
     }
 
 
-def _continuation_api_page(
-    *,
-    items: list[dict[str, object]],
-) -> dict[str, object]:
+def _continuation_api_page(*, items: list[dict[str, object]]) -> dict[str, object]:
     return {
         'onResponseReceivedActions': [{
             'appendContinuationItemsAction': {
-                'continuationItems': items,
-            },
-        }],
+                'continuationItems': items
+            }
+        }]
     }
 
 
@@ -96,30 +93,28 @@ async def test_get_playlist_info_renderer_null(mocker: MockerFixture,
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,
                  return_value='<html></html>')
-    mocker.patch(
-        'youtube_unofficial.client.initial_data',
-        return_value={
-            'contents': {
-                'twoColumnBrowseResultsRenderer': {
-                    'tabs': [{
-                        'tabRenderer': {
-                            'content': {
-                                'sectionListRenderer': {
-                                    'contents': [{
-                                        'itemSectionRenderer': {
-                                            'contents': [{
-                                                'playlistVideoListRenderer': None,
-                                            }],
-                                        },
-                                    }],
-                                },
-                            },
-                        },
-                    }],
-                },
-            },
-        },
-    )
+    mocker.patch('youtube_unofficial.client.initial_data',
+                 return_value={
+                     'contents': {
+                         'twoColumnBrowseResultsRenderer': {
+                             'tabs': [{
+                                 'tabRenderer': {
+                                     'content': {
+                                         'sectionListRenderer': {
+                                             'contents': [{
+                                                 'itemSectionRenderer': {
+                                                     'contents': [{
+                                                         'playlistVideoListRenderer': None
+                                                     }]
+                                                 }
+                                             }]
+                                         }
+                                     }
+                                 }
+                             }]
+                         }
+                     }
+                 })
     with pytest.raises(RuntimeError, match='Expected playlist video list renderer'):
         async for _ in client.get_playlist_info('PLx'):
             pass
@@ -147,71 +142,63 @@ async def test_get_playlist_info_yields_then_breaks_on_continuation_item(
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,
                  return_value='<html></html>')
-    mocker.patch(
-        'youtube_unofficial.client.initial_data',
-        return_value={
-            'contents': {
-                'twoColumnBrowseResultsRenderer': {
-                    'tabs': [{
-                        'tabRenderer': {
-                            'content': {
-                                'sectionListRenderer': {
-                                    'contents': [{
-                                        'itemSectionRenderer': {
-                                            'contents': [{
-                                                'playlistVideoListRenderer': {
-                                                    'contents': [
-                                                        {},
-                                                        {
-                                                            'playlistVideoRenderer': {
-                                                                'videoId': 'head',
-                                                            },
-                                                        },
-                                                        {
-                                                            'continuationItemRenderer': {
-                                                                'continuationEndpoint': {
-                                                                    'commandMetadata': {
-                                                                        'webCommandMetadata': {
-                                                                            'apiUrl': '/x',
-                                                                        },
-                                                                    },
-                                                                    'continuationCommand': {
-                                                                        'token': 't0',
-                                                                    },
-                                                                },
-                                                            },
-                                                        },
-                                                    ],
-                                                },
-                                            }],
-                                        },
-                                    }],
-                                },
-                            },
-                        },
-                    }],
-                },
-            },
-        },
-    )
-    mocker.patch.object(
-        client,
-        '_single_feedback_api_call',
-        return_value=_continuation_api_page(items=[{
-            'playlistVideoRenderer': {
-                'videoId': 'from_api',
-            },
-        }]),
-    )
+    mocker.patch('youtube_unofficial.client.initial_data',
+                 return_value={
+                     'contents': {
+                         'twoColumnBrowseResultsRenderer': {
+                             'tabs': [{
+                                 'tabRenderer': {
+                                     'content': {
+                                         'sectionListRenderer': {
+                                             'contents': [{
+                                                 'itemSectionRenderer': {
+                                                     'contents': [{
+                                                         'playlistVideoListRenderer': {
+                                                             'contents': [{}, {
+                                                                 'playlistVideoRenderer': {
+                                                                     'videoId': 'head'
+                                                                 }
+                                                             }, {
+                                                                 'continuationItemRenderer': {
+                                                                     'continuationEndpoint': {
+                                                                         'commandMetadata': {
+                                                                             'webCommandMetadata': {
+                                                                                 'apiUrl': '/x'
+                                                                             }
+                                                                         },
+                                                                         'continuationCommand': {
+                                                                             'token': 't0'
+                                                                         }
+                                                                     }
+                                                                 }
+                                                             }]
+                                                         }
+                                                     }]
+                                                 }
+                                             }]
+                                         }
+                                     }
+                                 }
+                             }]
+                         }
+                     }
+                 })
+    mocker.patch.object(client,
+                        '_single_feedback_api_call',
+                        return_value=_continuation_api_page(items=[{
+                            'playlistVideoRenderer': {
+                                'videoId': 'from_api'
+                            }
+                        }]))
     out = [x async for x in client.get_playlist_info('PLx')]
     assert out == [{
         'playlistVideoRenderer': {
-            'videoId': 'head',
-        },
+            'videoId': 'head'
+        }
     }, {
         'playlistVideoRenderer': {
-            'videoId': 'from_api',
-        },
+            'videoId': 'from_api'
+        }
     }]
 
 
@@ -230,29 +217,21 @@ async def test_get_playlist_info_continuation_updates_token_then_stops(
     def _responses(*_: object, **__: object) -> dict[str, object]:
         if call_n['n'] == 0:
             call_n['n'] += 1
-            return _continuation_api_page(items=[
-                {},
-                {
-                    'playlistVideoRenderer': {
-                        'videoId': 'page1',
-                    },
-                },
-                {
-                    'continuationItemRenderer': {
-                        'continuationEndpoint': {
-                            'continuationCommand': {
-                                'token': 'tok2',
-                            },
-                        },
-                    },
-                },
-            ])
+            return _continuation_api_page(items=[{}, {
+                'playlistVideoRenderer': {
+                    'videoId': 'page1'
+                }
+            }, {
+                'continuationItemRenderer': {
+                    'continuationEndpoint': {
+                        'continuationCommand': {
+                            'token': 'tok2'
+                        }
+                    }
+                }
+            }])
         call_n['n'] += 1
-        return _continuation_api_page(items=[{
-            'playlistVideoRenderer': {
-                'videoId': 'page2',
-            },
-        }])
+        return _continuation_api_page(items=[{'playlistVideoRenderer': {'videoId': 'page2'}}])
 
     mocker.patch.object(client, '_single_feedback_api_call', side_effect=_responses)
     out = [x async for x in client.get_playlist_info('PLx')]
@@ -266,60 +245,56 @@ async def test_get_playlist_info_breaks_when_continuation_first(mocker: MockerFi
     mocker.patch('youtube_unofficial.client.download_page',
                  new_callable=AsyncMock,
                  return_value='<html></html>')
-    mocker.patch(
-        'youtube_unofficial.client.initial_data',
-        return_value={
-            'contents': {
-                'twoColumnBrowseResultsRenderer': {
-                    'tabs': [{
-                        'tabRenderer': {
-                            'content': {
-                                'sectionListRenderer': {
-                                    'contents': [{
-                                        'itemSectionRenderer': {
-                                            'contents': [{
-                                                'playlistVideoListRenderer': {
-                                                    'contents': [{
-                                                        'continuationItemRenderer': {
-                                                            'continuationEndpoint': {
-                                                                'commandMetadata': {
-                                                                    'webCommandMetadata': {
-                                                                        'apiUrl': '/x',
-                                                                    },
-                                                                },
-                                                                'continuationCommand': {
-                                                                    'token': 't',
-                                                                },
-                                                            },
-                                                        },
-                                                    }],
-                                                },
-                                            }],
-                                        },
-                                    }],
-                                },
-                            },
-                        },
-                    }],
-                },
-            },
-        },
-    )
-    mocker.patch.object(
-        client,
-        '_single_feedback_api_call',
-        return_value={
-            'onResponseReceivedActions': [{
-                'appendContinuationItemsAction': {
-                    'continuationItems': [{
-                        'playlistVideoRenderer': {
-                            'videoId': 'c1',
-                        },
-                    }],
-                },
-            }],
-        },
-    )
+    mocker.patch('youtube_unofficial.client.initial_data',
+                 return_value={
+                     'contents': {
+                         'twoColumnBrowseResultsRenderer': {
+                             'tabs': [{
+                                 'tabRenderer': {
+                                     'content': {
+                                         'sectionListRenderer': {
+                                             'contents': [{
+                                                 'itemSectionRenderer': {
+                                                     'contents': [{
+                                                         'playlistVideoListRenderer': {
+                                                             'contents': [{
+                                                                 'continuationItemRenderer': {
+                                                                     'continuationEndpoint': {
+                                                                         'commandMetadata': {
+                                                                             'webCommandMetadata': {
+                                                                                 'apiUrl': '/x'
+                                                                             }
+                                                                         },
+                                                                         'continuationCommand': {
+                                                                             'token': 't'
+                                                                         }
+                                                                     }
+                                                                 }
+                                                             }]
+                                                         }
+                                                     }]
+                                                 }
+                                             }]
+                                         }
+                                     }
+                                 }
+                             }]
+                         }
+                     }
+                 })
+    mocker.patch.object(client,
+                        '_single_feedback_api_call',
+                        return_value={
+                            'onResponseReceivedActions': [{
+                                'appendContinuationItemsAction': {
+                                    'continuationItems': [{
+                                        'playlistVideoRenderer': {
+                                            'videoId': 'c1'
+                                        }
+                                    }]
+                                }
+                            }]
+                        })
     out = [x async for x in client.get_playlist_info('PLx')]
     assert out == [{'playlistVideoRenderer': {'videoId': 'c1'}}]
 

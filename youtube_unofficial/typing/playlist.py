@@ -6,24 +6,13 @@ from typing import TYPE_CHECKING, Any, TypedDict
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-__all__ = (
-    'HasKeyText',
-    'Icon',
-    'NavigationEndpoint',
-    'NextContinuation',
-    'PlaylistInfo',
-    'PlaylistVideoIDsEntry',
-    'PlaylistVideoListRenderer',
-    'PlaylistVideoListRendererContinuations',
-    'PlaylistVideoRenderer',
-    'PlaylistVideoRendererMenu',
-    'PlaylistVideoRendererMenuRenderer',
-    'PlaylistVideoRendererMenuRendererItem',
-    'PlaylistVideoRendererMenuRendererItemMenuServiceItemRenderer',
-    'RunsOrSimpleText',
-    'RunsOrText',
-    'WatchEndpoint',
-)
+__all__ = ('HasKeyText', 'Icon', 'NavigationEndpoint', 'NextContinuation', 'PlaylistInfo',
+           'PlaylistVideoIDsEntry', 'PlaylistVideoListRenderer',
+           'PlaylistVideoListRendererContinuations', 'PlaylistVideoRenderer',
+           'PlaylistVideoRendererMenu', 'PlaylistVideoRendererMenuRenderer',
+           'PlaylistVideoRendererMenuRendererItem',
+           'PlaylistVideoRendererMenuRendererItemMenuServiceItemRenderer', 'RunsOrSimpleText',
+           'RunsOrText', 'WatchEndpoint')
 
 
 class NextContinuation(TypedDict):
