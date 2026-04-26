@@ -6,19 +6,17 @@ requires = ["hatchling"]
 dev = [
   "commitizen>=4.13.10",
   "cz-path>=0.0.6",
-  "mypy>=1.20.0",
-  "ruff>=0.15.10",
-  "ty>=0.0.29",
+  "mypy>=1.20.1",
+  "ruff==0.15.11",
+  "ty>=0.0.31",
   "types-beautifulsoup4>=4.12.0.20250516",
   "yapf>=0.43.0",
 ]
 docs = [
   "autodoc-pydantic>=2.2.0",
   "doc8>=2.0.0",
-  "docutils<0.22",
   "enum-tools[sphinx]>=0.13.0",
   "esbonio>=2.0.0",
-  "numpydoc>=1.10.0",
   "restructuredtext-lint>=2.0.2",
   "sphinx-click>=6.2.0",
   "sphinx-datatables>=1.0.0",
@@ -123,7 +121,7 @@ omit = [
 max-line-length = 100
 
 [tool.hatch.build.targets.sdist]
-include = ["youtube_unofficial", "tests"]
+include = ["youtube_unofficial", "man", "tests"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["youtube_unofficial"]
@@ -269,4 +267,4 @@ split_penalty_logical_operator = 300
 use_tabs = false
 
 [tool.yapfignore]
-ignore_patterns = [".venv/**", "node_modules/**"]
+ignore_patterns = [".venv", ".wiswa-ci", "node_modules"]
