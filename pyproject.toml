@@ -51,7 +51,7 @@ dependencies = [
   "click>=8.3.2",
   "html5lib>=1.1",
   "more-itertools>=11.0.2",
-  "niquests-cache>=0.0.3",
+  "niquests-cache>=0.2.3",
   "typing-extensions>=4.15.0",
   "yt-dlp-utils[asyncio]>=0.1.0",
 ]
