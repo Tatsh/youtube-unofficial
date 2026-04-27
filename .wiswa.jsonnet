@@ -5,7 +5,7 @@ local utils = import 'utils.libjsonnet';
   description: 'Access parts of your account unavailable through normal YouTube API access.',
   keywords: ['command line', 'youtube'],
   project_name: 'youtube-unofficial',
-  version: '0.3.1',
+  version: '0.4.0',
   want_main: true,
   want_flatpak: true,
   publishing+: { flathub: 'sh.tat.youtube-unofficial' },

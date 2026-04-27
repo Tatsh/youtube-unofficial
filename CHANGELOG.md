@@ -9,10 +9,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
 
+## [0.4.0] - 2026-04-26
+
 ### Added
 
 - New `build_youtube_session()` function for creating an async HTTP session with browser cookies.
 - New `session` module exposing session-creation utilities.
+- Support for Python 3.10 and 3.11.
+- Expanded test coverage for the client.
 
 ### Changed
 
@@ -24,6 +28,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Replaced internal assertions with explicit exceptions for playlist API calls, session validation,
   and continuation handling so missing keys, unexpected response shapes, and absent cookies surface
   as `KeyError`, `RuntimeError`, or `TypeError` instead of `AssertionError`.
+- Trimmed the playlist `ytcfg` guard to be less strict.
+- Replaced documentation badges.
+
+### Fixed
+
+- Snapcraft binary path.
 
 ### Removed
 
@@ -59,6 +69,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Download commands. All of these can be achieved with yt-dlp alone now.
 - Command to clear search history. Moved to My Activity.
 
-[unreleased]: https://github.com/Tatsh/youtube-unofficial/compare/v0.3.1...HEAD
+[unreleased]: https://github.com/Tatsh/youtube-unofficial/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Tatsh/youtube-unofficial/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/Tatsh/youtube-unofficial/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Tatsh/youtube-unofficial/compare/v0.2.0...v0.3.0
