@@ -75,10 +75,15 @@ html_theme_options = {
     'toc_title_is_page_title': True
 }
 intersphinx_mapping = {
+    'anyio': ('https://anyio.readthedocs.io/en/stable/', None),
     'bascom': ('https://bascom.readthedocs.io/en/latest/', None),
     'bs4': ('https://www.crummy.com/software/BeautifulSoup/bs4/doc/', None),
     'click': ('https://click.palletsprojects.com/en/latest/', None),
+    'html5lib': ('https://html5lib.readthedocs.io/en/latest/', None),
+    'more-itertools': ('https://more-itertools.readthedocs.io/en/stable/', None),
     'niquests': ('https://niquests.readthedocs.io/en/latest/', None),
+    'niquests-cache': ('https://niquests-cache.readthedocs.io/en/latest/', None),
     'python': ('https://docs.python.org/3', None),
-    'typing-extensions': ('https://typing-extensions.readthedocs.io/en/latest/', None)
+    'typing-extensions': ('https://typing-extensions.readthedocs.io/en/latest/', None),
+    'yt-dlp-utils': ('https://yt-dlp-utils.readthedocs.io/en/latest/', None)
 }
