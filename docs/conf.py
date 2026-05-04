@@ -42,7 +42,7 @@ html_theme_options = {
     'globaltoc_collapse': True,
     'icon': {
         'edit': 'material/file-edit-outline',
-        'repo': 'fontawesome/brands/gitlab'
+        'repo': 'fontawesome/brands/github'
     },
     'palette': [{
         'media': '(prefers-color-scheme)',
@@ -75,6 +75,10 @@ html_theme_options = {
     'toc_title_is_page_title': True
 }
 intersphinx_mapping = {
+    'bascom': ('https://bascom.readthedocs.io/en/latest/', None),
+    'bs4': ('https://www.crummy.com/software/BeautifulSoup/bs4/doc/', None),
+    'click': ('https://click.palletsprojects.com/en/latest/', None),
+    'niquests': ('https://niquests.readthedocs.io/en/latest/', None),
     'python': ('https://docs.python.org/3', None),
-    'requests': ('https://requests.readthedocs.io/en/latest/', None)
+    'typing-extensions': ('https://typing-extensions.readthedocs.io/en/latest/', None)
 }
