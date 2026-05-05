@@ -16,7 +16,7 @@ local utils = import 'utils.libjsonnet';
       },
     },
   },
-  security_policy_supported_versions: { '0.3.x': ':white_check_mark:' },
+  security_policy_supported_versions: { '0.4.x': ':white_check_mark:' },
   tests_pyproject+: {
     tool+: {
       ruff+: {
