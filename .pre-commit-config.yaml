@@ -43,7 +43,7 @@ repos:
           - '--frozen'
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
-    rev: '0.11.7'
+    rev: '0.11.13'
   - hooks:
       - args:
           - '--fix'
@@ -65,7 +65,7 @@ repos:
         id: 'check-jsonschema'
         name: 'validate package.json'
     repo: 'https://github.com/python-jsonschema/check-jsonschema'
-    rev: '0.37.1'
+    rev: '0.37.2'
   - hooks:
       - id: 'validate-cff'
     repo: 'https://github.com/citation-file-format/cffconvert'
