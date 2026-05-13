@@ -161,15 +161,15 @@ wheels = [
 
 [[package]]
 name = "bascom"
-version = "0.1.2"
+version = "0.1.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorlog" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8e/03/46877c0f1f1bfd1ab65d2be584222ee536745e2a685c72493096afbc0346/bascom-0.1.2.tar.gz", hash = "sha256:92b339fe44b40e0d7155413cf372c67b3a96156ca3dfe425ea27a718634ccba0", size = 7327, upload-time = "2025-12-28T04:36:07.259Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1a/28/4e608a62214b25ccaa94d87e0f3ea465b808a851513cb3f7b3d645218bc1/bascom-0.1.3.tar.gz", hash = "sha256:22a42fc5a0e8b3f224dfe797f5409683b627fb57e522ee33d0172e540ac292a7", size = 7449, upload-time = "2026-05-02T21:53:46.141Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/ff/295b708ac22efee65cb4bb45c55cc6c0c39c306a48b4f00fb1754ae28d4e/bascom-0.1.2-py3-none-any.whl", hash = "sha256:138439419fba60b7ae06d2acdba5162235cde74e3385ac82e2243a82edcff5cb", size = 5546, upload-time = "2025-12-28T04:36:05.792Z" },
+    { url = "https://files.pythonhosted.org/packages/25/63/db3cf445c32b2fd2ddd3a4b43019e615a0d8a42d5d671580032e6fd3fb0b/bascom-0.1.3-py3-none-any.whl", hash = "sha256:0776404625258ac90966601032d3402b82ffd552fd286f3a4f03606b8029410e", size = 5548, upload-time = "2026-05-02T21:53:44.78Z" },
 ]
 
 [[package]]
@@ -1446,7 +1446,7 @@ wheels = [
 
 [[package]]
 name = "niquests-cache"
-version = "0.2.3"
+version = "0.2.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiosqlite" },
@@ -1455,9 +1455,9 @@ dependencies = [
     { name = "platformdirs" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8e/3f/5a65ac5a4b253589835f55f0866c312ec94b9b83e8348e66ba378bbc205e/niquests_cache-0.2.3.tar.gz", hash = "sha256:96db6ce1315e71d71327de3b7eca6f67ad2868d521862624a79d0c22d5598a41", size = 23792, upload-time = "2026-04-26T02:44:41.763Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/aa/e7/9ffc11088165e15fdd941c30f34b1a52b441cfc3b91c99546896b64eb780/niquests_cache-0.2.4.tar.gz", hash = "sha256:7542faf2a0b6f9ef3e7e531c89daa24a4bf69f88f3d6fb1d8112c3975f8239e1", size = 24030, upload-time = "2026-04-30T10:56:06.249Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/52/d703f7047be25bdf7517f2beaa818aca4fccff31649adcffb6c19569cf13/niquests_cache-0.2.3-py3-none-any.whl", hash = "sha256:69c050355e382500d8d62e0aff0121dd2e6dd761af305f9237e46af153653e56", size = 19559, upload-time = "2026-04-26T02:44:40.067Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/e8/4b1ce5f24332de75853728a9d94a6d9f6512f0d94ad1233959bdad9f5e71/niquests_cache-0.2.4-py3-none-any.whl", hash = "sha256:cc1b3c11966631ea81e861e92d72828f91aab7a719f71abeb17248adc4fa40c7", size = 19711, upload-time = "2026-04-30T10:56:05.086Z" },
 ]
 
 [[package]]
