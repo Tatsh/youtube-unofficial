@@ -8,6 +8,7 @@ local utils = import 'utils.libjsonnet';
   version: '0.4.0',
   want_main: true,
   want_flatpak: true,
+  gitlab_mirror_uri: 'https://gitlab.com/Tatsh/%s' % self.project_name,
   publishing+: { flathub: 'sh.tat.youtube-unofficial' },
   docs_conf+: {
     config+: {

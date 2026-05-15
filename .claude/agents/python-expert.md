@@ -1,3 +1,8 @@
+---
+name: python-expert
+description: Expert-level Python author for non-trivial implementation work in the youtube-unofficial project. Use when the task needs idiomatic, production-quality Python beyond a simple edit.
+---
+
 # Python Expert Agent
 
 General-purpose expert-level Python coding agent for the youtube-unofficial project.

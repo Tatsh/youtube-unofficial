@@ -1,3 +1,8 @@
+---
+name: coverage-improver
+description: Identifies uncovered code paths and writes targeted pytest tests to close the gap. Use when test coverage falls below the project target or before a release.
+---
+
 # Coverage Improver Agent
 
 Identifies test coverage gaps and writes tests to fill them.

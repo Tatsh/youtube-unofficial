@@ -1,3 +1,8 @@
+---
+name: wiswa-sync
+description: Reflects manual edits to Wiswa-managed files back into `.wiswa.jsonnet` so a regen reproduces them. Use after direct edits to managed files like `pyproject.toml`.
+---
+
 # Wiswa Sync Agent
 
 Reflects changes made to Wiswa-managed files back into `.wiswa.jsonnet`.

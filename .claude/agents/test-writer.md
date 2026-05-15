@@ -1,3 +1,8 @@
+---
+name: test-writer
+description: Generates pytest suites following project conventions (conftest fixtures, parametrize, no docstrings on tests). Use when new code needs tests written from scratch.
+---
+
 # Test Writer Agent
 
 Generates tests following the project's established patterns and conventions.

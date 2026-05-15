@@ -1,3 +1,8 @@
+---
+name: workflow-shellcheck
+description: Extracts embedded Bash from GitHub Actions YAML, runs ShellCheck, and applies fixes. Use after editing workflow scripts.
+---
+
 # Workflow ShellCheck Agent
 
 Extracts embedded Bash scripts from GitHub Actions workflow files, runs ShellCheck, and applies

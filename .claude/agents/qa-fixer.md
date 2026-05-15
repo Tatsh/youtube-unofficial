@@ -1,3 +1,8 @@
+---
+name: qa-fixer
+description: Runs `yarn format` followed by `yarn qa` in a loop, applying fixes until both exit with code 0. Use proactively before every commit and after batches of edits.
+---
+
 # QA Fixer Agent
 
 Runs formatting and QA checks, then iteratively fixes all issues until both pass cleanly.

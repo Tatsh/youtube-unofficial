@@ -1,3 +1,8 @@
+---
+name: regen
+description: Re-runs the Wiswa generator, applies post-processing, verifies the result is safe, and commits. Use when `.wiswa.jsonnet` or managed templates change.
+---
+
 # Regen Agent
 
 Regenerates the project by running Wiswa and post-processing steps, then commits if safe.

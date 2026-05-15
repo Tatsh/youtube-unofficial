@@ -1,3 +1,8 @@
+---
+name: badge-sync
+description: Synchronises the badge list in docs/badges.rst with README.md. Use after editing the README badge block or when docs and README drift.
+---
+
 # Badge Sync Agent
 
 Ensures badges in `docs/badges.rst` are in sync with `README.md`.

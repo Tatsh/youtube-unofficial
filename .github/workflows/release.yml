@@ -4,7 +4,9 @@ jobs:
     steps:
       - uses: 'actions/checkout@v6.0.2'
       - env:
-          HEAD_BRANCH: '${{ github.event.workflow_run.head_branch }}'
+          GH_TOKEN: '${{ github.token }}'
+          HEAD_SHA: '${{ github.event.workflow_run.head_sha }}'
+          REPO: '${{ github.repository }}'
           TRIGGER_CONCLUSION: '${{ github.event.workflow_run.conclusion }}'
         id: 'guard'
         name: 'Check trigger conditions'
@@ -14,60 +16,98 @@ jobs:
             echo 'proceed=false' >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if [[ -z "$HEAD_BRANCH" || "$HEAD_BRANCH" != v* ]]; then
-            echo "Head branch '${HEAD_BRANCH}' is not a release tag, nothing to do."
+          tag=''
+          while IFS=$'\t' read -r ref obj_type obj_sha; do
+            [[ -z "$ref" ]] && continue
+            if [[ "$obj_type" == 'commit' ]]; then
+              target_sha="$obj_sha"
+            else
+              target_sha=$(gh api "repos/${REPO}/git/tags/${obj_sha}" \
+                --jq '.object.sha' 2>/dev/null || echo '')
+            fi
+            if [[ "$target_sha" == "$HEAD_SHA" ]]; then
+              tag="${ref#refs/tags/}"
+              break
+            fi
+          done < <(gh api "repos/${REPO}/git/matching-refs/tags/v" \
+            --jq '.[] | [.ref, .object.type, .object.sha] | @tsv')
+          if [[ -z "$tag" ]]; then
+            echo "No v* tag points at ${HEAD_SHA}, nothing to do."
             echo 'proceed=false' >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          echo "Found release tag ${tag} for SHA ${HEAD_SHA}."
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
           echo 'proceed=true' >> "$GITHUB_OUTPUT"
       - env:
           GH_TOKEN: '${{ github.token }}'
-          HEAD_BRANCH: '${{ github.event.workflow_run.head_branch }}'
           HEAD_SHA: '${{ github.event.workflow_run.head_sha }}'
+          TAG: '${{ steps.guard.outputs.tag }}'
         id: 'check'
         if: "steps.guard.outputs.proceed == 'true'"
         name: 'Check all required workflows succeeded'
         run: |
-          tag="$HEAD_BRANCH"
+          tag="$TAG"
           sha="$HEAD_SHA"
+          required_workflows=('AppImage' 'Flatpak' 'Publish' 'PyInstaller' 'Snap')
+          optional_workflows=('Prettier' 'QA' 'Spelling' 'Tests' 'markdownlint')
           all_success=true
-          for workflow in AppImage Flatpak Prettier Publish PyInstaller QA Snap Spelling Tests markdownlint; do
-            run=$(gh run list --workflow "$workflow" --commit "$sha" --json status,conclusion --jq '.[0]')
+          process_workflow() {
+            local workflow="$1" treat_missing="$2"
+            local run status conclusion
+            run=$(gh run list --workflow "$workflow" --commit "$sha" --json status,conclusion --jq '.[0]') || run=''
             if [[ -z "$run" || "$run" == 'null' ]]; then
-              echo "Workflow '$workflow' did not run for this commit; treating as optional."
-              continue
+              if [[ "$treat_missing" == 'pending' ]]; then
+                echo "Required workflow '$workflow' has not registered a run yet."
+                return 2
+              fi
+              echo "Optional workflow '$workflow' did not run for this commit; skipping."
+              return 0
             fi
-            status=$(echo "$run" | jq -r '.status')
-            conclusion=$(echo "$run" | jq -r '.conclusion')
+            status=$(echo "$run" | jq -r '.status') || status=''
+            conclusion=$(echo "$run" | jq -r '.conclusion') || conclusion=''
             case "$conclusion" in
               failure|cancelled|timed_out|startup_failure|action_required)
                 echo "::error::Workflow '$workflow' ${conclusion}."
-                exit 1
+                return 1
                 ;;
               success|skipped|neutral)
+                return 0
                 ;;
               *)
                 if [[ "$status" == 'completed' ]]; then
                   echo "::error::Workflow '$workflow' completed with unexpected conclusion '${conclusion}'."
-                  exit 1
+                  return 1
                 fi
                 echo "Workflow '$workflow' still pending (status=${status})."
-                all_success=false
+                return 2
                 ;;
             esac
+          }
+          for workflow in "${required_workflows[@]}"; do
+            rc=0
+            process_workflow "$workflow" pending || rc=$?
+            [[ $rc -eq 1 ]] && exit 1
+            [[ $rc -eq 2 ]] && all_success=false
+          done
+          for workflow in "${optional_workflows[@]}"; do
+            rc=0
+            process_workflow "$workflow" skip || rc=$?
+            [[ $rc -eq 1 ]] && exit 1
+            [[ $rc -eq 2 ]] && all_success=false
           done
           if [[ "$all_success" != 'true' ]]; then
-            echo 'Not all workflows have completed yet.'
+            echo 'Not all required workflows have completed yet.'
             exit 0
           fi
           echo "All required workflows succeeded for ${tag}."
-          echo "tag=${tag}" >> "$GITHUB_ENV"
           echo "ready=true" >> "$GITHUB_OUTPUT"
       - env:
           GH_TOKEN: '${{ github.token }}'
+          TAG: '${{ steps.guard.outputs.tag }}'
         if: "steps.check.outputs.ready == 'true'"
         name: 'Publish release'
-        run: 'gh release edit "$tag" --draft=false'
+        run: 'gh release edit "$TAG" --draft=false'
       - env:
           GH_TOKEN: '${{ github.token }}'
           REPO: '${{ github.repository }}'

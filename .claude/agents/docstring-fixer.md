@@ -1,3 +1,8 @@
+---
+name: docstring-fixer
+description: Audits public APIs for missing or incomplete NumPy-style docstrings and writes them. Use after adding new public functions, classes, or modules.
+---
+
 # Docstring Fixer Agent
 
 Audits and fixes missing or incomplete docstrings across the project.

@@ -75,7 +75,6 @@ namedtuples
 niquests
 norecursedirs
 notarytool
-npmjs
 numpy
 onefile
 oneline
@@ -86,6 +85,7 @@ pavelzw
 phash
 pipx
 plistlib
+preapproved
 prodvers
 pycache
 pydantic
@@ -130,12 +130,15 @@ tostring
 tryfirst
 ubyte
 udvare
+undraft
+undrafted
 vendored
 venv
 vers
 virtualenv
 wiswa
 wiswa's
+worktree
 xcrun
 yapf
 yapfignore

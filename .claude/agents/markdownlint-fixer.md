@@ -1,3 +1,8 @@
+---
+name: markdownlint-fixer
+description: Fixes markdownlint-cli2 errors in Markdown and MDC files. Use proactively after editing any Markdown content.
+---
+
 # Markdownlint Fixer Agent
 
 Fixes issues reported by markdownlint-cli2 in Markdown and MDC files.

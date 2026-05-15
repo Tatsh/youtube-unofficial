@@ -10,32 +10,53 @@ jobs:
         name: 'Wait for workflows'
         run: |
           sha="$COMMIT_SHA"
+          required_workflows=('AppImage' 'Flatpak' 'PyInstaller' 'Snap')
+          optional_workflows=('Prettier' 'QA' 'Spelling' 'Tests' 'markdownlint')
+          process_workflow() {
+            local workflow="$1" treat_missing="$2"
+            local run status conclusion
+            run=$(gh run list --workflow "$workflow" --commit "$sha" --json status,conclusion --jq '.[0]') || run=''
+            if [[ -z "$run" || "$run" == 'null' ]]; then
+              if [[ "$treat_missing" == 'pending' ]]; then
+                echo "Required workflow '$workflow' has not registered a run yet; waiting."
+                return 2
+              fi
+              echo "Optional workflow '$workflow' did not run for this commit; skipping."
+              return 0
+            fi
+            status=$(echo "$run" | jq -r '.status') || status=''
+            conclusion=$(echo "$run" | jq -r '.conclusion') || conclusion=''
+            case "$conclusion" in
+              failure|cancelled|timed_out|startup_failure|action_required)
+                echo "::error::Workflow '$workflow' ${conclusion}."
+                return 1
+                ;;
+              success|skipped|neutral)
+                return 0
+                ;;
+              *)
+                if [[ "$status" == 'completed' ]]; then
+                  echo "::error::Workflow '$workflow' completed with unexpected conclusion '${conclusion}'."
+                  return 1
+                fi
+                echo "Workflow '$workflow' still pending (status=${status})."
+                return 2
+                ;;
+            esac
+          }
           for i in $(seq 1 30); do
             all_done=true
-            for workflow in AppImage Flatpak Prettier PyInstaller QA Snap Spelling Tests markdownlint; do
-              run=$(gh run list --workflow "$workflow" --commit "$sha" --json status,conclusion --jq '.[0]')
-              if [[ -z "$run" || "$run" == 'null' ]]; then
-                echo "Workflow '$workflow' did not run for this commit; treating as optional."
-                continue
-              fi
-              status=$(echo "$run" | jq -r '.status')
-              conclusion=$(echo "$run" | jq -r '.conclusion')
-              case "$conclusion" in
-                failure|cancelled|timed_out|startup_failure|action_required)
-                  echo "::error::Workflow '$workflow' ${conclusion}."
-                  exit 1
-                  ;;
-                success|skipped|neutral)
-                  ;;
-                *)
-                  if [[ "$status" == 'completed' ]]; then
-                    echo "::error::Workflow '$workflow' completed with unexpected conclusion '${conclusion}'."
-                    exit 1
-                  fi
-                  echo "Workflow '$workflow' still pending (status=${status})."
-                  all_done=false
-                  ;;
-              esac
+            for workflow in "${required_workflows[@]}"; do
+              rc=0
+              process_workflow "$workflow" pending || rc=$?
+              [[ $rc -eq 1 ]] && exit 1
+              [[ $rc -eq 2 ]] && all_done=false
+            done
+            for workflow in "${optional_workflows[@]}"; do
+              rc=0
+              process_workflow "$workflow" skip || rc=$?
+              [[ $rc -eq 1 ]] && exit 1
+              [[ $rc -eq 2 ]] && all_done=false
             done
             if [[ "$all_done" == 'true' ]]; then
               echo 'All required workflows succeeded.'

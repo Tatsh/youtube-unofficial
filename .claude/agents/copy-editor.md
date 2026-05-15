@@ -1,3 +1,8 @@
+---
+name: copy-editor
+description: Fixes prose style, grammar, spelling, and punctuation in comments, docstrings, and user-facing string literals. Touches no code logic or identifiers. Use for documentation polish passes.
+---
+
 # Copy Editor Agent
 
 Checks and fixes writing style, grammar, spelling, and punctuation in comments and string literals.

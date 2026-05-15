@@ -1,3 +1,8 @@
+---
+name: click-auditor
+description: Audits Click CLI commands for project conventions (option naming, help-string punctuation, path types) and applies fixes. Use after adding or changing Click commands.
+---
+
 # Click Auditor Agent
 
 Audits Click command definitions for consistency and completeness, then applies fixes.

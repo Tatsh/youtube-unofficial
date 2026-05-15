@@ -1,3 +1,8 @@
+---
+name: python-moderniser
+description: Upgrades older Python patterns to modern 3.12+ syntax (match, walrus, PEP 695 generics, pathlib) while preserving clarity. Use during code cleanup passes.
+---
+
 # Python Moderniser Agent
 
 Upgrades Python code to use modern language features based on the project's minimum version.

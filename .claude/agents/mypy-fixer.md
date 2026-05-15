@@ -1,3 +1,8 @@
+---
+name: mypy-fixer
+description: Fixes mypy type errors and replaces Any with precise types using PEP 695 generics, TypedDicts, Protocols, and Unpack. Use after type-related QA failures.
+---
+
 # Mypy Fixer Agent
 
 Fixes mypy type errors and eliminates `Any` usage in the youtube-unofficial project.
