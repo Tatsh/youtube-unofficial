@@ -5,7 +5,7 @@ jobs:
       options: '--privileged'
     runs-on: '${{ matrix.system.image }}'
     steps:
-      - uses: 'actions/checkout@v6.0.2'
+      - uses: 'actions/checkout@v6.0.3'
       - id: 'flatpak_bundle'
         name: 'Set Flatpak bundle filename'
         run: |
