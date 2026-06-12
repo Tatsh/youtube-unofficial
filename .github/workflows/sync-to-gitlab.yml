@@ -20,7 +20,8 @@ jobs:
             *) echo 'GITLAB_REPO_URI must start with https://.' >&2; exit 1 ;;
           esac
           authenticated_url="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO_URI#https://}"
-          git -C repo.git push --mirror "$authenticated_url"
+          git -C repo.git push --force "$authenticated_url" \
+            'refs/heads/master:refs/heads/master' 'refs/tags/*:refs/tags/*'
 name: 'Sync to GitLab'
 'on':
   push: {}
