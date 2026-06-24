@@ -5,7 +5,7 @@ jobs:
       options: '--privileged'
     runs-on: '${{ matrix.system.image }}'
     steps:
-      - uses: 'actions/checkout@v6.0.3'
+      - uses: 'actions/checkout@v7.0.0'
       - id: 'flatpak_bundle'
         name: 'Set Flatpak bundle filename'
         run: |
@@ -30,7 +30,7 @@ jobs:
           subject-path: '${{ steps.flatpak_bundle.outputs.filename }}'
       - if: "github.ref_type == 'tag'"
         name: 'Upload package'
-        uses: 'softprops/action-gh-release@v3.0.0'
+        uses: 'softprops/action-gh-release@v3.0.1'
         with:
           draft: true
           fail_on_unmatched_files: true
