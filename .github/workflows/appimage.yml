@@ -2,13 +2,13 @@ jobs:
   build:
     runs-on: ${{ matrix.system.image }}
     steps:
-      - uses: 'actions/checkout@v6.0.3'
+      - uses: 'actions/checkout@v7.0.0'
       - name: 'Install yq'
         run: 'pipx install yq'
       - name: 'Install uv'
         uses: 'astral-sh/setup-uv@v8.2.0'
       - name: 'Set up Python'
-        uses: 'actions/setup-python@v6.2.0'
+        uses: 'actions/setup-python@v6.3.0'
         with:
           python-version: '3.13'
       - name: 'Install dependencies (uv)'
@@ -124,7 +124,7 @@ jobs:
           sbom-path: 'sbom.spdx.json'
       - if: github.ref_type == 'tag'
         name: Upload package
-        uses: softprops/action-gh-release@v3.0.0
+        uses: softprops/action-gh-release@v3.0.1
         with:
           draft: true
           fail_on_unmatched_files: true
