@@ -46,6 +46,7 @@ foxundermoon
 functools
 genindex
 globaltoc
+handoff
 hoverxref
 htmlcov
 innertube
@@ -118,6 +119,7 @@ snapcraft
 softprops
 soupsieve
 sphinxcontrib
+statusline
 syft
 tatsh
 testpaths
