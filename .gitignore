@@ -34,3 +34,10 @@ coverage.xml
 htmlcov/
 mypy-report.xml
 node_modules/
+/HANDOFF.md
+/.claude/auto-continue.md
+/.claude/standing-instructions.md
+/.claude/statusline-quota-cache.sh
+/.claude/hooks/inject-standing-instructions.sh
+/.claude/hooks/remind-on-prompt.sh
+/.claude/hooks/log-stop-failure.sh
