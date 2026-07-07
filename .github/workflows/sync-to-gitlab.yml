@@ -24,7 +24,11 @@ jobs:
             'refs/heads/master:refs/heads/master' 'refs/tags/*:refs/tags/*'
 name: 'Sync to GitLab'
 'on':
-  push: {}
+  push:
+    branches:
+      - 'master'
+    tags:
+      - '*'
   workflow_dispatch: {}
 permissions:
   contents: 'read'
