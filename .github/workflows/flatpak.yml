@@ -30,7 +30,7 @@ jobs:
           subject-path: '${{ steps.flatpak_bundle.outputs.filename }}'
       - if: "github.ref_type == 'tag'"
         name: 'Upload package'
-        uses: 'softprops/action-gh-release@v3.0.1'
+        uses: 'softprops/action-gh-release@v3.0.2'
         with:
           draft: true
           fail_on_unmatched_files: true
