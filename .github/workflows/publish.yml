@@ -80,7 +80,7 @@ jobs:
         uses: 'astral-sh/setup-uv@v8.3.2'
       - run: 'uv build'
       - uses: 'pypa/gh-action-pypi-publish@release/v1'
-      - uses: 'softprops/action-gh-release@v3.0.1'
+      - uses: 'softprops/action-gh-release@v3.0.2'
         with:
           draft: true
           files: |
