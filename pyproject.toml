@@ -7,7 +7,7 @@ dev = [
   "commitizen>=4.15.1",
   "cz-path>=0.0.7",
   "mypy>=2.0.0",
-  "ruff==0.15.20",
+  "ruff==0.15.21",
   "ty>=0.0.34",
   "types-beautifulsoup4>=4.12.0.20250516",
   "yapf>=0.43.0",
