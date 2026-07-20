@@ -451,7 +451,7 @@ class YouTubeClient:
             try:
                 for item in section_list['itemSectionRenderer']['contents']:
                     yield item
-            except KeyError:  # noqa: PERF203
+            except KeyError:  # ruff:ignore[try-except-in-loop]
                 if 'continuationItemRenderer' in section_list:
                     next_continuation = {
                         'continuation': (section_list['continuationItemRenderer']
@@ -489,7 +489,7 @@ class YouTubeClient:
                 try:
                     for item in section_list['itemSectionRenderer']['contents']:
                         yield item
-                except KeyError:  # noqa: PERF203
+                except KeyError:  # ruff:ignore[try-except-in-loop]
                     if 'continuationItemRenderer' in section_list:
                         continuations = {
                             'continuation': (
@@ -525,7 +525,7 @@ class YouTubeClient:
             return_dict: Literal[False] = False) -> AsyncGenerator[str, None]:  # pragma: no cover
         ...
 
-    async def get_history_video_ids(  # noqa: C901
+    async def get_history_video_ids(  # ruff:ignore[complex-structure]
             self, *, return_dict: bool = False) -> AsyncGenerator[str | HistoryVideoIDsEntry, None]:
         """
         Get video IDs from the History playlist.
@@ -643,14 +643,15 @@ class YouTubeClient:
             raise RuntimeError(msg)
         if ytcfg:
             session_id = ytcfg['USER_SESSION_ID']
-            # session_id = ytcfg.get('DELEGATED_SESSION_ID', ytcfg.get('USER_SESSION_ID'))  # noqa: ERA001
+            # session_id = ytcfg.get('DELEGATED_SESSION_ID', ytcfg.get('USER_SESSION_ID'))  # ruff:ignore[commented-out-code]
             # assert session_id is not None
-            m = hashlib.sha1(' '.join(  # noqa: S324
+            m = hashlib.sha1(' '.join(  # ruff:ignore[hashlib-insecure-hash-function]
                 (session_id, str(now), sapisid, 'https://www.youtube.com')).encode())
             a = '_'.join((str(now), m.hexdigest(), 'u'))
             return ' '.join(
                 f'{type_} {a}' for type_ in ('SAPISIDHASH', 'SAPISID1PHASH', 'SAPISID3PHASH'))
-        m = hashlib.sha1(f'{now} {sapisid} https://www.youtube.com'.encode())  # noqa: S324
+        m = hashlib.sha1(f'{now} {sapisid} https://www.youtube.com'.encode()
+                         )  # ruff:ignore[hashlib-insecure-hash-function]
         return f'SAPISIDHASH {now}_{m.hexdigest()}'
 
     async def _single_feedback_api_call(self,
