@@ -72,7 +72,7 @@ def print_watch_later(browser: str,
            video_id: string
            watch_url: string
        }
-    """  # noqa: D301
+    """  # ruff:ignore[escape-sequence-in-docstring]
     setup_logging(debug=debug,
                   loggers={
                       'youtube_unofficial': {
@@ -114,7 +114,7 @@ def print_playlist(browser: str,
            video_id: string
            watch_url: string
        }
-    """  # noqa: D301
+    """  # ruff:ignore[escape-sequence-in-docstring]
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO,
                         format='%(levelname)s:%(name)s:%(lineno)d:%(funcName)s:%(message)s')
     print_playlist_ids_callback(browser, profile, playlist_id, output_json=output_json)
@@ -179,7 +179,7 @@ def print_history(browser: str,
                url: string
            }[]
         }
-    """  # noqa: D301
+    """  # ruff:ignore[escape-sequence-in-docstring]
     setup_logging(debug=debug,
                   loggers={
                       'youtube_unofficial': {
