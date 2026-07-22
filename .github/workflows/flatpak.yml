@@ -5,7 +5,7 @@ jobs:
       options: '--privileged'
     runs-on: '${{ matrix.system.image }}'
     steps:
-      - uses: 'actions/checkout@v7.0.0'
+      - uses: 'actions/checkout@v7.0.1'
       - id: 'flatpak_bundle'
         name: 'Set Flatpak bundle filename'
         run: |
@@ -25,7 +25,7 @@ jobs:
           name: 'sh.tat.youtube-unofficial-${{ steps.flatpak_bundle.outputs.version }}-${{ matrix.system.arch }}'
           path: '${{ steps.flatpak_bundle.outputs.filename }}'
       - name: 'Attest'
-        uses: 'actions/attest@v4.1.1'
+        uses: 'actions/attest@v4.2.0'
         with:
           subject-path: '${{ steps.flatpak_bundle.outputs.filename }}'
       - if: "github.ref_type == 'tag'"
