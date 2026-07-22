@@ -2,11 +2,11 @@ jobs:
   format:
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'actions/checkout@v7.0.0'
+      - uses: 'actions/checkout@v7.0.1'
       - name: 'Install uv'
-        uses: 'astral-sh/setup-uv@v8.3.2'
+        uses: 'astral-sh/setup-uv@v9.0.0'
       - name: 'Set up Python'
-        uses: 'actions/setup-python@v6.3.0'
+        uses: 'actions/setup-python@v7.0.0'
         with:
           python-version: '3.10'
       - name: 'Install dependencies (uv)'
@@ -16,11 +16,11 @@ jobs:
   mypy:
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'actions/checkout@v7.0.0'
+      - uses: 'actions/checkout@v7.0.1'
       - name: 'Install uv'
-        uses: 'astral-sh/setup-uv@v8.3.2'
+        uses: 'astral-sh/setup-uv@v9.0.0'
       - name: 'Set up Python'
-        uses: 'actions/setup-python@v6.3.0'
+        uses: 'actions/setup-python@v7.0.0'
         with:
           python-version: '3.14'
       - name: 'Install dependencies (uv)'
@@ -30,11 +30,11 @@ jobs:
   pyright:
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'actions/checkout@v7.0.0'
+      - uses: 'actions/checkout@v7.0.1'
       - name: 'Install uv'
-        uses: 'astral-sh/setup-uv@v8.3.2'
+        uses: 'astral-sh/setup-uv@v9.0.0'
       - name: 'Set up Python'
-        uses: 'actions/setup-python@v6.3.0'
+        uses: 'actions/setup-python@v7.0.0'
         with:
           python-version: '3.14'
       - name: 'Install dependencies (uv)'
@@ -52,17 +52,17 @@ jobs:
   ruff:
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'actions/checkout@v7.0.0'
+      - uses: 'actions/checkout@v7.0.1'
       - name: 'Lint with Ruff'
         uses: 'astral-sh/ruff-action@v4.1.0'
   ty:
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'actions/checkout@v7.0.0'
+      - uses: 'actions/checkout@v7.0.1'
       - name: 'Install uv'
-        uses: 'astral-sh/setup-uv@v8.3.2'
+        uses: 'astral-sh/setup-uv@v9.0.0'
       - name: 'Set up Python'
-        uses: 'actions/setup-python@v6.3.0'
+        uses: 'actions/setup-python@v7.0.0'
         with:
           python-version: '3.14'
       - name: 'Install dependencies (uv)'

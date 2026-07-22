@@ -2,7 +2,7 @@ jobs:
   build:
     runs-on: '${{ matrix.system.image }}'
     steps:
-      - uses: 'actions/checkout@v7.0.0'
+      - uses: 'actions/checkout@v7.0.1'
       - id: 'build'
         name: 'Build Snap package'
         uses: 'snapcore/action-build@v1.3.0'
@@ -16,7 +16,7 @@ jobs:
           name: 'youtube-unofficial-snap-${{ matrix.system.arch }}'
           path: '*.snap'
       - name: 'Attest'
-        uses: 'actions/attest@v4.1.1'
+        uses: 'actions/attest@v4.2.0'
         with:
           subject-path: '*.snap'
       - if: "github.ref_type == 'tag'"
