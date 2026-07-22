@@ -650,8 +650,7 @@ class YouTubeClient:
             a = '_'.join((str(now), m.hexdigest(), 'u'))
             return ' '.join(
                 f'{type_} {a}' for type_ in ('SAPISIDHASH', 'SAPISID1PHASH', 'SAPISID3PHASH'))
-        m = hashlib.sha1(f'{now} {sapisid} https://www.youtube.com'.encode()
-                         )  # ruff:ignore[hashlib-insecure-hash-function]
+        m = hashlib.sha1(f'{now} {sapisid} https://www.youtube.com'.encode())
         return f'SAPISIDHASH {now}_{m.hexdigest()}'
 
     async def _single_feedback_api_call(self,
