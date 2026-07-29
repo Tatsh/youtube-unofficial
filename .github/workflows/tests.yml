@@ -29,7 +29,7 @@ jobs:
           verbose: true
       - if: "github.event_name != 'pull_request'"
         name: 'Coverage'
-        uses: 'coverallsapp/github-action@v2.3.7'
+        uses: 'coverallsapp/github-action@v2.3.8'
         with:
           file: 'coverage.xml'
     strategy:
