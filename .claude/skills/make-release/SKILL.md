@@ -1,13 +1,6 @@
----
-name: release
-description: Drives the release process for the youtube-unofficial project: changelog, version bump, pre-commit checks, push, and GitHub release notes. Use when the user asks to cut a release.
----
+# Release
 
-# Release Agent
-
-Prepares and publishes a new release for the youtube-unofficial project.
-
-## Role
+Prepare and publish a new release for the youtube-unofficial project.
 
 You manage the release process: update the changelog, determine the version bump, run pre-commit
 checks, bump the version, and push, and align GitHub release notes

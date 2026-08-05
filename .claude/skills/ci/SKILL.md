@@ -78,8 +78,6 @@ If `CHANGELOG.md` is the only file being committed, use the `changelog:` prefix.
 - A refactor and a bug fix in the same file should be separate commits.
 - New tests for existing code should be separate from the code changes they test only if the code
   changes are themselves separate.
-- Dictionary updates (`.vscode/dictionary.txt`) should be committed first with message
-  `dictionary: update`.
 
 ### Cruft updates
 

@@ -26,8 +26,9 @@ and use each product's own mechanics for attaching repo context where needed.
 
 ## Skills (`.claude/skills/`)
 
-Skills are folders with a `SKILL.md` file (for example [ci](.claude/skills/ci/SKILL.md) when
-present).
+Skills are folders with a `SKILL.md` file (for example [ci](.claude/skills/ci/SKILL.md) or
+[make-release](.claude/skills/make-release/SKILL.md) when present). The `make-release` skill drives
+the changelog, version bump, and push.
 
 ## Agents (`.claude/agents/`)
 
@@ -47,5 +48,4 @@ present).
 | [changelog](.claude/agents/changelog.md)                     | Update CHANGELOG.md with entries since last release.        |
 | [copy-editor](.claude/agents/copy-editor.md)                 | Fix prose style, grammar, and spelling in comments/strings. |
 | [regen](.claude/agents/regen.md)                             | Run Wiswa, post-process, verify, and commit.                |
-| [release](.claude/agents/release.md)                         | Changelog, version bump, push.                              |
 | [wiswa-sync](.claude/agents/wiswa-sync.md)                   | Reflect managed file changes back to `.wiswa.jsonnet`.      |

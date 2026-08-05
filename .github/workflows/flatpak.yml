@@ -5,7 +5,9 @@ jobs:
       options: '--privileged'
     runs-on: '${{ matrix.system.image }}'
     steps:
-      - uses: 'actions/checkout@v7.0.1'
+      - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        with:
+          persist-credentials: false
       - id: 'flatpak_bundle'
         name: 'Set Flatpak bundle filename'
         run: |
@@ -13,28 +15,30 @@ jobs:
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "filename=sh.tat.youtube-unofficial-${version}-${{ matrix.system.arch }}.flatpak" >> "$GITHUB_OUTPUT"
       - name: 'Build Flatpak'
-        uses: 'flatpak/flatpak-github-actions/flatpak-builder@v6.7'
+        uses: 'flatpak/flatpak-github-actions/flatpak-builder@401fe28a8384095fc1531b9d320b292f0ee45adb'
         with:
           arch: '${{ matrix.system.arch }}'
           bundle: '${{ steps.flatpak_bundle.outputs.filename }}'
           manifest-path: 'sh.tat.youtube-unofficial.yml'
       - name: 'Upload Artifacts'
-        uses: 'actions/upload-artifact@v7.0.1'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
           if-no-files-found: 'error'
           name: 'sh.tat.youtube-unofficial-${{ steps.flatpak_bundle.outputs.version }}-${{ matrix.system.arch }}'
           path: '${{ steps.flatpak_bundle.outputs.filename }}'
       - name: 'Attest'
-        uses: 'actions/attest@v4.2.1'
+        uses: 'actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6'
         with:
           subject-path: '${{ steps.flatpak_bundle.outputs.filename }}'
-      - if: "github.ref_type == 'tag'"
-        name: 'Upload package'
-        uses: 'softprops/action-gh-release@v3.0.2'
-        with:
-          draft: true
-          fail_on_unmatched_files: true
-          files: '${{ steps.flatpak_bundle.outputs.filename }}'
+      - env:
+          FILE: '${{ steps.flatpak_bundle.outputs.filename }}'
+          GH_REPO: '${{ github.repository }}'
+          GH_TOKEN: '${{ github.token }}'
+        if: "github.ref_type == 'tag'"
+        name: 'Create or update draft release'
+        run: |
+          gh release create "$GITHUB_REF_NAME" --draft --notes '' "$FILE" ||
+            gh release upload "$GITHUB_REF_NAME" "$FILE" --clobber
     strategy:
       matrix:
         system:

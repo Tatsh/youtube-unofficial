@@ -2,9 +2,11 @@ jobs:
   spelling:
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'actions/checkout@v7.0.1'
+      - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        with:
+          persist-credentials: false
       - name: 'Check spelling'
-        uses: 'streetsidesoftware/cspell-action@v8.4.0'
+        uses: 'streetsidesoftware/cspell-action@de2a73e963e7443969755b648a1008f77033c5b2'
         with:
           check_dot_files: true
           suggestions: true

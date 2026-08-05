@@ -35,7 +35,6 @@ from .utils import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from niquests.cookies import RequestsCookieJar
     import niquests
 
     from .typing.history import DescriptionSnippet, HistoryVideoIDsEntry, MetadataBadgeRendererTop
@@ -632,7 +631,7 @@ class YouTubeClient:
 
     def _authorization_sapisidhash_header(self, ytcfg: YtcfgDict | None = None) -> str:
         now = int(datetime.now(timezone.utc).timestamp())
-        cookies = cast('RequestsCookieJar', self.session.cookies)
+        cookies = self.session.cookies
         sapisid: str | None = cookies.get(  # type: ignore[no-untyped-call]
             '__Secure-3PAPISID',
             cookies.get(  # type: ignore[no-untyped-call]
@@ -650,6 +649,7 @@ class YouTubeClient:
             a = '_'.join((str(now), m.hexdigest(), 'u'))
             return ' '.join(
                 f'{type_} {a}' for type_ in ('SAPISIDHASH', 'SAPISID1PHASH', 'SAPISID3PHASH'))
+        # ruff: ignore[hashlib-insecure-hash-function]
         m = hashlib.sha1(f'{now} {sapisid} https://www.youtube.com'.encode())
         return f'SAPISIDHASH {now}_{m.hexdigest()}'
 

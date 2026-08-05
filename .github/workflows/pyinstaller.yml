@@ -5,13 +5,17 @@ jobs:
       APPLE_SIGNING_CERT: ${{ secrets.APPLE_SIGNING_CERTIFICATE }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: 'actions/checkout@v7.0.1'
+      - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        with:
+          persist-credentials: false
       - name: 'Install yq'
         run: 'pipx install yq'
       - name: 'Install uv'
-        uses: 'astral-sh/setup-uv@v9.0.0'
+        uses: 'astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9'
+        with:
+          enable-cache: false
       - name: 'Set up Python'
-        uses: 'actions/setup-python@v7.0.0'
+        uses: 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97'
         with:
           python-version: '3.13'
       - name: 'Install dependencies (uv)'
@@ -164,18 +168,18 @@ jobs:
               "./${file}" --help
           done
       - name: 'Upload Artifacts'
-        uses: 'actions/upload-artifact@v7.0.1'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
           if-no-files-found: error
           name: youtube-unofficial-binaries-${{ matrix.suffix }}
           path: |
             ${{ matrix.dist_path }}
       - name: 'Attest'
-        uses: 'actions/attest@v4.2.1'
+        uses: 'actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6'
         with:
           subject-path: '${{ matrix.dist_path }}'
       - name: 'Generate SBOM'
-        uses: 'anchore/sbom-action@v0.24.0'
+        uses: 'anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610'
         env:
           SYFT_SOURCE_NAME: 'youtube-unofficial'
           SYFT_SOURCE_VERSION: ${{ github.ref_name }}
@@ -184,42 +188,50 @@ jobs:
           output-file: 'sbom.spdx.json'
           upload-artifact: false
       - name: 'Attest SBOM'
-        uses: 'actions/attest@v4.2.1'
+        uses: 'actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6'
         with:
           subject-path: '${{ matrix.dist_path }}'
           sbom-path: 'sbom.spdx.json'
       - if: (matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel') && github.ref_type == 'tag'
         name: 'Zip files'
+        env:
+          DIST_PATH: ${{ matrix.dist_path }}
+          REF_NAME: ${{ github.ref_name }}
+          SUFFIX: ${{ matrix.suffix }}
         run: |
           rm -fR _out
           mkdir _out
-          zip -j _out/youtube-unofficial-${{ github.ref_name }}-${{ matrix.suffix }}.zip ${{ matrix.dist_path }}
+          # shellcheck disable=SC2086 # DIST_PATH is a glob and must expand.
+          zip -j "_out/youtube-unofficial-${REF_NAME}-${SUFFIX}.zip" $DIST_PATH
       - if: (matrix.os == 'windows-latest' || matrix.os == 'windows-11-arm') && github.ref_type == 'tag'
         name: 'Zip files'
+        env:
+          DIST_PATH: ${{ matrix.dist_path }}
+          REF_NAME: ${{ github.ref_name }}
+          SUFFIX: ${{ matrix.suffix }}
         run: |
           Remove-Item -Force _out -ErrorAction Continue
           New-Item -ItemType Directory -Name _out
-          Compress-Archive -Path ${{ matrix.dist_path }} -DestinationPath _out/youtube-unofficial-${{ github.ref_name }}-${{ matrix.suffix }}.zip
+          Compress-Archive -Path $env:DIST_PATH -DestinationPath "_out/youtube-unofficial-$env:REF_NAME-$env:SUFFIX.zip"
         shell: pwsh
       - if: github.ref_type == 'tag'
         name: 'Attest'
-        uses: 'actions/attest@v4.2.1'
+        uses: 'actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6'
         with:
           subject-path: '_out/*.zip'
       - if: github.ref_type == 'tag'
         name: 'Attest SBOM'
-        uses: 'actions/attest@v4.2.1'
+        uses: 'actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6'
         with:
           subject-path: '_out/*.zip'
           sbom-path: 'sbom.spdx.json'
       - if: github.ref_type == 'tag'
-        name: Upload package
-        uses: softprops/action-gh-release@v3.0.2
-        with:
-          draft: true
-          fail_on_unmatched_files: true
-          files: |
-            _out/*.zip
+        name: Create or update draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --draft --notes '' _out/*.zip ||
+            gh release upload "$GITHUB_REF_NAME" _out/*.zip --clobber
     strategy:
       matrix:
         include:

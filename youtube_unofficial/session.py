@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 from asyncio import to_thread
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from niquests_cache import cached_session
 import yt_dlp_utils
 
 if TYPE_CHECKING:
-    from niquests.cookies import RequestsCookieJar
     from niquests_cache.session import AsyncCachedSession
 
 from .constants import USER_AGENT
@@ -44,8 +43,7 @@ async def build_youtube_session(browser: str, profile: str) -> AsyncCachedSessio
     rs = await to_thread(_sync_setup)
     try:
         session = cached_session(aio=True, app_name='youtube-unofficial')
-        cast('RequestsCookieJar', session.cookies).update(  # type: ignore[no-untyped-call]
-            rs.cookies)  # types-requests does not type RequestsCookieJar.update().
+        session.cookies.update(rs.cookies)  # type: ignore[no-untyped-call]
         session.headers['User-Agent'] = USER_AGENT
         return session
     finally:

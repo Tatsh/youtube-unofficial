@@ -2,30 +2,33 @@ jobs:
   build:
     runs-on: '${{ matrix.system.image }}'
     steps:
-      - uses: 'actions/checkout@v7.0.1'
+      - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        with:
+          persist-credentials: false
       - id: 'build'
         name: 'Build Snap package'
-        uses: 'snapcore/action-build@v1.3.0'
+        uses: 'snapcore/action-build@3bdaa03e1ba6bf59a65f84a751d943d549a54e79'
         with:
           snapcraft-args: 'pack'
           snapcraft-channel: 'latest/stable'
       - name: 'Upload Artifacts'
-        uses: 'actions/upload-artifact@v7.0.1'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
           if-no-files-found: 'error'
           name: 'youtube-unofficial-snap-${{ matrix.system.arch }}'
           path: '*.snap'
       - name: 'Attest'
-        uses: 'actions/attest@v4.2.1'
+        uses: 'actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6'
         with:
           subject-path: '*.snap'
-      - if: "github.ref_type == 'tag'"
-        name: 'Upload package'
-        uses: 'softprops/action-gh-release@v3.0.2'
-        with:
-          draft: true
-          fail_on_unmatched_files: true
-          files: '*.snap'
+      - env:
+          GH_REPO: '${{ github.repository }}'
+          GH_TOKEN: '${{ github.token }}'
+        if: "github.ref_type == 'tag'"
+        name: 'Create or update draft release'
+        run: |
+          gh release create "$GITHUB_REF_NAME" --draft --notes '' *.snap ||
+            gh release upload "$GITHUB_REF_NAME" *.snap --clobber
     strategy:
       matrix:
         system:

@@ -116,7 +116,6 @@ shellformat
 signtool
 snapcore
 snapcraft
-softprops
 soupsieve
 sphinxcontrib
 statusline
@@ -138,6 +137,7 @@ vendored
 venv
 vers
 virtualenv
+winget
 wiswa
 wiswa's
 worktree
@@ -148,3 +148,4 @@ yarnrc
 youtu
 youtubei
 ytcfg
+zizmor

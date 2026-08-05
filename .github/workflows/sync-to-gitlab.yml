@@ -2,6 +2,10 @@ jobs:
   sync-to-gitlab:
     runs-on: 'ubuntu-latest'
     steps:
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        with:
+          persist-credentials: false
       - env:
           GITHUB_REPO_URI: 'https://github.com/${{ github.repository }}.git'
         name: 'Clone GitHub repository as mirror'
@@ -20,15 +24,21 @@ jobs:
             *) echo 'GITLAB_REPO_URI must start with https://.' >&2; exit 1 ;;
           esac
           authenticated_url="https://oauth2:${GITLAB_TOKEN}@${GITLAB_REPO_URI#https://}"
-          git -C repo.git push --force "$authenticated_url" \
-            'refs/heads/master:refs/heads/master' 'refs/tags/*:refs/tags/*'
+          git -C repo.git push --mirror "$authenticated_url"
+      - name: 'Install wiswa-vcs'
+        run: 'pipx install wiswa-vcs'
+      - env:
+          DEFAULT_BRANCH: 'master'
+          GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GITHUB_REPO_URI: 'https://github.com/${{ github.repository }}.git'
+          GITLAB_CONFIG_JSON: "{\n\"default_branch_protection\": {\n\"allow_force_push\": \"true\",\n\"code_owner_approval_required\": \"false\"\n},\n\"project_approvals\": {\n\"approvals_before_merge\": 1,\n\"merge_requests_author_approval\": \"false\",\n\"reset_approvals_on_push\": \"true\"\n},\n\"project_settings\": {\n\"analytics_access_level\": \"disabled\",\n\"auto_devops_enabled\": \"false\",\n\"build_git_strategy\": \"fetch\",\n\"builds_access_level\": \"enabled\",\n\"ci_default_git_depth\": \"20\",\n\"ci_forward_deployment_enabled\": \"true\",\n\"ci_job_token_scope_enabled\": \"true\",\n\"ci_separated_caches\": \"true\",\n\"commit_committer_check\": \"true\",\n\"compliance_frameworks\": \"[]\",\n\"emails_enabled\": \"true\",\n\"environments_access_level\": \"disabled\",\n\"feature_flags_access_level\": \"disabled\",\n\"forking_access_level\": \"enabled\",\n\"infrastructure_access_level\": \"disabled\",\n\"issues_enabled\": \"true\",\n\"keep_latest_artifact\": \"true\",\n\"lfs_enabled\": \"false\",\n\"member_check\": \"true\",\n\"merge_method\": \"ff\",\n\"merge_requests_access_level\": \"enabled\",\n\"model_experiments_access_level\": \"disabled\",\n\"model_registry_access_level\": \"disabled\",\n\"monitor_access_level\": \"disabled\",\n\"only_allow_merge_if_all_discussions_are_resolved\": \"true\",\n\"only_allow_merge_if_pipeline_succeeds\": \"true\",\n\"packages_enabled\": \"true\",\n\"pages_access_level\": \"public\",\n\"pages_unique_domain_enabled\": \"true\",\n\"prevent_secrets\": \"true\",\n\"printing_merge_request_link_enabled\": \"true\",\n\"public_builds\": \"true\",\n\"releases_access_level\": \"enabled\",\n\"remove_source_branch_after_merge\": \"true\",\n\"security_and_compliance_access_level\": \"enabled\",\n\"service_desk_enabled\": \"false\",\n\"shared_runners_enabled\": \"true\",\n\"show_default_award_emojis\": \"true\",\n\"snippets_access_level\": \"disabled\",\n\"squash_option\": \"default_off\",\n\"warn_about_potentially_unwanted_characters\": \"true\",\n\"wiki_access_level\": \"disabled\"\n},\n\"push_rules\": {\n\"prevent_secrets\": \"true\"\n}\n}"
+          GITLAB_REPO_URI: 'https://gitlab.com/Tatsh/youtube-unofficial'
+          GITLAB_TOKEN: '${{ secrets.GITLAB_TOKEN }}'
+        name: 'Sync GitLab project metadata'
+        run: 'wiswa-sync-gh-gl'
 name: 'Sync to GitLab'
 'on':
-  push:
-    branches:
-      - 'master'
-    tags:
-      - '*'
+  push: {}
   workflow_dispatch: {}
 permissions:
   contents: 'read'

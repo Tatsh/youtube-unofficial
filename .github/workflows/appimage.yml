@@ -2,13 +2,17 @@ jobs:
   build:
     runs-on: ${{ matrix.system.image }}
     steps:
-      - uses: 'actions/checkout@v7.0.1'
+      - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        with:
+          persist-credentials: false
       - name: 'Install yq'
         run: 'pipx install yq'
       - name: 'Install uv'
-        uses: 'astral-sh/setup-uv@v9.0.0'
+        uses: 'astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9'
+        with:
+          enable-cache: false
       - name: 'Set up Python'
-        uses: 'actions/setup-python@v7.0.0'
+        uses: 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97'
         with:
           python-version: '3.13'
       - name: 'Install dependencies (uv)'
@@ -98,14 +102,14 @@ jobs:
               "./${file}" --help
           done
       - name: 'Upload Artifacts'
-        uses: 'actions/upload-artifact@v7.0.1'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
         with:
           if-no-files-found: error
           name: youtube-unofficial-binaries-linux-${{ matrix.system.arch }}
           path: |
             dist/*
       - name: 'Generate SBOM'
-        uses: 'anchore/sbom-action@v0.24.0'
+        uses: 'anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610'
         env:
           SYFT_SOURCE_NAME: 'youtube-unofficial'
           SYFT_SOURCE_VERSION: ${{ github.ref_name }}
@@ -114,22 +118,21 @@ jobs:
           output-file: 'sbom.spdx.json'
           upload-artifact: false
       - name: 'Attest'
-        uses: 'actions/attest@v4.2.1'
+        uses: 'actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6'
         with:
           subject-path: 'dist/*.AppImage'
       - name: 'Attest SBOM'
-        uses: 'actions/attest@v4.2.1'
+        uses: 'actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6'
         with:
           subject-path: 'dist/*.AppImage'
           sbom-path: 'sbom.spdx.json'
       - if: github.ref_type == 'tag'
-        name: Upload package
-        uses: softprops/action-gh-release@v3.0.2
-        with:
-          draft: true
-          fail_on_unmatched_files: true
-          files: |
-            dist/*.AppImage
+        name: Create or update draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --draft --notes '' dist/*.AppImage ||
+            gh release upload "$GITHUB_REF_NAME" dist/*.AppImage --clobber
     strategy:
       matrix:
         system:
