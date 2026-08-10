@@ -46,13 +46,13 @@ repos:
           - '--frozen'
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
-    rev: '0.12.1'
+    rev: '0.12.3'
   - hooks:
       - args:
           - '--fix'
         id: 'ruff-check'
     repo: 'https://github.com/astral-sh/ruff-pre-commit'
-    rev: 'v0.16.1'
+    rev: 'v0.16.2'
   - hooks:
       - id: 'yapf'
         name: 'check Python files are formatted'
@@ -68,7 +68,7 @@ repos:
         id: 'check-jsonschema'
         name: 'validate package.json'
     repo: 'https://github.com/python-jsonschema/check-jsonschema'
-    rev: '0.37.4'
+    rev: '0.38.0'
   - hooks:
       - id: 'zizmor'
     repo: 'https://github.com/zizmorcore/zizmor-pre-commit'
