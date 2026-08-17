@@ -46,13 +46,13 @@ repos:
           - '--frozen'
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
-    rev: '0.12.3'
+    rev: '0.12.5'
   - hooks:
       - args:
           - '--fix'
         id: 'ruff-check'
     repo: 'https://github.com/astral-sh/ruff-pre-commit'
-    rev: 'v0.16.2'
+    rev: 'v0.16.3'
   - hooks:
       - id: 'yapf'
         name: 'check Python files are formatted'
