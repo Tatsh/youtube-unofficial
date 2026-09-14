@@ -46,13 +46,13 @@ repos:
           - '--frozen'
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
-    rev: '0.12.10'
+    rev: '0.12.13'
   - hooks:
       - args:
           - '--fix'
         id: 'ruff-check'
     repo: 'https://github.com/astral-sh/ruff-pre-commit'
-    rev: 'v0.16.6'
+    rev: 'v0.16.7'
   - hooks:
       - id: 'yapf'
         name: 'check Python files are formatted'
@@ -72,7 +72,7 @@ repos:
   - hooks:
       - id: 'zizmor'
     repo: 'https://github.com/zizmorcore/zizmor-pre-commit'
-    rev: 'v1.30.0'
+    rev: 'v1.30.1'
   - hooks:
       - id: 'validate-cff'
     repo: 'https://github.com/citation-file-format/cffconvert'
