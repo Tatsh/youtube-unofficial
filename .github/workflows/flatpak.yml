@@ -3,6 +3,10 @@ jobs:
     container:
       image: 'ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08'
       options: '--privileged'
+    permissions:
+      attestations: 'write'
+      contents: 'read'
+      id-token: 'write'
     runs-on: '${{ matrix.system.image }}'
     steps:
       - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
@@ -30,15 +34,6 @@ jobs:
         uses: 'actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6'
         with:
           subject-path: '${{ steps.flatpak_bundle.outputs.filename }}'
-      - env:
-          FILE: '${{ steps.flatpak_bundle.outputs.filename }}'
-          GH_REPO: '${{ github.repository }}'
-          GH_TOKEN: '${{ github.token }}'
-        if: "github.ref_type == 'tag'"
-        name: 'Create or update draft release'
-        run: |
-          gh release create "$GITHUB_REF_NAME" --draft --notes '' "$FILE" ||
-            gh release upload "$GITHUB_REF_NAME" "$FILE" --clobber
     strategy:
       matrix:
         system:
@@ -46,6 +41,38 @@ jobs:
             image: 'ubuntu-latest'
           - arch: 'aarch64'
             image: 'ubuntu-24.04-arm'
+  release-assets:
+    concurrency:
+      group: 'release-assets-${{ github.ref }}'
+      queue: 'max'
+    if: "github.ref_type == 'tag'"
+    needs:
+      - 'build'
+    permissions:
+      contents: 'write'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Download build artifacts'
+        uses: 'actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'
+        with:
+          merge-multiple: true
+          path: '_release_assets'
+          pattern: 'sh.tat.youtube-unofficial-*'
+      - env:
+          GH_REPO: '${{ github.repository }}'
+          GH_TOKEN: '${{ github.token }}'
+        name: 'Create or update draft release'
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" --draft --notes ''
+          shopt -s nullglob
+          assets=(_release_assets/*)
+          if [ -z "${assets[0]-}" ]; then
+            echo 'No build artifacts to attach.'
+            exit 0
+          fi
+          gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
+        shell: 'bash'
 name: 'Flatpak'
 'on':
   push:
@@ -61,7 +88,4 @@ name: 'Flatpak'
     tags:
       - 'v*.*.*'
   workflow_dispatch: null
-permissions:
-  attestations: 'write'
-  contents: 'write'
-  id-token: 'write'
+permissions: {}

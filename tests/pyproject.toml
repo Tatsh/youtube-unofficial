@@ -1,28 +1,29 @@
 [tool]
-
 [tool.ruff]
 extend = "../pyproject.toml"
 
 [tool.ruff.lint]
 extend-ignore = [
-  "ARG001",
-  "ARG002",
-  "D100",
-  "D101",
-  "D102",
-  "D103",
-  "D104",
-  "D105",
-  "D106",
-  "DOC201",
-  "INP001",
-  "PLC0415",
-  "PLR2004",
-  "S101",
-  "S105",
-  "S106",
-  "RUF029",
+  "assert",
+  "docstring-missing-returns",
+  "hardcoded-password-func-arg",
+  "hardcoded-password-string",
+  "implicit-namespace-package",
+  "import-outside-top-level",
+  "magic-value-comparison",
+  "pytest-fixture-autouse",
+  "undocumented-magic-method",
+  "undocumented-public-class",
+  "undocumented-public-function",
+  "undocumented-public-method",
+  "undocumented-public-module",
+  "undocumented-public-nested-class",
+  "undocumented-public-package",
+  "unused-function-argument",
+  "unused-method-argument",
+  "unused-async"
 ]
+preview = true
 
 [tool.ruff.lint.pep8-naming]
 extend-ignore-names = ["test_*"]

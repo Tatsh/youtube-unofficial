@@ -21,7 +21,7 @@ concrete repository change, do not edit project files.
 - Do not explain project structure or conventions in comments or docstrings.
 - Use 2 spaces for indentation except in Python.
 - Files must end with a single newline character.
-- Keep lines shorter than 100 characters.
+- Lines must not exceed 100 characters, inclusive.
 - Line endings must be Unix-style (LF).
 - Use UTF-8 encoding for all files.
 - Use spaces instead of tabs for indentation.
@@ -45,8 +45,11 @@ concrete repository change, do not edit project files.
   different directory.
 - Spell-check uses cspell with British English (`en-GB`). Exception: code identifiers must use
   American English (`ColorCode` not `ColourCode`).
-- Add new words to `.vscode/dictionary.txt` in lowercase and keep the file sorted. Prefer to commit
-  dictionary changes separately with the message `dictionary: update`.
+- Update `.vscode/dictionary.txt` by running `yarn dict:update`, never by editing it by hand. The
+  file is sorted by byte value (`LC_ALL=C`), so a word starting with a non-ASCII character sorts
+  after every plain ASCII word. The `file-contents-sorter` pre-commit hook enforces the same order.
+- Do not use `echo`, `cat`, `printf`, `python`, `perl`, or other shell commands to write to files.
+  Use `Write()` for new files and `Edit()` for existing files.
 
 ## Avoiding Permission Prompts
 

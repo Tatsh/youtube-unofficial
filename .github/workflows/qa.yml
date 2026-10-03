@@ -63,6 +63,8 @@ jobs:
           persist-credentials: false
       - name: 'Lint with Ruff'
         uses: 'astral-sh/ruff-action@278981a28ce3188b1e39527901f38254bf3aac89'
+        with:
+          version-file: 'uv.lock'
   ty:
     runs-on: 'ubuntu-latest'
     steps:

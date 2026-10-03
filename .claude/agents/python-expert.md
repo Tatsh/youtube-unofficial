@@ -274,7 +274,7 @@ name : str, optional
 - Keep passed kwargs sorted alphabetically unless it would affect clarity.
 - Class body ordering: attributes first (sorted alphabetically: dunder, public, private), then
   methods (sorted alphabetically: dunder, public, private). Exception: in Django models, follow
-  Ruff rule DJ012 (Django Style Guide ordering) instead.
+  Ruff rule `django-unordered-body-content-in-model` (Django Style Guide ordering) instead.
 
 ## Workflow
 

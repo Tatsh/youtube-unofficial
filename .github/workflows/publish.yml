@@ -93,13 +93,45 @@ jobs:
           enable-cache: false
       - run: 'uv build'
       - uses: 'pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33'
+      - if: "github.ref_type == 'tag'"
+        name: 'Upload release assets'
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'
+        with:
+          if-no-files-found: 'error'
+          name: 'release-assets-dist'
+          path: "dist/*.tar.gz\ndist/*.whl"
+  release-assets:
+    concurrency:
+      group: 'release-assets-${{ github.ref }}'
+      queue: 'max'
+    if: "github.ref_type == 'tag'"
+    needs:
+      - 'publish'
+    permissions:
+      contents: 'write'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Download build artifacts'
+        uses: 'actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'
+        with:
+          merge-multiple: true
+          path: '_release_assets'
+          pattern: 'release-assets-*'
       - env:
           GH_REPO: '${{ github.repository }}'
           GH_TOKEN: '${{ github.token }}'
         name: 'Create or update draft release'
         run: |
-          gh release create "$GITHUB_REF_NAME" --draft --notes '' dist/*.tar.gz dist/*.whl ||
-            gh release upload "$GITHUB_REF_NAME" dist/*.tar.gz dist/*.whl --clobber
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" --draft --notes ''
+          shopt -s nullglob
+          assets=(_release_assets/*)
+          if [ -z "${assets[0]-}" ]; then
+            echo 'No build artifacts to attach.'
+            exit 0
+          fi
+          gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
+        shell: 'bash'
 name: 'Publish'
 'on':
   push:

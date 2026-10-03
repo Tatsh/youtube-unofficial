@@ -1,5 +1,9 @@
 jobs:
   build:
+    permissions:
+      attestations: 'write'
+      contents: 'read'
+      id-token: 'write'
     runs-on: ${{ matrix.system.image }}
     steps:
       - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
@@ -22,11 +26,28 @@ jobs:
           wget -O generic.svg 'https://raw.githubusercontent.com/KDE/breeze-icons/refs/heads/master/icons/preferences/32/preferences-other.svg'
         shell: 'bash'
       - name: 'Build with python-appimage'
+        env:
+          GH_TOKEN: '${{ github.token }}'
         run: |
           project_name=$(tomlq -r '.project.urls.repository|split("/")[-1]' pyproject.toml)
           version=$(tomlq -r .project.version pyproject.toml)
           rm -fR dist
           mkdir dist
+          base_image_tag='manylinux2014_${{ matrix.system.arch }}.AppImage'
+          base_image=$(curl -fsSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'Accept: application/vnd.github+json' \
+              "https://api.github.com/repos/niess/python-appimage/releases/tags/python3.13" |
+              jq -r --arg suffix "${base_image_tag}" \
+                  'first(.assets[] | select(.name | endswith($suffix)) | .browser_download_url)')
+          if [[ -z "${base_image}" || "${base_image}" == 'null' ]]; then
+              echo "No python3.13 base image ending in ${base_image_tag}." >&2
+              exit 1
+          fi
+          curl -fsSL -O "${base_image}"
+          base_image="${base_image##*/}"
+          chmod +x "${base_image}"
+          echo "Using base image ${base_image}."
           while IFS=$' ' read -r script_name python_path func_name; do
               func_name="${func_name#"${func_name%%[![:space:]]*}"}"
               func_name="${func_name%"${func_name##*[![:space:]]}"}"
@@ -85,7 +106,7 @@ jobs:
               fi
               cp generic.svg "recipe/${script_name}.svg"
               echo "Building AppImage for '${script_name}'..."
-              uv run python -m python_appimage -v build app -l "manylinux2014_${{ matrix.system.arch }}" -p 3.13 recipe
+              uv run python -m python_appimage -v build app -b "${base_image}" recipe
               mv "${script_name}-${{ matrix.system.arch }}.AppImage" "dist/${script_name}-v${version}-${{ matrix.system.arch }}.AppImage"
           done < <(tomlq -r '.project.scripts|to_entries[]|"\(.key) \(.value|split(":")|join(" "))"' pyproject.toml)
         shell: 'bash'
@@ -109,7 +130,7 @@ jobs:
           path: |
             dist/*
       - name: 'Generate SBOM'
-        uses: 'anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26'
+        uses: 'anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c'
         env:
           SYFT_SOURCE_NAME: 'youtube-unofficial'
           SYFT_SOURCE_VERSION: ${{ github.ref_name }}
@@ -126,18 +147,43 @@ jobs:
         with:
           subject-path: 'dist/*.AppImage'
           sbom-path: 'sbom.spdx.json'
-      - if: github.ref_type == 'tag'
-        name: Create or update draft release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "$GITHUB_REF_NAME" --draft --notes '' dist/*.AppImage ||
-            gh release upload "$GITHUB_REF_NAME" dist/*.AppImage --clobber
     strategy:
       matrix:
         system:
           - { arch: aarch64, image: ubuntu-24.04-arm }
           - { arch: x86_64, image: ubuntu-latest }
+  release-assets:
+    concurrency:
+      group: release-assets-${{ github.ref }}
+      queue: max
+    if: github.ref_type == 'tag'
+    needs:
+      - 'build'
+    permissions:
+      contents: 'write'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Download build artifacts'
+        uses: 'actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'
+        with:
+          merge-multiple: true
+          path: '_release_assets'
+          pattern: youtube-unofficial-binaries-linux-*
+      - name: 'Create or update draft release'
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        shell: 'bash'
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" --draft --notes ''
+          shopt -s nullglob
+          assets=(_release_assets/*)
+          if [ -z "${assets[0]-}" ]; then
+            echo 'No build artifacts to attach.'
+            exit 0
+          fi
+          gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
 name: 'AppImage'
 'on':
   push:
@@ -151,7 +197,4 @@ name: 'AppImage'
       - 'poetry.lock'
     tags:
       - 'v*.*.*'
-permissions:
-  attestations: 'write'
-  contents: 'write'
-  id-token: 'write'
+permissions: {}

@@ -1,4 +1,7 @@
 rules:
+  adhoc-packages:
+    ignore:
+      - 'publish.yml'
   cache-poisoning:
     ignore:
       - 'pyinstaller.yml'

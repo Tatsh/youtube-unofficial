@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING, Any, NoReturn, cast
 import os
 
 from click.testing import CliRunner
-from youtube_unofficial.client import YouTubeClient
 import niquests
 import pytest
+
+from youtube_unofficial.client import YouTubeClient
 
 if TYPE_CHECKING:
     from unittest.mock import MagicMock
