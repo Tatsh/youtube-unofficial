@@ -52,7 +52,7 @@ with the changelog.
    whether to push and wait before continuing.
 
 1. **Run `pre-commit run -a` outside the sandbox** to ensure all hooks pass. The hooks write
-   across the worktree, which the sandbox's read-only mount blocks. Fix any issues before
+   across the working tree, which the sandbox's read-only mount blocks. Fix any issues before
    proceeding.
 
 1. **Record the current HEAD** before bumping: `git rev-parse HEAD` (save this as `PRE_BUMP_REF`).
@@ -109,7 +109,7 @@ with the changelog.
 1. **Commit the version bump outside the sandbox.** Stage all changed files and commit with
    `git commit -S -s -m 'bump: vOLD → vNEW'` (replace
    OLD/NEW with actual versions). Run outside the sandbox because the pre-commit hooks invoked
-   by the commit need to write across the worktree.
+   by the commit need to write across the working tree.
 
 1. **Create a signed tag.** Run
    `git tag -s vNEW -m 'vNEW'` (replace NEW with the
@@ -175,7 +175,7 @@ with the changelog.
 - If any step fails, stop and report the error. Do not continue the release process.
 - The `[Unreleased]` section must always exist at the top of the changelog after the release.
 - Run `pre-commit run -a` and the version-bump `git commit` outside the sandbox; both need
-  write access across the worktree.
+  write access across the working tree.
 - Flatpak manifests and `snapcraft.yaml` at release time always build from the about-to-be
   pushed tag, never from a local path or moving branch.
 - Never hand-patch a version reference in `CITATION.cff`, a flatpak manifest, or
