@@ -4,8 +4,9 @@ from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import AsyncMock
 import json
 
-from youtube_unofficial.client import NoFeedbackToken, YouTubeClient
 import pytest
+
+from youtube_unofficial.client import NoFeedbackToken, YouTubeClient
 
 if TYPE_CHECKING:
     from pathlib import Path

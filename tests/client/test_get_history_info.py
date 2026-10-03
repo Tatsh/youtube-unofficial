@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
     from _pytest.logging import LogCaptureFixture
     from pytest_mock import MockerFixture
+
     from youtube_unofficial.client import YouTubeClient
 
 

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from youtube_unofficial.client import YouTubeClient
-from youtube_unofficial.main import main
 import niquests
 import pytest
+
+from youtube_unofficial.client import YouTubeClient
+from youtube_unofficial.main import main
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator

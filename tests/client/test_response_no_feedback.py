@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from pytest_mock import MockerFixture
+
     from youtube_unofficial.client import YouTubeClient
 
 

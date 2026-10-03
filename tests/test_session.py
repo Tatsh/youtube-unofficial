@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
 from youtube_unofficial.constants import USER_AGENT
 from youtube_unofficial.session import build_youtube_session
-import pytest
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture

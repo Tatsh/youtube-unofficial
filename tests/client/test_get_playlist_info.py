@@ -7,6 +7,7 @@ import pytest
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
+
     from youtube_unofficial.client import YouTubeClient
 
 

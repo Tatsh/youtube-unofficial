@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
     from pytest_mock import MockerFixture
+
     from youtube_unofficial.client import YouTubeClient
 
 

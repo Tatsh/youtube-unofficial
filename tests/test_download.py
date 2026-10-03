@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from youtube_unofficial.download import download_page
 import pytest
+
+from youtube_unofficial.download import download_page
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture

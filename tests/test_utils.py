@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bs4 import BeautifulSoup
+import pytest
+
 from youtube_unofficial.utils import (
     context_client_body,
     extract_keys,
@@ -12,10 +14,10 @@ from youtube_unofficial.utils import (
     initial_data,
     ytcfg_headers,
 )
-import pytest
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
+
     from youtube_unofficial.typing.history import DescriptionSnippet
     from youtube_unofficial.typing.ytcfg import YtcfgDict
 
