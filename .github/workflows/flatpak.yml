@@ -1,8 +1,13 @@
+concurrency:
+  cancel-in-progress: false
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  queue: 'max'
 jobs:
   build:
     container:
-      image: 'ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08'
+      image: 'ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-26.08@sha256:6ed6921bb5a9e1a916989971844f159b854b7b225880c381fa34f7a158863039'
       options: '--privileged'
+    name: 'Build'
     permissions:
       attestations: 'write'
       contents: 'read'
@@ -12,12 +17,14 @@ jobs:
       - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
         with:
           persist-credentials: false
-      - id: 'flatpak_bundle'
+      - env:
+          MATRIX_ARCH: '${{ matrix.system.arch }}'
+        id: 'flatpak_bundle'
         name: 'Set Flatpak bundle filename'
         run: |
           version=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
           echo "version=${version}" >> "$GITHUB_OUTPUT"
-          echo "filename=sh.tat.youtube-unofficial-${version}-${{ matrix.system.arch }}.flatpak" >> "$GITHUB_OUTPUT"
+          echo "filename=sh.tat.youtube-unofficial-${version}-${MATRIX_ARCH}.flatpak" >> "$GITHUB_OUTPUT"
       - name: 'Build Flatpak'
         uses: 'flatpak/flatpak-github-actions/flatpak-builder@79327416609af08178ad73b352877e51450790b3'
         with:
@@ -46,6 +53,7 @@ jobs:
       group: 'release-assets-${{ github.ref }}'
       queue: 'max'
     if: "github.ref_type == 'tag'"
+    name: 'Release Assets'
     needs:
       - 'build'
     permissions:

@@ -1,5 +1,10 @@
+concurrency:
+  cancel-in-progress: false
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  queue: 'max'
 jobs:
   check:
+    name: 'Wait for Workflows'
     permissions:
       actions: 'read'
       contents: 'read'
@@ -74,10 +79,11 @@ jobs:
           exit 1
   publish:
     environment: 'release'
+    name: 'Publish'
     needs:
       - 'check'
     permissions:
-      contents: 'write'
+      contents: 'read'
       id-token: 'write'
     runs-on: 'ubuntu-latest'
     steps:
@@ -105,6 +111,7 @@ jobs:
       group: 'release-assets-${{ github.ref }}'
       queue: 'max'
     if: "github.ref_type == 'tag'"
+    name: 'Release Assets'
     needs:
       - 'publish'
     permissions:

@@ -1,3 +1,6 @@
+concurrency:
+  cancel-in-progress: true
+  group: '${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}'
 jobs:
   analyze:
     name: 'Analyze'
@@ -49,3 +52,4 @@ name: 'CodeQL'
       - '**/action.yaml'
   schedule:
     - cron: '15 4 * * 3'
+permissions: {}

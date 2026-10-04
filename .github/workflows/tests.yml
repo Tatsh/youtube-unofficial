@@ -1,8 +1,12 @@
+concurrency:
+  cancel-in-progress: true
+  group: '${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}'
 jobs:
   test:
     env:
       GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
       HOMEBREW_NO_REQUIRE_TAP_TRUST: '1'
+    name: 'Test'
     runs-on: 'ubuntu-latest'
     steps:
       - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'

@@ -1,8 +1,13 @@
+concurrency:
+  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  queue: max
 jobs:
   build:
     env:
       WINDOWS_SIGNING_CERT: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE }}
       APPLE_SIGNING_CERT: ${{ secrets.APPLE_SIGNING_CERTIFICATE }}
+    name: 'Build'
     permissions:
       attestations: 'write'
       contents: 'read'
@@ -38,6 +43,8 @@ jobs:
           uv pip install pyinstaller
         shell: 'bash'
       - name: 'Build with PyInstaller'
+        env:
+          MATRIX_OS: ${{ matrix.os }}
         run: |
           project_name=$(tomlq -r '.project.urls.repository|split("/")[-1]' pyproject.toml)
           vers="$(tomlq -r '.project.version|split(".")|map(tonumber)|@csv' pyproject.toml),0"
@@ -69,7 +76,7 @@ jobs:
                           StringStruct('CompanyName', 'Tatsh'),
                           StringStruct(
                               'FileDescription',
-                              '${script_name} from ${project_name}. - ${{ github.server_url }}/${{ github.repository }}'
+                              '${script_name} from ${project_name}. - ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}'
                           ),
                           StringStruct('FileVersion', '${version}'),
                           StringStruct('InternalName', '${script_name}.exe'),
@@ -271,6 +278,7 @@ jobs:
       group: release-assets-${{ github.ref }}
       queue: max
     if: github.ref_type == 'tag'
+    name: 'Release Assets'
     needs:
       - 'build'
     permissions:

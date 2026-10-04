@@ -1,6 +1,14 @@
+concurrency:
+  cancel-in-progress: false
+  group: '${{ github.workflow }}-${{ github.event.workflow_run.head_sha }}'
+  queue: 'max'
 jobs:
   publish-release:
     environment: 'release'
+    name: 'Publish Release'
+    permissions:
+      actions: 'write'
+      contents: 'write'
     runs-on: 'ubuntu-latest'
     steps:
       - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
@@ -173,6 +181,4 @@ name: 'Release'
       - 'Spelling'
       - 'Tests'
       - 'markdownlint'
-permissions:
-  actions: 'write'
-  contents: 'write'
+permissions: {}

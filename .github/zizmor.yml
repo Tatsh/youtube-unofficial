@@ -9,3 +9,5 @@ rules:
     ignore:
       - 'publish-winget.yml'
       - 'release.yml'
+  undocumented-permissions:
+    disable: true

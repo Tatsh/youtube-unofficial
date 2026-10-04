@@ -1,5 +1,9 @@
+concurrency:
+  cancel-in-progress: false
+  group: '${{ github.workflow }}'
 jobs:
   sync-to-gitlab:
+    name: 'Sync to GitLab'
     runs-on: 'ubuntu-latest'
     steps:
       - name: 'Checkout repository'

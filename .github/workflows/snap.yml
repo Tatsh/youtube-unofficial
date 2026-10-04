@@ -1,5 +1,10 @@
+concurrency:
+  cancel-in-progress: false
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  queue: 'max'
 jobs:
   build:
+    name: 'Build'
     permissions:
       attestations: 'write'
       contents: 'read'
@@ -37,6 +42,7 @@ jobs:
       group: 'release-assets-${{ github.ref }}'
       queue: 'max'
     if: "github.ref_type == 'tag'"
+    name: 'Release Assets'
     needs:
       - 'build'
     permissions:

@@ -1,5 +1,10 @@
+concurrency:
+  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  queue: max
 jobs:
   build:
+    name: 'Build'
     permissions:
       attestations: 'write'
       contents: 'read'
@@ -28,12 +33,13 @@ jobs:
       - name: 'Build with python-appimage'
         env:
           GH_TOKEN: '${{ github.token }}'
+          MATRIX_ARCH: ${{ matrix.system.arch }}
         run: |
           project_name=$(tomlq -r '.project.urls.repository|split("/")[-1]' pyproject.toml)
           version=$(tomlq -r .project.version pyproject.toml)
           rm -fR dist
           mkdir dist
-          base_image_tag='manylinux2014_${{ matrix.system.arch }}.AppImage'
+          base_image_tag="manylinux2014_${MATRIX_ARCH}.AppImage"
           base_image=$(curl -fsSL \
               -H "Authorization: Bearer ${GH_TOKEN}" \
               -H 'Accept: application/vnd.github+json' \
@@ -48,7 +54,7 @@ jobs:
           base_image="${base_image##*/}"
           chmod +x "${base_image}"
           echo "Using base image ${base_image}."
-          while IFS=$' ' read -r script_name python_path func_name; do
+          while IFS=$' ' read -r script_name _ func_name; do
               func_name="${func_name#"${func_name%%[![:space:]]*}"}"
               func_name="${func_name%"${func_name##*[![:space:]]}"}"
               rm -fR recipe
@@ -87,10 +93,10 @@ jobs:
             <name>${script_name}</name>
             <summary>${script_name} from ${project_name}</summary>
             <description>
-              <p>${script_name} from ${project_name}. - ${{ github.server_url }}/${{ github.repository }}</p>
+              <p>${script_name} from ${project_name}. - ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}</p>
             </description>
             <launchable type="desktop-id">${script_name}.desktop</launchable>
-            <url type="homepage">${{ github.server_url }}/${{ github.repository }}</url>
+            <url type="homepage">${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}</url>
             <screenshots>
               <screenshot type="default">
                 <image></image>
@@ -107,7 +113,7 @@ jobs:
               cp generic.svg "recipe/${script_name}.svg"
               echo "Building AppImage for '${script_name}'..."
               uv run python -m python_appimage -v build app -b "${base_image}" recipe
-              mv "${script_name}-${{ matrix.system.arch }}.AppImage" "dist/${script_name}-v${version}-${{ matrix.system.arch }}.AppImage"
+              mv "${script_name}-${MATRIX_ARCH}.AppImage" "dist/${script_name}-v${version}-${MATRIX_ARCH}.AppImage"
           done < <(tomlq -r '.project.scripts|to_entries[]|"\(.key) \(.value|split(":")|join(" "))"' pyproject.toml)
         shell: 'bash'
       - name: 'Test binary'
@@ -157,6 +163,7 @@ jobs:
       group: release-assets-${{ github.ref }}
       queue: max
     if: github.ref_type == 'tag'
+    name: 'Release Assets'
     needs:
       - 'build'
     permissions:
