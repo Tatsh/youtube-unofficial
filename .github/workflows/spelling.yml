@@ -5,11 +5,18 @@ jobs:
       - uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
         with:
           persist-credentials: false
-      - name: 'Check spelling'
-        uses: 'streetsidesoftware/cspell-action@6f3c77c1406bc930f944ba97e9801a22e42caf58'
+      - name: 'Yarn cache'
+        uses: 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9'
         with:
-          check_dot_files: true
-          suggestions: true
+          key: "${{ runner.os }}-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}"
+          path: '~/.yarn/berry'
+          restore-keys: '${{ runner.os }}-yarn'
+      - name: 'Install dependencies (Yarn)'
+        run: 'yarn'
+      - name: 'Check spelling'
+        run: |
+          # shellcheck disable=SC2016 # cspell expands the template variables, not the shell.
+          yarn check-spelling --issue-template '::error file=$filename,line=$row,col=$col::Unknown word ($text)'
 name: 'Spelling'
 'on':
   pull_request:
