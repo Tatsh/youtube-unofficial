@@ -115,7 +115,7 @@ The project uses strict mode (`pyproject.toml`):
 - `strict = true`
 - `strict_optional = true`
 - `warn_unreachable = true`
-- `python_version = "3.10"`
+- `python_version = "3.11"`
 - `platform = "linux"`
 
 ## Workflow

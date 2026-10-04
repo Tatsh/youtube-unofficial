@@ -21,8 +21,7 @@ docs = [
   "sphinx-click>=6.2.0",
   "sphinx-datatables>=1.0.0",
   "sphinx-immaterial>=0.13.9",
-  "sphinx>=9.1.0; python_version >= \"3.13\"",
-  "tomlkit>=0.15.1"
+  "sphinx>=9.1.0; python_version >= \"3.13\""
 ]
 tests = [
   "coveralls>=4.1.0",
@@ -37,7 +36,6 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -60,7 +58,7 @@ keywords = ["command line", "youtube"]
 license = "MIT"
 name = "youtube-unofficial"
 readme = "README.md"
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.11,<4.0"
 version = "0.4.0"
 
 [[project.authors]]
@@ -130,7 +128,7 @@ packages = ["youtube_unofficial"]
 cache_dir = "~/.cache/mypy"
 explicit_package_bases = true
 platform = "linux"
-python_version = "3.10"
+python_version = "3.11"
 show_column_numbers = true
 strict = true
 strict_optional = true
@@ -142,7 +140,7 @@ enableExperimentalFeatures = true
 exclude = [".sbclaude-venv", ".venv", "**/node_modules", "**/__pycache__", "**/.*"]
 include = ["./youtube_unofficial", "./tests"]
 pythonPlatform = "Linux"
-pythonVersion = "3.10"
+pythonVersion = "3.11"
 reportCallInDefaultInitializer = "warning"
 reportImplicitOverride = "warning"
 reportImportCycles = "error"
@@ -164,7 +162,7 @@ cache-dir = "~/.cache/ruff"
 force-exclude = true
 line-length = 100
 namespace-packages = ["docs", "tests"]
-target-version = "py310"
+target-version = "py311"
 unsafe-fixes = true
 
 [tool.ruff.format]
