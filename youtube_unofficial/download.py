@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast, overload
 import logging
-
-from typing_extensions import overload
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

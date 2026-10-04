@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator, Iterable, Mapping
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from operator import itemgetter
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast, overload
 import hashlib
 import json
 import logging
 
 from bs4 import BeautifulSoup as Soup
-from typing_extensions import overload
 
 from .constants import (
     EXTRACTED_THUMBNAIL_KEYS,
@@ -450,7 +449,7 @@ class YouTubeClient:
             try:
                 for item in section_list['itemSectionRenderer']['contents']:
                     yield item
-            except KeyError:  # ruff:ignore[try-except-in-loop]
+            except KeyError:
                 if 'continuationItemRenderer' in section_list:
                     next_continuation = {
                         'continuation': (section_list['continuationItemRenderer']
@@ -488,7 +487,7 @@ class YouTubeClient:
                 try:
                     for item in section_list['itemSectionRenderer']['contents']:
                         yield item
-                except KeyError:  # ruff:ignore[try-except-in-loop]
+                except KeyError:
                     if 'continuationItemRenderer' in section_list:
                         continuations = {
                             'continuation': (
@@ -630,7 +629,7 @@ class YouTubeClient:
         return True
 
     def _authorization_sapisidhash_header(self, ytcfg: YtcfgDict | None = None) -> str:
-        now = int(datetime.now(timezone.utc).timestamp())
+        now = int(datetime.now(UTC).timestamp())
         cookies = self.session.cookies
         sapisid: str | None = cookies.get(  # type: ignore[no-untyped-call]
             '__Secure-3PAPISID',
