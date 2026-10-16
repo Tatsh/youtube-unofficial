@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 import json
 
 import pytest
@@ -29,7 +29,7 @@ async def test_response_no_feedback_responses_key(mocker: MockerFixture, client:
 
     async def fake_dl(*args: Any, **kwargs: Any) -> str | dict[str, Any]:
         if kwargs.get('return_json'):
-            return cast('dict[str, Any]', {})
+            return {}
         return '<html></html>'
 
     mocker.patch('youtube_unofficial.client.download_page', side_effect=fake_dl)

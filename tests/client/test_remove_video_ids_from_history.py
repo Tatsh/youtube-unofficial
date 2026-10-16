@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 import json
 
 import pytest
@@ -29,7 +29,7 @@ async def test_remove_video_ids_from_history(mocker: MockerFixture, client: YouT
 
     async def fake_dl(*args: Any, **kwargs: Any) -> str | dict[str, Any]:
         if kwargs.get('return_json'):
-            return cast('dict[str, Any]', {'feedbackResponses': [{'isProcessed': True}]})
+            return {'feedbackResponses': [{'isProcessed': True}]}
         return '<html></html>'
 
     mocker.patch('youtube_unofficial.client.download_page', side_effect=fake_dl)
