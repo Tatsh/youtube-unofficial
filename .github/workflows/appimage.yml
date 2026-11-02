@@ -24,6 +24,8 @@ jobs:
         uses: 'actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0'
         with:
           python-version: '3.13'
+      - name: 'Install dependencies'
+        run: 'sudo apt-get update && sudo apt-get install -y librsvg2-bin'
       - name: 'Install dependencies (uv)'
         run: |
           uv sync
@@ -110,9 +112,20 @@ jobs:
               if [[ "${ACTIONS_RUNNER_DEBUG}" == 'true' ]]; then
                   cat "recipe/${script_name}.appinfo.xml"
               fi
-              cp generic.svg "recipe/${script_name}.svg"
+              rsvg-convert -w 256 -h 256 generic.svg -o "recipe/${script_name}.png"
               echo "Building AppImage for '${script_name}'..."
-              uv run python -m python_appimage -v build app -b "${base_image}" recipe
+              app_dir="${script_name}-${MATRIX_ARCH}"
+              rm -fR "${app_dir}"
+              uv run python -m python_appimage -v build app \
+                  --no-packaging -b "${base_image}" recipe
+              ln -sfn "${script_name}.png" "${app_dir}/.DirIcon"
+              chmod -R a+rX "${app_dir}"
+              uv run python - "${app_dir}" "${app_dir}.AppImage" <<'PY'
+          import sys
+          from python_appimage.appimage.build import build_appimage
+
+          build_appimage(sys.argv[1], destination=sys.argv[2])
+          PY
               mv "${script_name}-${MATRIX_ARCH}.AppImage" "dist/${script_name}-v${version}-${MATRIX_ARCH}.AppImage"
           done < <(tomlq -r '.project.scripts|to_entries[]|"\(.key) \(.value|split(":")|join(" "))"' pyproject.toml)
         shell: 'bash'

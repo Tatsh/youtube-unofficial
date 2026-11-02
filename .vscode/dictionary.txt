@@ -64,6 +64,7 @@ launchable
 lextudio
 libera
 libjsonnet
+librsvg
 libsonnet
 linters
 manylinux
@@ -109,6 +110,7 @@ regen
 resp
 ripgreprc
 rstcheck
+rsvg
 rsvi
 sapisid
 sapisidhash
