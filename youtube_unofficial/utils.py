@@ -111,14 +111,13 @@ def initial_data(content: Soup) -> dict[str, Any]:
         Parsed ytInitialData payload.
     """
     try:
-        script = first(x for x in extract_script_content(content)
-                       if re.match(_YT_INITIAL_DATA_RE, x))
+        script = first(
+            x for x in extract_script_content(content) if re.match(_YT_INITIAL_DATA_RE, x))
     except ValueError:
         msg = 'ytInitialData not found in page; the page may require login or YouTube may have changed its markup.'
         raise ValueError(msg) from None
-    return cast(
-        'dict[str, Any]',
-        json.loads(first(re.sub(_YT_INITIAL_DATA_RE, '', script).split('\n'))[:-1]))
+    return cast('dict[str, Any]',
+                json.loads(first(re.sub(_YT_INITIAL_DATA_RE, '', script).split('\n'))[:-1]))
 
 
 def find_ytcfg(soup: Soup) -> YtcfgDict:

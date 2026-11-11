@@ -56,8 +56,7 @@ def test_initial_data(mocker: MockerFixture) -> None:
 
 
 def test_initial_data_missing_script_reports_clean_error() -> None:
-    soup = BeautifulSoup('<html><head></head><body><p>logged out</p></body></html>',
-                         'html.parser')
+    soup = BeautifulSoup('<html><head></head><body><p>logged out</p></body></html>', 'html.parser')
     with pytest.raises(ValueError, match='ytInitialData not found'):
         initial_data(soup)
 
