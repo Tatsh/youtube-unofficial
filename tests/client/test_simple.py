@@ -91,7 +91,7 @@ async def test_clear_playlist(mocker: MockerFixture, client: YouTubeClient) -> N
 async def test_clear_watch_later(mocker: MockerFixture, client: YouTubeClient) -> None:
     mocker.patch.object(client, 'clear_playlist', new_callable=AsyncMock)
     await client.clear_watch_later()
-    client.clear_playlist.assert_called_once_with(  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+    client.clear_playlist.assert_called_once_with(  # type: ignore[attr-defined]  # ty: ignore[missing-attribute]
         'WL')
 
 
