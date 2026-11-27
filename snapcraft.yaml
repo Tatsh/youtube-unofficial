@@ -20,7 +20,8 @@ parts:
     plugin: 'python'
     python-packages:
       - '.'
-    source: '.'
+    source: 'https://github.com/Tatsh/youtube-unofficial.git'
+    source-tag: 'v0.4.0'
     stage-packages: []
 platforms:
   amd64:

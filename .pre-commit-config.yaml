@@ -46,7 +46,7 @@ repos:
           - '--frozen'
         id: 'uv-sync'
     repo: 'https://github.com/astral-sh/uv-pre-commit'
-    rev: '0.13.9'
+    rev: '0.13.10'
   - hooks:
       - args:
           - '--fix'
@@ -93,7 +93,7 @@ repos:
         stages:
           - 'post-checkout'
           - 'post-merge'
-      - entry: 'yarn exec prettier --write'
+      - entry: 'yarn exec prettier --write --ignore-unknown'
         exclude: "((requirements|robots).txt|Dockerfile.*|..*ignore|.(coveragerc|gitattributes)|.*.(csv|lock|resource|robot)|pylock.*\\.toml|CODEOWNERS|py.typed)$"
         exclude_types:
           - 'binary'

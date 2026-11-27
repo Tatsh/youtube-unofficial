@@ -648,163 +648,163 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tombit/binding-android-arm-eabi@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-android-arm-eabi@npm:0.1.5"
+"@tombit/binding-android-arm-eabi@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-android-arm-eabi@npm:0.1.7"
   conditions: os=android & cpu=arm
   languageName: node
   linkType: hard
 
-"@tombit/binding-android-arm64@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-android-arm64@npm:0.1.5"
+"@tombit/binding-android-arm64@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-android-arm64@npm:0.1.7"
   conditions: os=android & cpu=arm64
   languageName: node
   linkType: hard
 
-"@tombit/binding-darwin-arm64@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-darwin-arm64@npm:0.1.5"
+"@tombit/binding-darwin-arm64@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-darwin-arm64@npm:0.1.7"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@tombit/binding-darwin-x64@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-darwin-x64@npm:0.1.5"
+"@tombit/binding-darwin-x64@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-darwin-x64@npm:0.1.7"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@tombit/binding-freebsd-x64@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-freebsd-x64@npm:0.1.5"
+"@tombit/binding-freebsd-x64@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-freebsd-x64@npm:0.1.7"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-arm-gnueabihf@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-arm-gnueabihf@npm:0.1.5"
+"@tombit/binding-linux-arm-gnueabihf@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-arm-gnueabihf@npm:0.1.7"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-arm-musleabihf@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-arm-musleabihf@npm:0.1.5"
+"@tombit/binding-linux-arm-musleabihf@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-arm-musleabihf@npm:0.1.7"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-arm64-gnu@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-arm64-gnu@npm:0.1.5"
+"@tombit/binding-linux-arm64-gnu@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-arm64-gnu@npm:0.1.7"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-arm64-musl@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-arm64-musl@npm:0.1.5"
+"@tombit/binding-linux-arm64-musl@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-arm64-musl@npm:0.1.7"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-loong64-gnu@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-loong64-gnu@npm:0.1.5"
+"@tombit/binding-linux-loong64-gnu@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-loong64-gnu@npm:0.1.7"
   conditions: os=linux & cpu=loong64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-loong64-musl@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-loong64-musl@npm:0.1.5"
+"@tombit/binding-linux-loong64-musl@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-loong64-musl@npm:0.1.7"
   conditions: os=linux & cpu=loong64 & libc=musl
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-ppc64-gnu@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-ppc64-gnu@npm:0.1.5"
+"@tombit/binding-linux-ppc64-gnu@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-ppc64-gnu@npm:0.1.7"
   conditions: os=linux & cpu=ppc64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-ppc64-musl@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-ppc64-musl@npm:0.1.5"
+"@tombit/binding-linux-ppc64-musl@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-ppc64-musl@npm:0.1.7"
   conditions: os=linux & cpu=ppc64 & libc=musl
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-riscv64-gnu@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-riscv64-gnu@npm:0.1.5"
+"@tombit/binding-linux-riscv64-gnu@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-riscv64-gnu@npm:0.1.7"
   conditions: os=linux & cpu=riscv64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-riscv64-musl@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-riscv64-musl@npm:0.1.5"
+"@tombit/binding-linux-riscv64-musl@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-riscv64-musl@npm:0.1.7"
   conditions: os=linux & cpu=riscv64 & libc=musl
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-s390x-gnu@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-s390x-gnu@npm:0.1.5"
+"@tombit/binding-linux-s390x-gnu@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-s390x-gnu@npm:0.1.7"
   conditions: os=linux & cpu=s390x & libc=glibc
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-x64-gnu@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-x64-gnu@npm:0.1.5"
+"@tombit/binding-linux-x64-gnu@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-x64-gnu@npm:0.1.7"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@tombit/binding-linux-x64-musl@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-linux-x64-musl@npm:0.1.5"
+"@tombit/binding-linux-x64-musl@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-linux-x64-musl@npm:0.1.7"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@tombit/binding-openharmony-arm64@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-openharmony-arm64@npm:0.1.5"
+"@tombit/binding-openharmony-arm64@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-openharmony-arm64@npm:0.1.7"
   conditions: os=openharmony & cpu=arm64
   languageName: node
   linkType: hard
 
-"@tombit/binding-openharmony-x64@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-openharmony-x64@npm:0.1.5"
+"@tombit/binding-openharmony-x64@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-openharmony-x64@npm:0.1.7"
   conditions: os=openharmony & cpu=x64
   languageName: node
   linkType: hard
 
-"@tombit/binding-win32-arm64-msvc@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-win32-arm64-msvc@npm:0.1.5"
+"@tombit/binding-win32-arm64-msvc@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-win32-arm64-msvc@npm:0.1.7"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@tombit/binding-win32-ia32-msvc@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-win32-ia32-msvc@npm:0.1.5"
+"@tombit/binding-win32-ia32-msvc@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-win32-ia32-msvc@npm:0.1.7"
   conditions: os=win32 & cpu=ia32
   languageName: node
   linkType: hard
 
-"@tombit/binding-win32-x64-msvc@npm:0.1.5":
-  version: 0.1.5
-  resolution: "@tombit/binding-win32-x64-msvc@npm:0.1.5"
+"@tombit/binding-win32-x64-msvc@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tombit/binding-win32-x64-msvc@npm:0.1.7"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -840,11 +840,11 @@ __metadata:
   linkType: hard
 
 "@xml-tools/parser@npm:^1.0.11":
-  version: 1.0.11
-  resolution: "@xml-tools/parser@npm:1.0.11"
+  version: 1.0.12
+  resolution: "@xml-tools/parser@npm:1.0.12"
   dependencies:
     chevrotain: "npm:7.1.1"
-  checksum: 10c0/5abc75163d6b2ac8e9006a54576523513535953237463297137c5a3665ce1b9d220b77b6dbb68ab93df3fab40bbc98bbb10e90dd690fd7646fdb021323827971
+  checksum: 10c0/c5e7d0653ac2ad4c4ab6829531171733f985e6a41bfd2813fd79acaa629467d7e5a92d5a9bd37f84b3e17e5c30245745ed8fb0a5f5e2e0ffafa5c802a7e7d5e2
   languageName: node
   linkType: hard
 
@@ -855,14 +855,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansi-regex@npm:^6.2.2":
-  version: 6.4.0
-  resolution: "ansi-regex@npm:6.4.0"
-  checksum: 10c0/e42f68ffa21aac4c4de27aad601bb5ea415b5a07b127681ef44728195f22231b77bc39230ce0c976420d84650b7bf5a5b60eb4e7500c1f74e9a3f3cd4a68f3f6
-  languageName: node
-  linkType: hard
-
-"ansi-regex@npm:^6.6.0":
+"ansi-regex@npm:^6.2.2, ansi-regex@npm:^6.6.0":
   version: 6.6.0
   resolution: "ansi-regex@npm:6.6.0"
   checksum: 10c0/a151a7bee21f74765c1bbc50cb778ca8d5138e01683b123aa63a5e5f4ae02cb9cff50598bd2ace4429917be7d312ec70a6d140e53030da76597202a018ce9899
@@ -870,9 +863,9 @@ __metadata:
   linkType: hard
 
 "argparse@npm:^3.0.3":
-  version: 3.0.3
-  resolution: "argparse@npm:3.0.3"
-  checksum: 10c0/8d715f1c4bb0aa14a8b8ee749d6ab6f12d380caba33139d527cac79988af152cfd160f152c3964c76c7ea473f1899bd0989bd1e9cfdba22e68f50b6a4b5c9d0d
+  version: 3.0.4
+  resolution: "argparse@npm:3.0.4"
+  checksum: 10c0/845346e39e677b46f8558cece7c8dad1f7045f8b86af33356d8565b26a16940bf770a14a51d6da40ce76554a141e0e95b514d055d1da17a2f1b42df7d523fa0f
   languageName: node
   linkType: hard
 
@@ -1196,9 +1189,9 @@ __metadata:
   linkType: hard
 
 "fast-equals@npm:^6.2.2":
-  version: 6.2.2
-  resolution: "fast-equals@npm:6.2.2"
-  checksum: 10c0/bb4a06e682054cd270a946ea463c8cfe75d26e23e78232f575f017feaff896f138c69846639b4ceabb35abdc1fdfe0412c06af923e9853d9386741e9b0a777d5
+  version: 6.4.0
+  resolution: "fast-equals@npm:6.4.0"
+  checksum: 10c0/86d37863904058ac40f4edbc9b31f841efb35993f89bb080ad969a83e4b445fdd8008ef62b4278622f16e1d7a567320341565f3b1a91e45c15c3ca3d18308691
   languageName: node
   linkType: hard
 
@@ -1319,16 +1312,16 @@ __metadata:
   linkType: hard
 
 "graceful-fs@npm:^4.2.6":
-  version: 4.2.11
-  resolution: "graceful-fs@npm:4.2.11"
-  checksum: 10c0/386d011a553e02bc594ac2ca0bd6d9e4c22d7fa8cfbfc448a6d148c59ea881b092db9dbe3547ae4b88e55f1b01f7c4a2ecc53b310c042793e63aa44cf6c257f2
+  version: 4.2.12
+  resolution: "graceful-fs@npm:4.2.12"
+  checksum: 10c0/a4e2ccd9fe7ed384ed0d466363028978c1b1537f0719db826dfa6a850abd8fc418596f14d9a9609f830ba8137df3da1acc1132a6afd635d8633fbe53530c3e6d
   languageName: node
   linkType: hard
 
 "ignore@npm:^7.0.5":
-  version: 7.0.10
-  resolution: "ignore@npm:7.0.10"
-  checksum: 10c0/d3f68f0f89412996795850198ef2465bbf4222de4734273e8f100cbabae79fe5ae3643d6d3bbf43e7ec10e8d5b65be22df0e5084114d375611220b8b8d3d254a
+  version: 7.0.16
+  resolution: "ignore@npm:7.0.16"
+  checksum: 10c0/02b7958922f7d6f25f44b996576263ffb7f3b61c4d7e474c4a1723341ee55a2b88139edac7542640aff92598adafef6f353b35250f14d4c8e9efe250e84ff20c
   languageName: node
   linkType: hard
 
@@ -1498,28 +1491,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdownlint-cli2@npm:^0.24.1":
-  version: 0.24.1
-  resolution: "markdownlint-cli2@npm:0.24.1"
+"markdownlint-cli2@npm:^0.24.2":
+  version: 0.24.2
+  resolution: "markdownlint-cli2@npm:0.24.2"
   dependencies:
     globby: "npm:16.2.4"
     js-yaml: "npm:5.5.0"
     jsonc-parser: "npm:3.3.1"
     jsonpointer: "npm:5.0.1"
     markdown-it: "npm:15.0.3"
-    markdownlint: "npm:0.42.1"
+    markdownlint: "npm:0.42.2"
     markdownlint-cli2-formatter-default: "npm:0.0.6"
     micromatch: "npm:4.0.8"
     smol-toml: "npm:1.9.1"
   bin:
     markdownlint-cli2: markdownlint-cli2-bin.mjs
-  checksum: 10c0/b99cce5b12fd3b6905ce024fa9c571a47473e3355f98ff48a12f7e7ccdda05aa4076126a572ac0370af7b84319f5923e64a2c9c0a89a378617439db786267c71
+  checksum: 10c0/a73afe0103ac6bd84ca32b02e664f57f19df683b4e89f8d490609656c66a178c2f887994f1abe4bbc9aaf73b796b6146657b87d09d732524e861883caaf88126
   languageName: node
   linkType: hard
 
-"markdownlint@npm:0.42.1":
-  version: 0.42.1
-  resolution: "markdownlint@npm:0.42.1"
+"markdownlint@npm:0.42.2":
+  version: 0.42.2
+  resolution: "markdownlint@npm:0.42.2"
   dependencies:
     micromark: "npm:4.0.3"
     micromark-core-commonmark: "npm:2.0.4"
@@ -1531,7 +1524,7 @@ __metadata:
     micromark-util-types: "npm:2.0.3"
     re2js: "npm:2.9.1"
     string-width: "npm:8.3.0"
-  checksum: 10c0/f052eebb2b7e27282a66ba8fcc4619fbcb3ca2fcf80f5df763c3d999dfc786e19cb95d6bb78f1ad6258bb88e1c3c3bbbfa33a61d7ac72e9ae888e17e7964440d
+  checksum: 10c0/8d3a42bb2787be1346955d92f1a22be9e90fe4619feff8f302876f4ee0ac0c4811e4f8b1cf4c18ab504afa2ccf5fc6734985085e4941ba80b4dfbcd2e4947eb7
   languageName: node
   linkType: hard
 
@@ -1888,18 +1881,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"napi-postinstall@npm:^0.3.5":
-  version: 0.3.6
-  resolution: "napi-postinstall@npm:0.3.6"
+"napi-postinstall@npm:^0.3.7":
+  version: 0.3.8
+  resolution: "napi-postinstall@npm:0.3.8"
   bin:
+    napi-patch: ./lib/patch.js
     napi-postinstall: ./lib/cli.js
-  checksum: 10c0/2d7c19bf7b41d94f222fc2faa38a56689c3729cd652e572e5a4f4bdfa6352e83e22fcd958c26f74920d253446790faad00f3d1c3ca1686e9248addaab759118d
+  checksum: 10c0/c66798be50192fad766409653a25a1d747d24119fc8a8bc6c7d9302bbaf6691e2747bdf11a65d62bb9e749f1a21ebab3b8e9833e0b67ae03b2241941e0b3c6d9
   languageName: node
   linkType: hard
 
 "node-gyp@npm:latest":
-  version: 13.0.2
-  resolution: "node-gyp@npm:13.0.2"
+  version: 13.1.0
+  resolution: "node-gyp@npm:13.1.0"
   dependencies:
     env-paths: "npm:^2.2.0"
     exponential-backoff: "npm:^3.1.1"
@@ -1907,13 +1901,13 @@ __metadata:
     nopt: "npm:^10.0.0"
     proc-log: "npm:^7.0.0"
     semver: "npm:^7.3.5"
-    tar: "npm:^7.5.4"
+    tar: "npm:^7.5.7"
     tinyglobby: "npm:^0.2.12"
     undici: "npm:^8.4.1"
     which: "npm:^7.0.0"
   bin:
     node-gyp: bin/node-gyp.js
-  checksum: 10c0/29d33ccf47ffeeb5e7af925550b416f698a26a72eb10975c7eb5775c1d0cecacd76d164a4aa45503d3ddcece209db65c712be00423c69381a4cd14e2e6540559
+  checksum: 10c0/c6693e52e0e111b21f5cd8ff303b41b51f40338adcc79ac5c6a02399eba7039d50dc816dcafcc485870291a641f7cb75db8887a9bdd0de537fe635a3a81cba5b
   languageName: node
   linkType: hard
 
@@ -1986,16 +1980,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:>=3.0.0-alpha.3":
-  version: 3.9.9
-  resolution: "prettier@npm:3.9.9"
-  bin:
-    prettier: bin/prettier.cjs
-  checksum: 10c0/d50ea2537b2ff7dbd5088a214f4d936484e55c665cea2185b477a55b0770be55f3b156a71f63a9a639def6b334667bb327139dc85f2a1041c0a34752cdc74647
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^3.10.1":
+"prettier@npm:>=3.0.0-alpha.3, prettier@npm:^3.10.1":
   version: 3.10.1
   resolution: "prettier@npm:3.10.1"
   bin:
@@ -2077,16 +2062,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.3.5":
-  version: 7.8.5
-  resolution: "semver@npm:7.8.5"
-  bin:
-    semver: bin/semver.js
-  checksum: 10c0/b1f3127a5be8125a94f37188b361c212466c292c6910adce3ec106cff5dc211ccaedc4739c11bb70fda59d6fc1f040a9bca289f4e093451521a2372e5231fe0c
-  languageName: node
-  linkType: hard
-
-"semver@npm:^7.8.6":
+"semver@npm:^7.3.5, semver@npm:^7.8.6":
   version: 7.8.6
   resolution: "semver@npm:7.8.6"
   bin:
@@ -2128,16 +2104,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar@npm:^7.5.4":
-  version: 7.5.22
-  resolution: "tar@npm:7.5.22"
+"tar@npm:^7.5.7":
+  version: 7.5.23
+  resolution: "tar@npm:7.5.23"
   dependencies:
     "@isaacs/fs-minipass": "npm:^4.0.0"
     chownr: "npm:^3.0.0"
     minipass: "npm:^7.1.2"
     minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
-  checksum: 10c0/1311f6be85a8157ac4c9147bae43e13923d2a1aae15e4aa1bd5239e4e03d2cf53cfe103dde7f35832fbb4c938b042856bc8e9a0afd29abd05e2d1608788c4fea
+  checksum: 10c0/41324dc475f655e6a322729dacac14e3114ed4b18cba350be5d1eb52b1aa2794a1c78c2a5b7f49d3d15f53c058158168121eaf6c5d2f75a0a9565b344bf3a18a
   languageName: node
   linkType: hard
 
@@ -2161,33 +2137,33 @@ __metadata:
   linkType: hard
 
 "tombit@npm:^0.1.3":
-  version: 0.1.5
-  resolution: "tombit@npm:0.1.5"
+  version: 0.1.7
+  resolution: "tombit@npm:0.1.7"
   dependencies:
-    "@tombit/binding-android-arm-eabi": "npm:0.1.5"
-    "@tombit/binding-android-arm64": "npm:0.1.5"
-    "@tombit/binding-darwin-arm64": "npm:0.1.5"
-    "@tombit/binding-darwin-x64": "npm:0.1.5"
-    "@tombit/binding-freebsd-x64": "npm:0.1.5"
-    "@tombit/binding-linux-arm-gnueabihf": "npm:0.1.5"
-    "@tombit/binding-linux-arm-musleabihf": "npm:0.1.5"
-    "@tombit/binding-linux-arm64-gnu": "npm:0.1.5"
-    "@tombit/binding-linux-arm64-musl": "npm:0.1.5"
-    "@tombit/binding-linux-loong64-gnu": "npm:0.1.5"
-    "@tombit/binding-linux-loong64-musl": "npm:0.1.5"
-    "@tombit/binding-linux-ppc64-gnu": "npm:0.1.5"
-    "@tombit/binding-linux-ppc64-musl": "npm:0.1.5"
-    "@tombit/binding-linux-riscv64-gnu": "npm:0.1.5"
-    "@tombit/binding-linux-riscv64-musl": "npm:0.1.5"
-    "@tombit/binding-linux-s390x-gnu": "npm:0.1.5"
-    "@tombit/binding-linux-x64-gnu": "npm:0.1.5"
-    "@tombit/binding-linux-x64-musl": "npm:0.1.5"
-    "@tombit/binding-openharmony-arm64": "npm:0.1.5"
-    "@tombit/binding-openharmony-x64": "npm:0.1.5"
-    "@tombit/binding-win32-arm64-msvc": "npm:0.1.5"
-    "@tombit/binding-win32-ia32-msvc": "npm:0.1.5"
-    "@tombit/binding-win32-x64-msvc": "npm:0.1.5"
-    napi-postinstall: "npm:^0.3.5"
+    "@tombit/binding-android-arm-eabi": "npm:0.1.7"
+    "@tombit/binding-android-arm64": "npm:0.1.7"
+    "@tombit/binding-darwin-arm64": "npm:0.1.7"
+    "@tombit/binding-darwin-x64": "npm:0.1.7"
+    "@tombit/binding-freebsd-x64": "npm:0.1.7"
+    "@tombit/binding-linux-arm-gnueabihf": "npm:0.1.7"
+    "@tombit/binding-linux-arm-musleabihf": "npm:0.1.7"
+    "@tombit/binding-linux-arm64-gnu": "npm:0.1.7"
+    "@tombit/binding-linux-arm64-musl": "npm:0.1.7"
+    "@tombit/binding-linux-loong64-gnu": "npm:0.1.7"
+    "@tombit/binding-linux-loong64-musl": "npm:0.1.7"
+    "@tombit/binding-linux-ppc64-gnu": "npm:0.1.7"
+    "@tombit/binding-linux-ppc64-musl": "npm:0.1.7"
+    "@tombit/binding-linux-riscv64-gnu": "npm:0.1.7"
+    "@tombit/binding-linux-riscv64-musl": "npm:0.1.7"
+    "@tombit/binding-linux-s390x-gnu": "npm:0.1.7"
+    "@tombit/binding-linux-x64-gnu": "npm:0.1.7"
+    "@tombit/binding-linux-x64-musl": "npm:0.1.7"
+    "@tombit/binding-openharmony-arm64": "npm:0.1.7"
+    "@tombit/binding-openharmony-x64": "npm:0.1.7"
+    "@tombit/binding-win32-arm64-msvc": "npm:0.1.7"
+    "@tombit/binding-win32-ia32-msvc": "npm:0.1.7"
+    "@tombit/binding-win32-x64-msvc": "npm:0.1.7"
+    napi-postinstall: "npm:^0.3.7"
   dependenciesMeta:
     "@tombit/binding-android-arm-eabi":
       optional: true
@@ -2235,7 +2211,7 @@ __metadata:
       optional: true
     "@tombit/binding-win32-x64-msvc":
       optional: true
-  checksum: 10c0/3a3e66f9242fd94f52529dcc772575476c608f2ad376614f3f693b36c23ca671c68883ab6174b151df79d97d62194850d3d38ea69a9558a261d50ab994f09d51
+  checksum: 10c0/dccbff857c17ef8a0916714639e95f6ea5841a520a11aa5f5f166f894de69abf175a6c6a2256f373cf0c75f32fc5b471d76de99d6d0ecfa05007a2687de4c08f
   languageName: node
   linkType: hard
 
@@ -2247,9 +2223,9 @@ __metadata:
   linkType: hard
 
 "undici@npm:^8.4.1":
-  version: 8.12.2
-  resolution: "undici@npm:8.12.2"
-  checksum: 10c0/25b0e0a69585b2b2e2678fdcd07942bbe15b14c6686d496712b0ee37ce15753af90ab7335ee42c8e65ec60b72bf3a21adc72bbabf86c1eaca74f27a3779532de
+  version: 8.13.0
+  resolution: "undici@npm:8.13.0"
+  checksum: 10c0/a932546a05c996d1fc11c880ed5253ee06ec858e6a003231c70d6f8e60ba049fa6b0d86483f8e54c2e0bed6c6c51c5bca8780390fe4b4ec5b4504af60078ebde
   languageName: node
   linkType: hard
 
@@ -2314,7 +2290,7 @@ __metadata:
   dependencies:
     "@prettier/plugin-xml": "npm:^3.4.2"
     cspell: "npm:^10.5.2"
-    markdownlint-cli2: "npm:^0.24.1"
+    markdownlint-cli2: "npm:^0.24.2"
     prettier: "npm:^3.10.1"
     prettier-plugin-ini: "npm:^1.3.0"
     prettier-plugin-sort-json: "npm:^4.2.0"
